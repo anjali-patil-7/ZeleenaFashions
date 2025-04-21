@@ -1,0 +1,271 @@
+<%- include('../partials/user/header') %>
+
+<style>
+  .new-tag {
+    display: inline-block;
+    background-color: #209e1c;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+  <div class="container">
+    <div class="breadcrumb-content">
+      <h2>Shop</h2>
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li class="active">Shop</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+
+<!-- Begin Hiraola's Content Wrapper Area -->
+<div class="hiraola-content_wrapper">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-3 order-2 order-lg-1">
+        <div class="hiraola-sidebar-catagories_area">
+          <div class="category-module hiraola-sidebar_categories">
+            <div class="category-module_heading">
+              <h5>Categories</h5>
+            </div>
+            <div class="module-body">
+              <ul class="module-list_item">
+                <% categories.forEach(category => { %>
+                  <li><a href="/shopbyfilter/<%= category._id %>"><%= category.name %></a></li>
+                <% }) %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-9 order-1 order-lg-2">
+        <div class="shop-toolbar">
+          <div class="product-view-mode">
+            <a class="active grid-3" data-target="gridview-3" data-toggle="tooltip" data-placement="top" title="Grid View"><i class="fa fa-th"></i></a>
+            <a class="list" data-target="listview" data-toggle="tooltip" data-placement="top" title="List View"><i class="fa fa-th-list"></i></a>
+          </div>
+          <div class="product-sorting-box">
+            <select id="sortSelect" class="form-control" onchange="sortProducts()">
+              <option value="">Sort By</option>
+              <option value="a-z" <%= sort === 'a-z' ? 'selected' : '' %>>Sort by Name: A-Z</option>
+              <option value="z-a" <%= sort === 'z-a' ? 'selected' : '' %>>Sort by Name: Z-A</option>
+              <option value="l-h" <%= sort === 'l-h' ? 'selected' : '' %>>Sort by Price: Low to High</option>
+              <option value="h-l" <%= sort === 'h-l' ? 'selected' : '' %>>Sort by Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="shop-product-wrap grid gridview-3 row">
+          <% products.forEach(product => { %>
+            <div class="col-lg-4">
+              <div class="slide-item">
+                <div class="single_product">
+                  <div class="product-img">
+                    <a href="/singleproduct/<%= product._id %>">
+                      <img 
+                        class="primary-img" 
+                        src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" 
+                        alt="<%= product.productName %>" 
+                        onerror="this.src='/images/placeholder.jpg'"
+                      >
+                    </a>
+                    <% if (product.createdAt) { 
+                      const createdAtDate = new Date(product.createdAt);
+                      const fiveDaysAgo = new Date();
+                      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 7);
+                      if (createdAtDate >= fiveDaysAgo) { %>
+                        <div class="new-tag">New!</div>
+                    <% } } %>
+                    <div class="add-actions">
+                      <ul>
+                        <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
+                        <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="hiraola-product_content">
+                    <div class="product-desc_info">
+                      <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName %></a></h6>
+                      <div class="price-box">
+                        <% const productOffer = offers.find(offer => offer.offerType === 'product' && offer.productId.some(p => p._id.equals(product._id))); %>
+                        <% const categoryOffer = offers.find(offer => offer.offerType === 'category' && offer.categoryId.some(c => c._id.equals(product.category))); %>
+                        <% const bestOffer = (productOffer && categoryOffer) ? (productOffer.discount > categoryOffer.discount ? productOffer : categoryOffer) : (productOffer || categoryOffer); %>
+                        <% if (bestOffer) { %>
+                          <span class="old-price" style="color: #ff0000; text-decoration: line-through;">₹<%= product.price %></span>
+                          <span class="new-price" style="color: #000000;">
+                            ₹<%= (product.price - (product.price * bestOffer.discount / 100)).toFixed(2) %>
+                          </span>
+                          <span class="discount-label" style="color: #2e7d32; font-size: 0.9rem;">(<%= bestOffer.discount %>% OFF)</span>
+                        <% } else { %>
+                          <span class="new-price">₹<%= product.price %></span>
+                        <% } %>
+                      </div>
+                      <div class="additional-add_action">
+                        <ul>
+                          <li>
+                            <a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" 
+                               title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
+                               data-product-id="<%= product._id %>">
+                              <i class="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i>
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="rating-box">
+                        <ul>
+                          <li><i class="fa fa-star-of-david"></i></li>
+                          <li><i class="fa fa-star-of-david"></i></li>
+                          <li><i class="fa fa-star-of-david"></i></li>
+                          <li><i class="fa fa-star-of-david"></i></li>
+                          <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="hiraola-paginatoin-area">
+              <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                  <ul class="hiraola-pagination-box">
+                    <% if (currentPage > 1) { %>
+                      <li><a href="/shop?page=1<%= sort ? '&sort=' + sort : '' %>">|<</a></li>
+                      <li><a class="Previous" href="/shop?page=<%= currentPage - 1 %><%= sort ? '&sort=' + sort : '' %>"><i class="ion-ios-arrow-left"></i></a></li>
+                    <% } %>
+                    <% for(let i = 1; i <= totalPages; i++) { %>
+                      <% if (i === currentPage) { %>
+                        <li class="active"><a href="javascript:void(0)"><%= i %></a></li>
+                      <% } else { %>
+                        <li><a href="/shop?page=<%= i %><%= sort ? '&sort=' + sort : '' %>"><%= i %></a></li>
+                      <% } %>
+                    <% } %>
+                    <% if (currentPage < totalPages) { %>
+                      <li><a class="Next" href="/shop?page=<%= currentPage + 1 %><%= sort ? '&sort=' + sort : '' %>"><i class="ion-ios-arrow-right"></i></a></li>
+                      <li><a href="/shop?page=<%= totalPages %><%= sort ? '&sort=' + sort : '' %>">|></a></li>
+                    <% } %>
+                  </ul>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                  <div class="product-select-box">
+                    <div class="product-short">
+                      <p>Showing <%= (currentPage - 1) * limit + 1 %> to <%= Math.min(currentPage * limit, totalProducts) %> of <%= totalProducts %> (<%= totalPages %> Pages)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Hiraola's Content Wrapper Area End Here -->
+
+<%- include('../partials/user/footer') %>
+
+<script>
+  function sortProducts() {
+    const sortSelect = document.getElementById('sortSelect');
+    const sortOption = sortSelect.value;
+    const currentUrl = new URL(window.location.href);
+    
+    if (sortOption) {
+      currentUrl.searchParams.set('sort', sortOption);
+      currentUrl.searchParams.set('page', '1');
+    } else {
+      currentUrl.searchParams.delete('sort');
+    }
+    
+    window.location.href = currentUrl.toString();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const wishlistButtons = document.querySelectorAll('.hiraola-add_compare');
+
+    wishlistButtons.forEach((button) => {
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        const productId = button.getAttribute('data-product-id');
+        const icon = button.querySelector('i');
+        const isInWishlist = icon.classList.contains('ion-android-favorite');
+
+        const url = isInWishlist ? '/wishlist/remove' : '/wishlist/add';
+        const action = isInWishlist ? 'remove' : 'add';
+
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ productId: productId }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              if (action === 'add') {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Success!',
+                  text: 'Product added to wishlist successfully!',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                });
+                icon.classList.remove('ion-android-favorite-outline');
+                icon.classList.add('ion-android-favorite');
+                button.setAttribute('title', 'Remove from Wishlist');
+              } else {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Success!',
+                  text: 'Product removed from wishlist successfully!',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                });
+                icon.classList.remove('ion-android-favorite');
+                icon.classList.add('ion-android-favorite-outline');
+                button.setAttribute('title', 'Add To Wishlist');
+              }
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.message || `Failed to ${action} product to/from wishlist`,
+              });
+            }
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: `An error occurred while ${action === 'add' ? 'adding' : 'removing'} the product to/from the wishlist`,
+            });
+          });
+      });
+    });
+  });
+</script>

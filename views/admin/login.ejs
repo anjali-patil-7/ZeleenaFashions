@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/public/admin/assets/imgs/favicon.png">
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            background: #ffffff;
+            border: 1px solid #000000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #000000;
+            font-weight: 600;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            margin-bottom: 8px;
+            color: #000000;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            padding: 14px 16px;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .input-group.error input {
+            border-color: #d32f2f;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-group.error .error-message {
+            display: block;
+        }
+
+        .login-btn {
+            padding: 14px;
+            background-color: #000000;
+            color: #FFD700;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background-color: #FFD700;
+            color: #000000;
+        }
+
+        /* Flash Messages */
+        .flash-message {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            max-width: 350px;
+            z-index: 1000;
+            border-left: 4px solid;
+        }
+
+        .flash-message svg {
+            width: 22px;
+            height: 22px;
+            margin-right: 12px;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border-left-color: #d32f2f;
+        }
+
+        .success-message {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left-color: #2e7d32;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 20px;
+                width: auto;
+            }
+            
+            .flash-message {
+                max-width: 280px;
+                right: 20px;
+                left: 20px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flash-message error-message" id="flash-message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span><%= error_msg %></span>
+        </div>
+    <% } %>
+    
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flash-message success-message" id="flash-message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span><%= success_msg %></span>
+        </div>
+    <% } %>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Admin Login</h2>
+            <p>Enter your credentials to access the dashboard</p>
+        </div>
+        
+        <form class="login-form" method="post" action="/admin/login" onsubmit="return validateForm(event)">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email" name="email">
+                <span class="error-message" id="email-error"></span>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" name="password">
+                <span class="error-message" id="password-error"></span>
+            </div>
+            
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+    </div>
+
+    <script>
+        function validateForm(event) {
+            event.preventDefault();
+            let isValid = true;
+
+            // Reset previous error states
+            document.querySelectorAll('.input-group').forEach(group => {
+                group.classList.remove('error');
+            });
+
+            // Email validation
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailGroup = document.getElementById('email').parentElement;
+            const emailError = document.getElementById('email-error');
+
+            if (!email) {
+                emailGroup.classList.add('error');
+                emailError.textContent = 'Email is required';
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                emailGroup.classList.add('error');
+                emailError.textContent = 'Please enter a valid email address';
+                isValid = false;
+            }
+
+            // Password validation
+            const password = document.getElementById('password').value;
+            const passwordGroup = document.getElementById('password').parentElement;
+            const passwordError = document.getElementById('password-error');
+
+            if (!password) {
+                passwordGroup.classList.add('error');
+                passwordError.textContent = 'Password is required';
+                isValid = false;
+            } else if (password.length < 6) {
+                passwordGroup.classList.add('error');
+                passwordError.textContent = 'Password must be at least 6 characters long';
+                isValid = false;
+            }
+
+            // If all validations pass, submit the form
+            if (isValid) {
+                event.target.submit();
+            }
+
+            return isValid;
+        }
+
+        // Real-time validation
+        document.getElementById('email').addEventListener('input', function() {
+            const email = this.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailGroup = this.parentElement;
+            const emailError = document.getElementById('email-error');
+
+            if (!email) {
+                emailGroup.classList.add('error');
+                emailError.textContent = 'Email is required';
+            } else if (!emailRegex.test(email)) {
+                emailGroup.classList.add('error');
+                emailError.textContent = 'Please enter a valid email address';
+            } else {
+                emailGroup.classList.remove('error');
+                emailError.textContent = '';
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const passwordGroup = this.parentElement;
+            const passwordError = document.getElementById('password-error');
+
+            if (!password) {
+                passwordGroup.classList.add('error');
+                passwordError.textContent = 'Password is required';
+            } else if (password.length < 6) {
+                passwordGroup.classList.add('error');
+                passwordError.textContent = 'Password must be at least 6 characters long';
+            } else {
+                passwordGroup.classList.remove('error');
+                passwordError.textContent = '';
+            }
+        });
+
+        function removeFlashMessage() {
+            const flashMessage = document.getElementById("flash-message");
+            if (flashMessage) {
+                setTimeout(() => {
+                    flashMessage.style.animation = 'fadeIn 0.3s ease-in-out reverse';
+                    setTimeout(() => flashMessage.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        window.onload = removeFlashMessage;
+    </script>
+</body>
+</html>

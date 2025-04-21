@@ -1,0 +1,297 @@
+<%- include('../partials/admin/header') %>
+
+<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 600;">Users List</h2>
+            <p style="color: #666;">Users Management</p>
+        </div>
+    </div>
+    
+    <!-- Search Container -->
+    <div class="search-container" style="margin-bottom: 30px;">
+        <form action="/admin/users" method="GET">
+            <div style="display: flex; max-width: 500px;">
+                <input 
+                    type="text" 
+                    name="query" 
+                    placeholder="Search by username, email or phone..." 
+                    style="flex: 1; padding: 10px 15px; border: 1px solid #000000; border-radius: 4px 0 0 4px; font-family: 'Montserrat', sans-serif;"
+                    value="<%= locals.searchQuery || '' %>"
+                >
+                <button 
+                    type="submit" 
+                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';"
+                >
+                    Search
+                </button>
+                <% if (locals.searchQuery) { %>
+                    <a 
+                        href="/admin/users" 
+                        style="background-color: #f8f8f8; color: #000000; padding: 10px 15px; border: 1px solid #000000; border-left: none; text-decoration: none; display: flex; align-items: center; font-family: 'Montserrat', sans-serif;"
+                    >
+                        Clear
+                    </a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border: 1px solid #000000;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .users-table th {
+            padding: 15px;
+            text-align: center;
+            background-color: #000000;
+            color: #FFD700;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .users-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            color: #333;
+        }
+        
+        .users-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .users-table tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .delete-btn {
+            background-color: #000000;
+            color: #FFD700;
+        }
+
+        .delete-btn:hover {
+            background-color: #FFD700;
+            color: #000000;
+        }
+
+        .pagination {
+            margin-top: 30px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .page-link {
+            padding: 8px 14px;
+            border: 1px solid #000000;
+            text-decoration: none;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .page-link:hover {
+            background-color: #000000;
+            color: #FFD700;
+        }
+
+        .page-link.active {
+            background-color: #000000;
+            color: #FFD700;
+            font-weight: 600;
+        }
+        
+        .no-data {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 30px;
+            font-size: 18px;
+            color: #666;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #FFD700;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+    <% if (users.length>0) { %>
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>SL.No</th>
+                    <th>User Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach((user, index) => { %>
+                <tr id="user-row-<%= user.id %>">
+                    <td><%= index + 1 %></td>
+                    <td><%= user.userName %></td>
+                    <td><%= user.email %></td>
+                    <td><%= user.phone %></td>
+                    <td id="status-<%= user.id %>" style="font-weight: 500; color: <%= user.status ? '#28a745' : '#dc3545' %>;">
+                        <%= user.status ? "Active" : "Inactive" %>
+                    </td>
+                    <td>
+                        <button id="block-btn-<%= user.id %>" 
+                                onclick="toggleUserStatus('<%= user.id %>', '<%= user.status %>')" 
+                                class="action-btn delete-btn">
+                            <%= user.status ? "Block" : "UnBlock" %>
+                        </button>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p class="no-data">No Users found</p>
+    <% } %>
+    
+    <div class="pagination">
+        <% if (currentPage > 1) { %>
+            <a href="/admin/users?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">←</a>
+        <% } %>
+        
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/admin/users?page=<%= i %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+        <% } %>
+        
+        <% if (currentPage < totalPages) { %>
+            <a href="/admin/users?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">→</a>
+        <% } %>
+    </div>
+    
+</section>
+
+<%- include('../partials/admin/footer') %>
+
+<script>
+    function toggleUserStatus(userId, currentStatus) {
+        // Show confirmation dialog
+        Swal.fire({
+            title: "Are you sure?",
+            text: `Do you want to ${currentStatus ? "block" : "unblock"} this user?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: '#000000',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            customClass: {
+                popup: 'gold-swal',
+                confirmButton: 'gold-confirm-btn'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get the button element
+                const button = document.getElementById(`block-btn-${userId}`);
+                const statusCell = document.getElementById(`status-${userId}`);
+                
+                // Add spinner to button
+                const originalText = button.innerHTML;
+                button.innerHTML = '<div class="spinner"></div>';
+                button.disabled = true;
+                
+                // Send AJAX request
+                fetch(`/admin/api/block/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update button text and status cell
+                    button.innerHTML = data.status ? "Block" : "UnBlock";
+                    button.disabled = false;
+                    statusCell.textContent = data.status ? "Active" : "Inactive";
+                    statusCell.style.color = data.status ? "#28a745" : "#dc3545";
+                    
+                    // Show success message
+                    Swal.fire({
+                        title: "Success!",
+                        text: `User ${data.status ? "unblocked" : "blocked"} successfully`,
+                        icon: "success",
+                        confirmButtonColor: "#000000",
+                        customClass: {
+                            popup: 'gold-swal',
+                            confirmButton: 'gold-confirm-btn'
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    
+                    // Show error message
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Something went wrong. Please try again.",
+                        icon: "error",
+                        confirmButtonColor: "#000000",
+                        customClass: {
+                            popup: 'gold-swal',
+                            confirmButton: 'gold-confirm-btn'
+                        }
+                    });
+                });
+            }
+        });
+    }
+</script>
+
+<style>
+    .gold-swal {
+        border: 2px solid #FFD700 !important;
+    }
+    .gold-confirm-btn {
+        background-color: #000000 !important;
+        color: #FFD700 !important;
+    }
+</style>

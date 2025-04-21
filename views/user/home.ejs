@@ -1,0 +1,298 @@
+<%- include('../partials/user/header') %>
+
+<style>
+    .flash-message {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        max-width: 300px;
+        z-index: 1000;
+    }
+
+    .flash-message svg {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .error-message {
+        background-color: #ffebee;
+        color: #d32f2f;
+        border-left: 4px solid #d32f2f;
+    }
+
+    .success-message {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border-left: 4px solid #2e7d32;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .new-tag {
+        display: inline-block;
+        background-color: #209e1c;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 5px;
+        text-transform: uppercase;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<% if (error_msg && error_msg.length > 0) { %>
+    <div class="flash-message error-message" id="flash-message">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span><%= error_msg %></span>
+    </div>
+<% } %>
+
+<% if (success_msg && success_msg.length > 0) { %>
+    <div class="flash-message success-message" id="flash-message">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span><%= success_msg %></span>
+    </div>
+<% } %>
+
+<div class="slider-with-category_menu">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col grid-half order-md-2 order-lg-1">
+                <div class="category-menu">
+                    <div class="category-heading">
+                        <h2 class="categories-toggle"><span>Shop by categories</span></h2>
+                    </div>
+                    <div id="cate-toggle" class="category-menu-list">
+                        <ul>
+                            <% categories.forEach(category => { %>
+                                <li><a href="/shopbyfilter/<%= category._id %>"><%= category.name %></a></li>
+                            <% }) %>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col grid-full order-md-1 order-lg-2">
+                <div class="hiraola-slider_area">
+                    <div class="main-slider">
+                        <div class="single-slide animation-style-01 bg-1">
+                            <div class="container">
+                                <div class="slider-content">
+                                    <h5><span>Explore Now</span></h5>
+                                    <h2>New Arrivals</h2>
+                                    <h3>Discover the Latest Trends</h3>
+                                    <h4>Starting at <span>₹999.00</span></h4>
+                                    <div class="hiraola-btn-ps_left slide-btn">
+                                        <a class="hiraola-btn" href="/shop">Shop Now</a>
+                                    </div>
+                                </div>
+                                <div class="slider-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col grid-half grid-md_half order-md-2 order-lg-3">
+                <div class="banner-item img-hover_effect">
+                    <a href="/shop">
+                        <img class="img-full" src="/public/user/assets/images/banner/1_1.jpg" alt="Hiraola's Banner">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Begin Hiraola's Product Area -->
+<div class="hiraola-product_area">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="hiraola-section_title">
+                    <h4>New Arrivals</h4>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="hiraola-product_slider">
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(product => { %>
+                            <div class="slide-item">
+                                <div class="single_product">
+                                    <div class="product-img">
+                                        <a href="/singleproduct/<%= product._id %>">
+                                            <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>">
+                                        </a>
+                                        <% if (product.createdAt) { 
+                                            const createdAtDate = new Date(product.createdAt);
+                                            const sevenDaysAgo = new Date();
+                                            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                                            if (createdAtDate >= sevenDaysAgo) { %>
+                                               56
+                                                <div class="new-tag">New!</div>
+                                            <% } 
+                                        } %>
+                                        <div class="add-actions">
+                                            <ul>
+                                                <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
+                                                <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="hiraola-product_content">
+                                        <div class="product-desc_info">
+                                            <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName || 'Unnamed Product' %></a></h6>
+                                            <div class="price-box">
+                                                <span class="new-price">₹<%= product.price ? product.price.toFixed(2) : '0.00' %></span>
+                                            </div>
+                                            <div class="additional-add_action">
+                                                <ul>
+                                                    <li>
+                                                        <a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" 
+                                                           title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
+                                                           data-product-id="<%= product._id %>">
+                                                            <i class="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="rating-box">
+                                                <ul>
+                                                    <li><i class="fa fa-star-of-david"></i></li>
+                                                    <li><i class="fa fa-star-of-david"></i></li>
+                                                    <li><i class="fa fa-star-of-david"></i></li>
+                                                    <li><i class="fa fa-star-of-david"></i></li>
+                                                    <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p>No products found. Please check back later!</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Hiraola's Product Area End Here -->
+
+<script>
+    function removeFlashMessage() {
+        const flashMessage = document.getElementById("flash-message");
+        if (flashMessage) {
+            setTimeout(() => {
+                flashMessage.remove();
+            }, 3000);
+        }
+    }
+
+    window.onload = removeFlashMessage;
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const wishlistButtons = document.querySelectorAll('.hiraola-add_compare');
+
+        wishlistButtons.forEach((button) => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                const productId = button.getAttribute('data-product-id');
+                const icon = button.querySelector('i');
+                const isInWishlist = icon.classList.contains('ion-android-favorite');
+
+                const url = isInWishlist ? '/wishlist/remove' : '/wishlist/add';
+                const action = isInWishlist ? 'remove' : 'add';
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ productId: productId }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            if (action === 'add') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: 'Product added to wishlist successfully!',
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                });
+                                icon.classList.remove('ion-android-favorite-outline');
+                                icon.classList.add('ion-android-favorite');
+                                button.setAttribute('title', 'Remove from Wishlist');
+                            } else {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: 'Product removed from wishlist successfully!',
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                });
+                                icon.classList.remove('ion-android-favorite');
+                                icon.classList.add('ion-android-favorite-outline');
+                                button.setAttribute('title', 'Add To Wishlist');
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: data.message || `Failed to ${action} product to/from wishlist`,
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: `An error occurred while ${action === 'add' ? 'adding' : 'removing'} the product to/from the wishlist`,
+                        });
+                    });
+            });
+        });
+    });
+</script>
+
+<%- include('../partials/user/footer') %>

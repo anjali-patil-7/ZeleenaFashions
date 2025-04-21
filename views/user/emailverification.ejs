@@ -1,0 +1,270 @@
+<%- include('../partials/user/header') %>
+
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Verify Email</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/profile">My Account</a></li>
+                <li class="active">Verify Email</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+
+<!-- Begin Hiraola's Page Content Area -->
+<main class="page-content">
+    <div class="account-page-area">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="verification-container">
+                        <h3>Verify Your Email</h3>
+                        <p>We've sent a verification code to <strong><%= email %></strong>.</p>
+                        <p>Please enter the 6-digit code below to verify your new email address.</p>
+                        
+                        <div class="otp-form">
+                            <div class="form-group">
+                                <label>Verification Code</label>
+                                <input type="text" id="otpInput" class="form-control" maxlength="6" placeholder="Enter 6-digit code">
+                            </div>
+                            <div class="button-group">
+                                <button type="button" id="verifyBtn" class="btn-verify">Verify Email</button>
+                            </div>
+                            <div class="resend-link">
+                                <p>Didn't receive the code? <a href="#" id="resendOtp">Resend code</a></p>
+                                <p id="timer" style="display: none;">Resend available in <span id="countdown">30</span> seconds</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- Hiraola's Page Content Area End Here -->
+
+<%- include('../partials/user/footer') %>
+
+<style>
+    .verification-container {
+        border: 1px solid #e0e0e0;
+        padding: 30px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .verification-container h3 {
+        font-size: 24px;
+        color: #333333;
+        margin-bottom: 20px;
+    }
+    
+    .otp-form {
+        max-width: 350px;
+        margin: 30px auto 0;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+        text-align: left;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #555555;
+        margin-bottom: 8px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-size: 18px;
+        text-align: center;
+        letter-spacing: 4px;
+    }
+    
+    .form-control:focus {
+        border-color: #1D2951;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(205, 165, 87, 0.2);
+    }
+    
+    .button-group {
+        margin-top: 20px;
+    }
+    
+    .btn-verify {
+        background-color: #595959;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        width: 100%;
+    }
+    
+    .btn-verify:hover {
+        background-color: #1D2951;
+    }
+    
+    .resend-link {
+        margin-top: 20px;
+        color: #555555;
+    }
+    
+    .resend-link a {
+        color: #0d31ff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .resend-link a:hover {
+        color: #1D2951;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resendOtp = document.getElementById('resendOtp');
+        const timerElement = document.getElementById('timer');
+        const countdownElement = document.getElementById('countdown');
+        let countdown = 30;
+        let countdownInterval;
+        
+        // Verify OTP
+        verifyBtn.addEventListener('click', async function() {
+            const otp = document.getElementById('otpInput').value;
+            
+            if (!otp || otp.length !== 6) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Code',
+                    text: 'Please enter a valid 6-digit verification code',
+                    confirmButtonColor: '#595959'
+                });
+                return;
+            }
+            
+            try {
+                const response = await fetch('/verify-email-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ otp })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: result.message,
+                        confirmButtonColor: '#595959'
+                    }).then(() => {
+                        window.location.href = '/profile';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Verification Failed',
+                        text: result.message,
+                        confirmButtonColor: '#595959'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.',
+                    confirmButtonColor: '#595959'
+                });
+            }
+        });
+        
+        // Resend OTP
+        resendOtp.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            // If timer is active, don't allow resend
+            if (timerElement.style.display !== 'none') return;
+            
+            try {
+                const response = await fetch('/resend-email-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Code Resent!',
+                        text: 'A new verification code has been sent to your email',
+                        confirmButtonColor: '#595959'
+                    });
+                    
+                    // Start countdown timer
+                    startCountdown();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to Resend',
+                        text: result.message,
+                        confirmButtonColor: '#595959'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.',
+                    confirmButtonColor: '#595959'
+                });
+            }
+        });
+        
+        // Countdown timer function
+        function startCountdown() {
+            // Reset countdown value
+            countdown = 30;
+            countdownElement.textContent = countdown;
+            
+            // Show timer, hide resend link
+            timerElement.style.display = 'block';
+            resendOtp.style.display = 'none';
+            
+            // Clear any existing interval
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            // Start interval
+            countdownInterval = setInterval(function() {
+                countdown--;
+                countdownElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    timerElement.style.display = 'none';
+                    resendOtp.style.display = 'inline';
+                }
+            }, 1000);
+        }
+    });
+</script>

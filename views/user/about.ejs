@@ -1,0 +1,292 @@
+<%- include('../partials/user/header') %>
+
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>About Us</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li class="active">About Us</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+
+<!-- Begin Hiraola's About Page Content Area -->
+<main class="page-content">
+    <div class="about-page-area">
+        <div class="container">
+            <!-- Our Story Section -->
+            <div class="about-section">
+                <div class="section-header">
+                    <h2>Our Story</h2>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="about-content">
+                            <p>Founded in 2018, [Your Company Name] began as a small passion project with a simple mission: to provide high-quality products that combine style, functionality, and affordability.</p>
+                            <p>What started in a tiny garage has now grown into a respected name in the industry, serving thousands of satisfied customers worldwide. Our journey has been defined by our commitment to excellence and our desire to exceed customer expectations.</p>
+                            <p>Today, we continue to expand our product range while maintaining the same dedication to quality and customer satisfaction that has been our hallmark since day one.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="about-image">
+                            <img src="public/user/assets/images/about-us/1.jpg" alt="About Us Image">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Our Values Section -->
+            <div class="about-section">
+                <div class="section-header">
+                    <h2>Our Values</h2>
+                </div>
+                <div class="values-container">
+                    <div class="value-item">
+                        <div class="value-icon">
+                            <i class="fa fa-star"></i>
+                        </div>
+                        <h3>Quality</h3>
+                        <p>We never compromise on the quality of our products. Each item undergoes rigorous testing to ensure it meets our high standards.</p>
+                    </div>
+                    <div class="value-item">
+                        <div class="value-icon">
+                            <i class="fa fa-heart"></i>
+                        </div>
+                        <h3>Customer Focus</h3>
+                        <p>Our customers are at the heart of everything we do. We listen, adapt, and strive to exceed your expectations at every turn.</p>
+                    </div>
+                    <div class="value-item">
+                        <div class="value-icon">
+                            <i class="fa fa-leaf"></i>
+                        </div>
+                        <h3>Sustainability</h3>
+                        <p>We're committed to reducing our environmental footprint through eco-friendly practices and sustainable sourcing.</p>
+                    </div>
+                    <div class="value-item">
+                        <div class="value-icon">
+                            <i class="fa fa-lightbulb"></i>
+                        </div>
+                        <h3>Innovation</h3>
+                        <p>We constantly seek new ways to improve our products and services, embracing change and creativity.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Our Team Section -->
+            <div class="about-section">
+                <div class="section-header">
+                    <h2>Meet Our Team</h2>
+                </div>
+                <div class="team-container">
+                    <div class="team-member">
+                        <div class="member-image">
+                            <img src="public/user/assets/images/about-us/team/2.jpg" alt="Team Member">
+                        </div>
+                        <h3>Sarah Johnson</h3>
+                        <p class="member-role">Founder & CEO</p>
+                        <p>With over 15 years of industry experience, Sarah leads our company with passion and vision.</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-image">
+                            <img src="public/user/assets/images/about-us/team/3.jpg" alt="Team Member">
+                        </div>
+                        <h3>Michael Chen</h3>
+                        <p class="member-role">Head of Design</p>
+                        <p>Michael brings creativity and innovation to every product in our collection.</p>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-image">
+                            <img src="public/user/assets/images/about-us/team/4.jpg" alt="Team Member">
+                        </div>
+                        <h3>Emily Rodriguez</h3>
+                        <p class="member-role">Customer Experience Manager</p>
+                        <p>Emily ensures that every interaction with our brand exceeds expectations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- Hiraola's About Page Content Area End Here -->
+
+<%- include('../partials/user/footer') %>
+
+<style>
+    /* About Page Styles */
+    .about-page-area {
+        padding: 50px 0;
+    }
+
+    .about-section {
+        border: 1px solid #e0e0e0;
+        padding: 30px;
+        margin-bottom: 40px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .section-header h2 {
+        font-size: 28px;
+        color: #333333;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    .section-header h2:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: #595959;
+    }
+
+    .about-content p {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #555555;
+        margin-bottom: 20px;
+    }
+
+    .about-image {
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .about-image img {
+        width: 100%;
+        height: auto;
+        transition: transform 0.5s ease;
+    }
+
+    .about-image img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Values Section Styles */
+    .values-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .value-item {
+        flex-basis: calc(25% - 30px);
+        padding: 25px;
+        margin-bottom: 30px;
+        text-align: center;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .value-item:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .value-icon {
+        font-size: 36px;
+        color: #595959;
+        margin-bottom: 15px;
+    }
+
+    .value-item h3 {
+        font-size: 20px;
+        color: #333333;
+        margin-bottom: 15px;
+    }
+
+    .value-item p {
+        font-size: 14px;
+        color: #555555;
+        line-height: 1.6;
+    }
+
+    /* Team Section Styles */
+    .team-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .team-member {
+        flex-basis: calc(33.33% - 30px);
+        margin-bottom: 30px;
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .team-member:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .member-image {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 5px solid #ffffff;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .member-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .team-member h3 {
+        font-size: 20px;
+        color: #333333;
+        margin-bottom: 5px;
+    }
+
+    .member-role {
+        color: #595959;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .team-member p {
+        font-size: 14px;
+        color: #555555;
+        line-height: 1.6;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+        .value-item {
+            flex-basis: calc(50% - 20px);
+        }
+        .team-member {
+            flex-basis: calc(50% - 20px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .value-item, .team-member {
+            flex-basis: 100%;
+        }
+    }
+</style>

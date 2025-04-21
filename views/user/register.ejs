@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Zeleena Fashion𝓼</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/public/user/assets/images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .bg-wrapper {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: url('/api/placeholder/1920/1080') no-repeat center center;
+            background-size: cover;
+        }
+        
+        .blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            transition: all 0.3s ease;
+        }
+        
+        .login-container:hover {
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.4);
+        }
+        
+        .login-area h2 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        
+        .form-control {
+            height: 40px;
+            border-radius: 6px;
+            box-shadow: none;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            border-color: #1D2951;
+            box-shadow: 0 0 0 0.25rem rgba(50, 70, 136, 0.25);
+        }
+        
+        .default-btn {
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(135deg, #1D2951 0%, #1D2951 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .default-btn:hover {
+            background: linear-gradient(135deg, #1D2951 0%, #1D2951 100%);
+            transform: translateY(-2px);
+        }
+        
+        .forgot-password {
+            display: block;
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 10px;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .forgot-password:hover {
+            color: #1D2951;
+        }
+        
+        .register-link {
+            display: block;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        .google-btn {
+            width: 100%;
+            height: 40px;
+            background: #fff;
+            color: #757575;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .google-btn:hover {
+            background: #f1f1f1;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .google-icon {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .google-icon i {
+            background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) 73% 55%/150% 150% no-repeat;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .divider span {
+            padding: 0 10px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+        
+        .error-text {
+            color: #dc3545;
+            font-size: 11px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+        
+        .alert {
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-wrapper">
+        <div class="blur-overlay">
+            <div class="login-container">
+                <section class="login-area">
+                    <div class="login-content">
+                        <h2>Create Your Account</h2>
+                        
+                        <% if (locals.errors && errors.length > 0) { %>
+                            <div class="alert alert-danger">
+                                <% errors.forEach(error => { %>
+                                    <div><%= error %></div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                        
+                        <a href="/auth/google" class="google-btn">
+                            <span class="google-icon"><i class="fab fa-google"></i></span>
+                            <span>Sign up with Google</span>
+                        </a>
+                        
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <form id="registerForm" class="login-form" action="/register" method="post" novalidate>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="username" placeholder="Enter your Name" name="userName" value="<%= locals.input ? input.userName : '' %>">
+                                <small id="nameError" class="error-text"></small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <input type="email" class="form-control" id="email" placeholder="Enter your email Address" name="email" value="<%= locals.input ? input.email : '' %>">
+                                <small id="emailError" class="error-text"></small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <input type="tel" class="form-control" id="phone" placeholder="Enter your phone number" name="phone" value="<%= locals.input ? input.phone : '' %>">
+                                <small id="phoneError" class="error-text"></small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <input type="password" class="form-control" id="password" placeholder="Enter your password" name="password">
+                                <small id="passwordError" class="error-text"></small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" name="confirmPassword">
+                                <small id="confirmPasswordError" class="error-text"></small>
+                            </div>
+                            
+                            <button type="submit" class="default-btn">Sign Up</button>
+                            <a href="/login" class="forgot-password register-link">Already have an account? Log in</a>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registerForm');
+            const username = document.getElementById('username');
+            const email = document.getElementById('email');
+            const phone = document.getElementById('phone');
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            const nameError = document.getElementById('nameError');
+            const emailError = document.getElementById('emailError');
+            const phoneError = document.getElementById('phoneError');
+            const passwordError = document.getElementById('passwordError');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            
+            // Function to validate name (letters and spaces only)
+            function isValidName(name) {
+                return /^[A-Za-z\s]+$/.test(name);
+            }
+            
+            // Function to validate email
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+            
+            // Function to validate phone number (exactly 10 digits)
+            function isValidPhoneNumber(phone) {
+                const phoneRegex = /^\d{10}$/;
+                return phoneRegex.test(phone);
+            }
+            
+            // Function to show error
+            function showError(input, errorElement, message) {
+                input.classList.add('is-invalid');
+                errorElement.style.display = 'block';
+                errorElement.textContent = message;
+            }
+            
+            // Function to hide error
+            function hideError(input, errorElement) {
+                input.classList.remove('is-invalid');
+                errorElement.style.display = 'none';
+                errorElement.textContent = '';
+            }
+            
+            // Username validation
+            username.addEventListener('blur', function() {
+                const value = username.value.trim();
+                if (!value) {
+                    showError(username, nameError, 'Name is required');
+                } else if (value.length < 3) {
+                    showError(username, nameError, 'Name must be at least 3 characters long');
+                } else if (!isValidName(value)) {
+                    showError(username, nameError, 'Name can only contain letters and spaces');
+                } else {
+                    hideError(username, nameError);
+                }
+            });
+            
+            // Email validation
+            email.addEventListener('blur', function() {
+                const value = email.value.trim();
+                if (!value) {
+                    showError(email, emailError, 'Email is required');
+                } else if (!isValidEmail(value)) {
+                    showError(email, emailError, 'Please enter a valid email address');
+                } else {
+                    hideError(email, emailError);
+                }
+            });
+            
+            // Phone number validation
+            phone.addEventListener('blur', function() {
+                const value = phone.value.trim();
+                if (!value) {
+                    showError(phone, phoneError, 'Phone number is required');
+                } else if (!isValidPhoneNumber(value)) {
+                    showError(phone, phoneError, 'Phone number must be exactly 10 digits');
+                } else {
+                    hideError(phone, phoneError);
+                }
+            });
+            
+            // Password validation
+            password.addEventListener('blur', function() {
+                const value = password.value.trim();
+                if (!value) {
+                    showError(password, passwordError, 'Password is required');
+                } else if (value.length < 6) {
+                    showError(password, passwordError, 'Password must be at least 6 characters long');
+                } else {
+                    hideError(password, passwordError);
+                }
+                
+                // Check confirm password if it has a value
+                if (confirmPassword.value.trim()) {
+                    if (password.value !== confirmPassword.value) {
+                        showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
+                    } else {
+                        hideError(confirmPassword, confirmPasswordError);
+                    }
+                }
+            });
+            
+            // Confirm password validation
+            confirmPassword.addEventListener('blur', function() {
+                const value = confirmPassword.value.trim();
+                if (!value) {
+                    showError(confirmPassword, confirmPasswordError, 'Please confirm your password');
+                } else if (password.value !== value) {
+                    showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
+                } else {
+                    hideError(confirmPassword, confirmPasswordError);
+                }
+            });
+            
+            // Form submission validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Validate username
+                const usernameValue = username.value.trim();
+                if (!usernameValue) {
+                    showError(username, nameError, 'Name is required');
+                    isValid = false;
+                } else if (usernameValue.length < 3) {
+                    showError(username, nameError, 'Name must be at least 3 characters long');
+                    isValid = false;
+                } else if (!isValidName(usernameValue)) {
+                    showError(username, nameError, 'Name can only contain letters and spaces');
+                    isValid = false;
+                } else {
+                    hideError(username, nameError);
+                }
+                
+                // Validate email
+                const emailValue = email.value.trim();
+                if (!emailValue) {
+                    showError(email, emailError, 'Email is required');
+                    isValid = false;
+                } else if (!isValidEmail(emailValue)) {
+                    showError(email, emailError, 'Please enter a valid email address');
+                    isValid = false;
+                } else {
+                    hideError(email, emailError);
+                }
+                
+                // Validate phone number
+                const phoneValue = phone.value.trim();
+                if (!phoneValue) {
+                    showError(phone, phoneError, 'Phone number is required');
+                    isValid = false;
+                } else if (!isValidPhoneNumber(phoneValue)) {
+                    showError(phone, phoneError, 'Phone number must be exactly 10 digits');
+                    isValid = false;
+                } else {
+                    hideError(phone, phoneError);
+                }
+                
+                // Validate password
+                const passwordValue = password.value.trim();
+                if (!passwordValue) {
+                    showError(password, passwordError, 'Password is required');
+                    isValid = false;
+                } else if (passwordValue.length < 6) {
+                    showError(password, passwordError, 'Password must be at least 6 characters long');
+                    isValid = false;
+                } else {
+                    hideError(password, passwordError);
+                }
+                
+                // Validate confirm password
+                const confirmPasswordValue = confirmPassword.value.trim();
+                if (!confirmPasswordValue) {
+                    showError(confirmPassword, confirmPasswordError, 'Please confirm your password');
+                    isValid = false;
+                } else if (passwordValue !== confirmPasswordValue) {
+                    showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
+                    isValid = false;
+                } else {
+                    hideError(confirmPassword, confirmPasswordError);
+                }
+                
+                // Prevent form submission if validation fails
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Clear errors on input
+            username.addEventListener('input', function() {
+                hideError(username, nameError);
+            });
+            
+            email.addEventListener('input', function() {
+                hideError(email, emailError);
+            });
+            
+            phone.addEventListener('input', function() {
+                hideError(phone, phoneError);
+            });
+            
+            password.addEventListener('input', function() {
+                hideError(password, passwordError);
+                
+                // Check confirm password if it has a value
+                if (confirmPassword.value.trim()) {
+                    if (password.value !== confirmPassword.value) {
+                        showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
+                    } else {
+                        hideError(confirmPassword, confirmPasswordError);
+                    }
+                }
+            });
+            
+            confirmPassword.addEventListener('input', function() {
+                if (password.value !== confirmPassword.value) {
+                    showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
+                } else {
+                    hideError(confirmPassword, confirmPasswordError);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

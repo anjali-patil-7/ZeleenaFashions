@@ -1,0 +1,278 @@
+<%- include('../partials/user/header') %>
+
+<style>
+    .flash-message {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-in-out;
+
+    /* Positioning */
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 300px; /* Adjust as needed */
+    z-index: 1000;
+}
+
+.flash-message svg {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-left: 4px solid #d32f2f;
+}
+
+.success-message {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+}
+
+/* Optional: Add fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+    </style>
+</style>
+
+<% if (error_msg && error_msg.length > 0) { %>
+    <div class="flash-message error-message" id="flash-message">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span><%= error_msg %></span>
+    </div>
+  <% } %>
+
+  <% if (success_msg && success_msg.length > 0) { %>
+    <div class="flash-message success-message" id="flash-message">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span><%= success_msg %></span>
+    </div>
+  <% } %>
+
+        <!-- Begin Hiraola's Breadcrumb Area -->
+        <div class="breadcrumb-area">
+            <div class="container">
+                <div class="breadcrumb-content">
+                    <h2>Other</h2>
+                    <ul>
+                        <li><a href="/home">Home</a></li>
+                        <li class="active">OTP Verification</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Hiraola's Breadcrumb Area End Here -->
+        <!-- Begin Hiraola's Login Register Area -->
+        <div class="hiraola-login-register_area">
+            <div class="container">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-sm-12 col-md-12 col-xs-12 col-lg-6">
+                        <!-- OTP Verification Form -->
+                        <form action="/verify-otp" method="post" id="otpForm">
+                            <input type="hidden" name="type" value="">
+                            <div class="login-form">
+                                <h4 class="login-title">OTP Verification</h4>
+                                <div class="row">
+                                    <div class="col-md-12 col-12 mb-3">
+                                        <p class="text-center">Please enter the OTP sent to your email/phone</p>
+                                    </div>
+                                    <div class="col-md-12 col-12">
+                                        <label>Enter OTP*</label>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="0">
+                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="1">
+                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="2">
+                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="3">
+                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="4">
+                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="5">
+                                        </div>
+                                        <input type="hidden" name="otp" id="otpValue">
+                                    </div>
+                                    <div class="col-md-12 mt-4">
+                                        <div class="text-center">
+                                            <p>Didn't receive the code? 
+                                                <a href="#" class="text-primary" id="resendBtn" style="display: none;">Resend OTP</a>
+                                                <span id="timerText" class="text-muted">Time remaining: <span id="timer">02:00</span></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <button type="submit" class="hiraola-login_btn" id="verifyButton" disabled>Verify OTP</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.otp-input');
+    const form = document.getElementById('otpForm');
+    const verifyButton = document.getElementById('verifyButton');
+    const otpValue = document.getElementById('otpValue');
+    const timerElement = document.getElementById('timer');
+    const resendBtn = document.getElementById('resendBtn');
+    const timerText = document.getElementById('timerText');
+    let timeLeft = 120; // 2 minutes
+    let timerInterval;
+
+    // Focus first input on load
+    inputs[0].focus();
+
+    // Handle input changes
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+            // Allow only numbers
+            if (isNaN(e.target.value)) {
+                e.target.value = '';
+                return;
+            }
+
+            // Move to next input if value is entered
+            if (e.target.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+
+            updateVerifyButton();
+        });
+
+        // Handle backspace
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace') {
+                if (!e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                    inputs[index - 1].value = '';
+                } else {
+                    e.target.value = '';
+                }
+                updateVerifyButton();
+            }
+        });
+    });
+
+    // Timer functionality
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        if (timeLeft === 0) {
+            resendBtn.style.display = 'inline';
+            timerText.style.display = 'none';
+            clearInterval(timerInterval);
+        } else {
+            timeLeft--;
+        }
+    }
+
+    // Start initial timer
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 120;
+        timerInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+    }
+
+    startTimer();
+
+    // Handle resend click
+    resendBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        try {
+            const response = await fetch('/resend-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Reset timer and UI
+                startTimer();
+                resendBtn.style.display = 'none';
+                timerText.style.display = 'inline';
+                
+                // Clear inputs
+                inputs.forEach(input => input.value = '');
+                inputs[0].focus();
+                
+                // Update button state
+                updateVerifyButton();
+                
+                alert('OTP resent successfully');
+            } else {
+                alert(data.message || 'Failed to resend OTP');
+            }
+        } catch (error) {
+            console.error('Error resending OTP:', error);
+            alert('Failed to resend OTP. Please try again.');
+        }
+    });
+
+    // Update verify button state
+    function updateVerifyButton() {
+        const isComplete = Array.from(inputs).every(input => input.value.length === 1);
+        verifyButton.disabled = !isComplete;
+        if (isComplete) {
+            otpValue.value = Array.from(inputs).map(input => input.value).join('');
+        }
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const otp = Array.from(inputs).map(input => input.value).join('');
+        otpValue.value = otp;
+        this.submit();
+    });
+});
+
+
+function removeFlashMessage() {
+        const flashMessage = document.getElementById("flash-message");
+        if (flashMessage) {
+          setTimeout(() => {
+            flashMessage.remove();
+          }, 3000);
+        }
+      }
+
+      window.onload = removeFlashMessage;
+      
+            </script>
+        <!-- Hiraola's Login Register Area  End Here -->
+        <%- include('../partials/user/footer') %>

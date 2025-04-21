@@ -1,0 +1,186 @@
+<%- include('../partials/admin/header') %>
+
+<style>
+    .form-control.error {
+        border-color: #dc3545;
+    }
+    .text-danger {
+        font-size: 0.875em;
+        margin-top: 5px;
+    }
+    .breadcrumbs {
+        margin-bottom: 20px;
+    }
+    .breadcrumbs a {
+        color: #000000;
+        text-decoration: none;
+        margin-right: 5px;
+    }
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+    .breadcrumbs span {
+        margin: 0 5px;
+    }
+</style>
+
+<section class="content-main">
+    <div class="breadcrumbs">
+        <% breadcrumbs.forEach((crumb, index) => { %>
+            <% if (index < breadcrumbs.length - 1) { %>
+                <a href="<%= crumb.url %>"><%= crumb.name %></a>
+                <span>></span>
+            <% } else { %>
+                <%= crumb.name %>
+            <% } %>
+        <% }) %>
+    </div>
+
+    <div class="content-header">
+        <div>
+            <h1 class="content-title card-title">Edit Category</h1>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <form 
+                    id="editCategoryForm" 
+                    method="post" 
+                    action="/admin/editcategory/<%= category._id %>"
+                    enctype="multipart/form-data"
+                >
+                    <input type="hidden" name="id" value="<%= category._id %>">
+                    <div class="mb-4">
+                        <label for="name" class="form-label">Name</label>
+                        <input 
+                            type="text" 
+                            placeholder="Type here" 
+                            class="form-control" 
+                            id="name" 
+                            name="name" 
+                            value="<%= category.name %>" 
+                            required 
+                        />
+                        <div id="nameError" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea 
+                            id="description" 
+                            name="description" 
+                            class="form-control" 
+                            required
+                        ><%= category.description %></textarea>
+                        <div id="descriptionError" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="image" class="form-label">Category Image</label>
+                        <% if (category.image) { %>
+                            <div>
+                                <img src="/uploads/categories/<%= category.image %>" alt="Current category image" style="max-width: 200px; margin-bottom: 10px;">
+                            </div>
+                        <% } %>
+                        <input 
+                            type="file" 
+                            class="form-control" 
+                            id="image" 
+                            name="image" 
+                            accept="image/*"
+                        />
+                        <div id="imageError" class="text-danger"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark">Update Category</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editCategoryForm');
+        
+        // Form submission handler
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (validateForm()) {
+                this.submit();
+            }
+        });
+
+        // Real-time validation
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                validateField(this);
+            });
+        });
+
+        function validateField(field) {
+            const errorElement = document.getElementById(field.id + 'Error');
+            errorElement.innerHTML = '';
+            field.classList.remove('error');
+
+            switch(field.id) {
+                case 'name':
+                    const name = field.value.trim();
+                    if (!name) {
+                        showError(field, errorElement, 'Category name is required');
+                    } else if (name.length < 2 || name.length > 50) {
+                        showError(field, errorElement, 'Name must be 2-50 characters long');
+                    } else if (/[^a-zA-Z\s]/.test(name)) {
+                        showError(field, errorElement, 'Name should only contain letters and spaces');
+                    }
+                    break;
+
+                case 'description':
+                    const description = field.value.trim();
+                    if (!description) {
+                        showError(field, errorElement, 'Description is required');
+                    } else if (description.length < 10 || description.length > 500) {
+                        showError(field, errorElement, 'Description must be 10-500 characters long');
+                    }
+                    break;
+
+                case 'image':
+                    if (field.files.length > 0) {
+                        const file = field.files[0];
+                        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                        if (!allowedTypes.includes(file.type)) {
+                            showError(field, errorElement, 'Only JPEG, PNG, or GIF images are allowed');
+                        } else if (file.size > 5 * 1024 * 1024) {
+                            showError(field, errorElement, 'Image size must be less than 5MB');
+                        }
+                    }
+                    break;
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const fields = ['name', 'description', 'image'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                validateField(field);
+                if (field.classList.contains('error')) {
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        function showError(field, errorElement, message) {
+            errorElement.innerHTML = message;
+            field.classList.add('error');
+        }
+    });
+</script>
+
+<%- include('../partials/admin/footer') %>

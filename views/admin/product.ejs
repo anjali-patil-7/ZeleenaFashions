@@ -1,0 +1,304 @@
+<%- include('../partials/admin/header') %>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title">Product List</h2>
+            <p>Product Management</p>
+        </div>
+        <button class="add-category-btn" onclick="window.location.href='/admin/addproduct'">+ Add Product</button>
+    </div>
+
+    <!-- Search Container -->
+    <div class="search-container" style="margin-bottom: 20px;">
+        <form action="/admin/product" method="GET">
+            <div style="display: flex; max-width: 500px;">
+                <input 
+                    type="text" 
+                    name="query" 
+                    placeholder="Search by product name or description..." 
+                    style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px 0 0 5px;"
+                    value="<%= locals.searchQuery || '' %>"
+                >
+                <button 
+                    type="submit" 
+                    style="background-color: #000000; color: white; padding: 8px 15px; border: none; border-radius: 0 5px 5px 0; cursor: pointer;"
+                >
+                    Search
+                </button>
+                <% if (locals.searchQuery) { %>
+                    <a 
+                        href="/admin/product" 
+                        style="background-color: #f8f8f8; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-left: none; text-decoration: none; display: flex; align-items: center;"
+                    >
+                        Clear
+                    </a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .add-category-btn {
+            background-color: #000000;
+            color: white;
+            font-size: 14px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #000000;
+        }
+
+        .users-table th {
+            padding: 12px;
+            text-align: center;
+            background-color: #f8f8f8;
+            font-weight: bold;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+
+        .users-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #000000;
+            vertical-align: middle;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 80px;
+            background-color: #000000;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .page-link.active {
+            background-color: #000000;
+            color: white;
+            border-color: #4a90e2;
+        }
+
+        .page-link:hover {
+            background-color: #f5f5f5;
+        }
+
+        .active.page-link:hover {
+            background-color: #000000;
+        }
+
+        .no-data {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .product-image {
+            max-width: 50px;
+            max-height: 50px;
+            display: block;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .image-placeholder {
+            max-width: 50px;
+            max-height: 50px;
+            display: block;
+            margin: 0 auto;
+            color: #999;
+        }
+    </style>
+
+    <% if (products.length > 0) { %>
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>SL.No</th>
+                    <th>Product Name</th>
+                    <th>Image</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach((product, index) => { %>
+                    <tr id="product-row-<%= product._id %>">
+                        <td><%= index + 1 %></td>
+                        <td><%= product.productName %></td>
+                        <td>
+                            <% if (product.productImage && product.productImage[0]) { %>
+                                <img src="<%= product.productImage[0] %>" 
+                                     class="product-image" 
+                                     alt="<%= product.productName %>"
+                                     onerror="this.src='/images/placeholder.png'; this.className='image-placeholder';">
+                            <% } else { %>
+                                <span class="image-placeholder">No Image</span>
+                            <% } %>
+                        </td>
+                        <td><%= product.description %></td>
+                        <td><%= product.category ? product.category.name : 'N/A' %></td>
+                        <td><%= product.price %></td>
+                        <td><%= product.totalStock %></td>
+                        <td id="status-<%= product._id %>"><%= product.status ? "Active" : "Inactive" %></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button id="block-btn-<%= product._id %>" 
+                                        onclick="toggleProductStatus('<%= product._id %>', '<%= product.status %>')" 
+                                        class="action-btn block-btn">
+                                    <%= product.status ? "Block" : "Unblock" %>
+                                </button>
+                                <a href="/admin/editproduct/<%= product._id %>" class="action-btn">Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p class="no-data">No products found</p>
+    <% } %>
+
+    <div class="pagination">
+        <% if (currentPage > 1) { %>
+            <a href="/admin/product?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">←</a>
+        <% } %>
+
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/admin/product?page=<%= i %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                <%= i %>
+            </a>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <a href="/admin/product?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">→</a>
+        <% } %>
+    </div>
+</section>
+
+<%- include('../partials/admin/footer') %>
+
+<script>
+    function toggleProductStatus(productId, currentStatus) {
+        // Show confirmation dialog
+        Swal.fire({
+            title: "Are you sure?",
+            text: `Do you want to ${currentStatus ? "block" : "unblock"} this product?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#000000",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get the button element
+                const button = document.getElementById(`block-btn-${productId}`);
+                const statusCell = document.getElementById(`status-${productId}`);
+                
+                // Add spinner to button
+                const originalText = button.innerHTML;
+                button.innerHTML = '<div class="spinner"></div>';
+                button.disabled = true;
+                
+                // Send AJAX request
+                fetch(`/admin/api/blockproduct/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update button text and status cell
+                    button.innerHTML = data.status ? "Block" : "Unblock";
+                    button.disabled = false;
+                    statusCell.textContent = data.status ? "Active" : "Inactive";
+                    
+                    // Show success message
+                    Swal.fire({
+                        title: "Success!",
+                        text: `Product ${data.status ? "unblocked" : "blocked"} successfully`,
+                        icon: "success",
+                        confirmButtonColor: "#000000"
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    
+                    // Show error message
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Something went wrong. Please try again.",
+                        icon: "error",
+                        confirmButtonColor: "#000000"
+                    });
+                });
+            }
+        });
+    }
+</script>

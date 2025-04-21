@@ -1,0 +1,31 @@
+<%- include('../partials/user/header') %>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <h2>Redirecting...</h2>
+      <p id="message"><%= message %></p>
+      <div class="mt-4">
+        <a href="<%= redirectUrl %>" class="btn btn-primary">Go to Shop</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+      icon: "error",
+      title: "Product Unavailable",
+      text: "<%= message %>",
+      confirmButtonText: "OK",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = "<%= redirectUrl %>";
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/user/footer') %>

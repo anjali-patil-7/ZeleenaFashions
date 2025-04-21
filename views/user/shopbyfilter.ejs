@@ -1,0 +1,201 @@
+<%- include('../partials/user/header') %>
+
+        <!-- Begin Hiraola's Breadcrumb Area -->
+        <div class="breadcrumb-area">
+            <div class="container">
+                <div class="breadcrumb-content">
+                    <h2>Shop - <%= currentCategory.name %></h2>
+                    <ul>
+                        <li><a href="/home">Home</a></li>
+                        <li><a href="/shop">Shop</a></li>
+                        <li class="active"><%= currentCategory.name %></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Hiraola's Breadcrumb Area End Here -->
+
+        <!-- Begin Hiraola's Content Wrapper Area -->
+        <div class="hiraola-content_wrapper">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 order-2 order-lg-1">
+                        <div class="hiraola-sidebar-catagories_area">
+                        
+                            <div class="category-module hiraola-sidebar_categories">
+                                <div class="category-module_heading">
+                                    <h5>Categories</h5>
+                                </div>
+                                <div class="module-body">
+                                    <ul class="module-list_item">
+                                        <% categories.forEach(category => { %>
+                                            <li>
+                                                <a href="/shopbyfilter/<%= category._id %>" 
+                                                   <%= category._id.toString() === categoryId ? 'class="active"' : '' %>>
+                                                   <%= category.name %>
+                                                </a>
+                                            </li>
+                                        <% }) %>
+                                    </ul>
+                                </div>
+                            </div>
+
+
+                            <!-- <div class="category-module hiraola-sidebar_categories">
+                                <div class="category-module_heading">
+                                    <h5>Price</h5>
+                                </div>
+                                <div class="module-body">
+                                    <ul class="module-list_item">
+                                    
+                                        <li>
+                                            <a href="javascript:void(0)">0-10k</a>
+                                            <a href="javascript:void(0)">10k-25k</a>
+                                            <a href="javascript:void(0)">25k-50k</a>
+                                            <a href="javascript:void(0)">Above 50k</a>
+                                            
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> -->
+
+
+                        </div>
+                        
+                    </div>
+                    <div class="col-lg-9 order-1 order-lg-2">
+                        <div class="shop-toolbar">
+                            <div class="product-view-mode">
+                                <a class="active grid-3" data-target="gridview-3" data-toggle="tooltip" data-placement="top" title="Grid View"><i class="fa fa-th"></i></a>
+                                <a class="list" data-target="listview" data-toggle="tooltip" data-placement="top" title="List View"><i class="fa fa-th-list"></i></a>
+                            </div>
+                            <div class="product-item-selection_area">
+                                <div class="product-short">
+                                    <label class="select-label">Sort By:</label>
+                                    <select class="nice-select">
+        
+                                        <option value="2">A to Z</option>
+                                        <option value="3">Z to A</option>
+                                        <option value="4">Price: low to high</option>
+                                        <option value="5">Price: high to low</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <% if (products.length > 0) { %>
+                            <div class="shop-product-wrap grid gridview-3 row">
+                                <% products.forEach(product => { %>
+                                    <div class="col-lg-4">
+                                        <div class="slide-item">
+                                            <div class="single_product">
+                                                <div class="product-img">
+                                                    <a href="/singleproduct/<%= product._id %>">
+                                                        <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName %>">
+                                                    </a>
+                                                    <span class="sticker">New</span>
+                                                    <div class="add-actions">
+                                                        <ul>
+                                                            <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
+                                                            <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div class="hiraola-product_content">
+                                                    <div class="product-desc_info">
+                                                        <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName %></a></h6>
+                                                        <div class="price-box">
+                                                            <span class="new-price"><%= product.price %></span>
+                                                        </div>
+                                                        <div class="additional-add_action">
+                                                            <ul>
+                                                                <li><a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Wishlist"><i class="ion-android-favorite-outline"></i></a></li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="rating-box">
+                                                            <ul>
+                                                                <li><i class="fa fa-star-of-david"></i></li>
+                                                                <li><i class="fa fa-star-of-david"></i></li>
+                                                                <li><i class="fa fa-star-of-david"></i></li>
+                                                                <li><i class="fa fa-star-of-david"></i></li>
+                                                                <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="row">
+                                <div class="col-12 text-center py-5">
+                                    <h3>No products found in this category</h3>
+                                    <p>Try another category or browse all products in the <a href="/shop">shop</a>.</p>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <% if (products.length > 0) { %>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="hiraola-paginatoin-area">
+                                        <div class="row">
+                                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                                <ul class="hiraola-pagination-box">
+                                                    <% if (currentPage > 1) { %>
+                                                        <li><a href="/shopbyfilter/<%= categoryId %>?page=1">|<</a></li>
+                                                        <li><a class="Previous" href="/shopbyfilter/<%= categoryId %>?page=<%= currentPage - 1 %>"><i class="ion-ios-arrow-left"></i></a></li>
+                                                    <% } %>
+                                                    
+                                                    <% 
+                                                    // Show a limited number of page links to prevent overcrowding
+                                                    let startPage = Math.max(1, currentPage - 2);
+                                                    let endPage = Math.min(totalPages, startPage + 4);
+                                                    
+                                                    // Adjust start page if we're at the end of the range
+                                                    if (endPage - startPage < 4 && startPage > 1) {
+                                                        startPage = Math.max(1, endPage - 4);
+                                                    }
+                                                    
+                                                    for(let i = startPage; i <= endPage; i++) { 
+                                                    %>
+                                                        <% if (i === currentPage) { %>
+                                                            <li class="active"><a href="javascript:void(0)"><%= i %></a></li>
+                                                        <% } else { %>
+                                                            <li><a href="/shopbyfilter/<%= categoryId %>?page=<%= i %>"><%= i %></a></li>
+                                                        <% } %>
+                                                    <% } %>
+                                                    
+                                                    <% if (currentPage < totalPages) { %>
+                                                        <li><a class="Next" href="/shopbyfilter/<%= categoryId %>?page=<%= currentPage + 1 %>"><i class="ion-ios-arrow-right"></i></a></li>
+                                                        <li><a href="/shopbyfilter/<%= categoryId %>?page=<%= totalPages %>">|></a></li>
+                                                    <% } %>
+                                                </ul>
+                                            </div>
+                                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                                <div class="product-select-box">
+                                                    <div class="product-short">
+                                                        <p>
+                                                            <% if (totalProducts > 0) { %>
+                                                                Showing <%= (currentPage - 1) * limit + 1 %> to <%= Math.min(currentPage * limit, totalProducts) %> of <%= totalProducts %> (<%= totalPages %> Pages)
+                                                            <% } else { %>
+                                                                No products found
+                                                            <% } %>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Hiraola's Content Wrapper Area End Here -->
+
+        <%- include('../partials/user/footer') %>

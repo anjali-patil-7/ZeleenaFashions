@@ -1,0 +1,285 @@
+<%- include('../partials/admin/header') %>
+
+<style>
+    .form-control.error {
+        border-color: #dc3545;
+    }
+    .text-danger {
+        font-size: 0.875em;
+        margin-top: 5px;
+    }
+    .breadcrumbs {
+        margin-bottom: 20px;
+    }
+    .breadcrumbs a {
+        color: #000000;
+        text-decoration: none;
+        margin-right: 5px;
+    }
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+    .breadcrumbs span {
+        margin: 0 5px;
+    }
+    .image-preview-container {
+        margin-top: 10px;
+        max-width: 100%;
+    }
+    .image-preview {
+        max-width: 100%;
+        max-height: 300px;
+        display: none;
+    }
+    .cropper-container {
+        margin-top: 10px;
+        max-width: 100%;
+    }
+    .crop-button {
+        margin-top: 10px;
+        display: none;
+    }
+</style>
+
+<section class="content-main">
+    <div class="breadcrumbs">
+        <% breadcrumbs.forEach((crumb, index) => { %>
+            <% if (index < breadcrumbs.length - 1) { %>
+                <a href="<%= crumb.url %>"><%= crumb.name %></a>
+                <span>></span>
+            <% } else { %>
+                <%= crumb.name %>
+            <% } %>
+        <% }) %>
+    </div>
+
+    <div class="content-header">
+        <div>
+            <h1 class="content-title card-title">Add Categories</h1>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <% if (messages.error && messages.error.length > 0) { %>
+                    <div class="alert alert-danger">
+                        <%= messages.error %>
+                    </div>
+                <% } %>
+                <% if (messages.success && messages.success.length > 0) { %>
+                    <div class="alert alert-success">
+                        <%= messages.success %>
+                    </div>
+                <% } %>
+                <form id="addCategoryForm" method="post" action="/admin/addcategory" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="name" class="form-label">Name</label>
+                        <input 
+                            type="text" 
+                            placeholder="Type here" 
+                            class="form-control" 
+                            id="name" 
+                            name="name" 
+                            value="<%= name || '' %>"
+                        />
+                        <div id="nameError" class="text-danger"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea 
+                            placeholder="Type here" 
+                            class="form-control" 
+                            id="description" 
+                            name="description"
+                        ><%= description || '' %></textarea>
+                        <div id="descriptionError" class="text-danger"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="image" class="form-label">Category Image</label>
+                        <input 
+                            type="file" 
+                            class="form-control" 
+                            id="image" 
+                            name="image" 
+                            accept="image/*" 
+                        />
+                        <div id="imageError" class="text-danger"></div>
+                        <div class="image-preview-container">
+                            <img id="imagePreview" class="image-preview" src="#" alt="Image Preview" />
+                        </div>
+                        <div class="cropper-container">
+                            <img id="cropperImage" style="max-width: 100%; display: none;" />
+                        </div>
+                        <button type="button" id="cropButton" class="btn btn-primary crop-button">Crop Image</button>
+                        <input type="hidden" id="croppedImageData" name="croppedImageData" />
+                    </div>
+                    <button type="submit" class="btn btn-dark">Add Category</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Include Cropper.js CSS and JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('addCategoryForm');
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('imagePreview');
+        const cropperImage = document.getElementById('cropperImage');
+        const cropButton = document.getElementById('cropButton');
+        const croppedImageDataInput = document.getElementById('croppedImageData');
+        let cropper = null;
+
+        // Form submission handler
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (validateForm()) {
+                this.submit();
+            }
+        });
+
+        // Image input change handler
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Show preview
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+
+                    // Initialize cropper
+                    cropperImage.src = e.target.result;
+                    cropperImage.style.display = 'block';
+                    cropButton.style.display = 'block';
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(cropperImage, {
+                        aspectRatio: NaN, // Free-size cropping
+                        viewMode: 1,
+                        autoCropArea: 0.8,
+                        responsive: true,
+                        zoomable: true,
+                        scalable: true,
+                        movable: true,
+                    });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                resetImageSection();
+            }
+        });
+
+        // Crop button handler
+        cropButton.addEventListener('click', function() {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas();
+                if (canvas) {
+                    // Update preview with cropped image
+                    imagePreview.src = canvas.toDataURL('image/jpeg');
+                    imagePreview.style.display = 'block';
+
+                    // Store cropped image data
+                    croppedImageDataInput.value = canvas.toDataURL('image/jpeg');
+
+                    // Hide cropper
+                    cropperImage.style.display = 'none';
+                    cropButton.style.display = 'none';
+                    cropper.destroy();
+                    cropper = null;
+                }
+            }
+        });
+
+        // Real-time validation
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                validateField(this);
+            });
+        });
+
+        function validateField(field) {
+            const errorElement = document.getElementById(field.id + 'Error');
+            errorElement.innerHTML = '';
+            field.classList.remove('error');
+
+            switch(field.id) {
+                case 'name':
+                    const name = field.value.trim();
+                    if (!name) {
+                        showError(field, errorElement, 'Category name is required');
+                    } else if (name.length < 2 || name.length > 50) {
+                        showError(field, errorElement, 'Name must be 2-50 characters long');
+                    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                        showError(field, errorElement, 'Name should only contain letters and spaces, no numbers allowed');
+                    }
+                    break;
+
+                case 'description':
+                    const description = field.value.trim();
+                    if (!description) {
+                        showError(field, errorElement, 'Description is required');
+                    } else if (description.length < 10 || description.length > 500) {
+                        showError(field, errorElement, 'Description must be 10-500 characters long');
+                    } else if (!/^[a-zA-Z\s]+$/.test(description)) {
+                        showError(field, errorElement, 'Description should only contain letters and spaces, no numbers allowed');
+                    }
+                    break;
+
+                case 'image':
+                    if (!croppedImageDataInput.value && field.files.length === 0) {
+                        showError(field, errorElement, 'Image is required');
+                    } else if (field.files.length > 0) {
+                        const file = field.files[0];
+                        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                        if (!allowedTypes.includes(file.type)) {
+                            showError(field, errorElement, 'Only JPEG, PNG, or GIF images are allowed');
+                        } else if (file.size > 5 * 1024 * 1024) {
+                            showError(field, errorElement, 'Image size must be less than 5MB');
+                        }
+                    }
+                    break;
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const fields = ['name', 'description', 'image'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                validateField(field);
+                if (field.classList.contains('error')) {
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        function showError(field, errorElement, message) {
+            errorElement.innerHTML = message;
+            field.classList.add('error');
+        }
+
+        function resetImageSection() {
+            imagePreview.style.display = 'none';
+            cropperImage.style.display = 'none';
+            cropButton.style.display = 'none';
+            croppedImageDataInput.value = '';
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+    });
+</script>
+
+<%- include('../partials/admin/footer') %>
