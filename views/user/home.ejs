@@ -133,48 +133,56 @@
 </div>
 
 <!-- Begin Hiraola's Product Area -->
+
 <div class="hiraola-product_area">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <div class="hiraola-section_title">
+                <div class="hiraola-section_title" style="text-align: center;">
                     <h4>New Arrivals</h4>
                 </div>
             </div>
-            <div class="col-lg-4">
-                <div class="hiraola-product_slider">
+        </div>
+        <div class="row" style="margin-bottom: 90px;">
+            <div class="col-lg-12">
+                <div class="hiraola-product_grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; place-items: center;">
                     <% if (products && products.length > 0) { %>
                         <% products.forEach(product => { %>
-                            <div class="slide-item">
-                                <div class="single_product">
-                                    <div class="product-img">
+                            <div class="slide-item" style="width: 100%; max-width: 200px;">
+                                <div class="single_product" style="border: 1px solid #ddd; padding: 10px; background: #fff; text-align: center;">
+                                    <div class="product-img" style="position: relative;">
                                         <a href="/singleproduct/<%= product._id %>">
-                                            <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>">
+                                            <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>" style="width: 100%; height: 150px; object-fit: cover;">
                                         </a>
                                         <% if (product.createdAt) { 
                                             const createdAtDate = new Date(product.createdAt);
                                             const sevenDaysAgo = new Date();
                                             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
                                             if (createdAtDate >= sevenDaysAgo) { %>
-                                               56
-                                                <div class="new-tag">New!</div>
+                                                <div class="new-tag" style="position: absolute; top: 10px; left: 10px; background: rgb(16, 160, 6); color: white; padding: 2px 8px; font-size: 12px;">New!</div>
                                             <% } 
                                         } %>
-                                        <div class="add-actions">
-                                            <ul>
+                                        <div class="add-actions" style="position: absolute; bottom: 10px; right: 10px;">
+                                            <ul style="list-style: none; padding: 0; display: flex; gap: 5px;">
                                                 <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
                                                 <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
                                             </ul>
                                         </div>
                                     </div>
-                                    <div class="hiraola-product_content">
+                                    <div class="hiraola-product_content" style="margin-top: 10px;">
                                         <div class="product-desc_info">
-                                            <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName || 'Unnamed Product' %></a></h6>
+                                            <h6 style="margin: 5px 0; font-size: 14px; height: 40px; overflow: hidden;">
+                                                <a class="product-name" href="/singleproduct/<%= product._id %>">
+                                                    <%= product.productName || 'Unnamed Product' %>
+                                                </a>
+                                            </h6>
                                             <div class="price-box">
-                                                <span class="new-price">₹<%= product.price ? product.price.toFixed(2) : '0.00' %></span>
+                                                <span class="new-price" style="font-size: 16px; color: #010705;">
+                                                    ₹<%= product.price ? product.price.toFixed(2) : '0.00' %>
+                                                </span>
                                             </div>
                                             <div class="additional-add_action">
-                                                <ul>
+                                                <ul style="list-style: none; padding: 0; display: flex; justify-content: center; margin: 5px 0;">
                                                     <li>
                                                         <a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" 
                                                            title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
@@ -185,12 +193,12 @@
                                                 </ul>
                                             </div>
                                             <div class="rating-box">
-                                                <ul>
-                                                    <li><i class="fa fa-star-of-david"></i></li>
-                                                    <li><i class="fa fa-star-of-david"></i></li>
-                                                    <li><i class="fa fa-star-of-david"></i></li>
-                                                    <li><i class="fa fa-star-of-david"></i></li>
-                                                    <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                                                <ul style="list-style: none; padding: 0; display: flex; justify-content: center; gap: 2px;">
+                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
+                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
+                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
+                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
+                                                    <li class="silver-color"><i class="fa fa-star-of-david" style="color: #bdc3c7;"></i></li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -199,13 +207,14 @@
                             </div>
                         <% }) %>
                     <% } else { %>
-                        <p>No products found. Please check back later!</p>
+                        <p style="text-align: center; grid-column: 1 / -1;">No products found. Please check back later!</p>
                     <% } %>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <!-- Hiraola's Product Area End Here -->
 
 <script>

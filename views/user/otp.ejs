@@ -117,7 +117,7 @@
                                         <div class="text-center">
                                             <p>Didn't receive the code? 
                                                 <a href="#" class="text-primary" id="resendBtn" style="display: none;">Resend OTP</a>
-                                                <span id="timerText" class="text-muted">Time remaining: <span id="timer">02:00</span></span>
+                                                <span id="timerText" class="text-muted">Time remaining: <span id="timer">01:00</span></span>
                                             </p>
                                         </div>
                                     </div>
@@ -143,7 +143,7 @@
     const timerElement = document.getElementById('timer');
     const resendBtn = document.getElementById('resendBtn');
     const timerText = document.getElementById('timerText');
-    let timeLeft = 120; // 2 minutes
+    let timeLeft = 60; //1mints
     let timerInterval;
 
     // Focus first input on load
@@ -198,7 +198,7 @@
     // Start initial timer
     function startTimer() {
         clearInterval(timerInterval);
-        timeLeft = 120;
+        timeLeft = 60;
         timerInterval = setInterval(updateTimer, 1000);
         updateTimer();
     }

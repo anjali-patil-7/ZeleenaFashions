@@ -80,7 +80,9 @@ exports.getShopPage = async (req, res) => {
 
     const categories = await Category.find({ status: true }).lean();
     const totalProducts = await Product.countDocuments({ status: true });
-    const products = await Product.find({ status: true })
+
+    console.log(totalProducts)
+    const products = await Product.find({status: true})
       .populate('category')
       .sort(sortOption)
       .skip((page - 1) * limit)
@@ -158,13 +160,15 @@ exports.getShopByFilter = async (req, res) => {
     });
     const products = await Product.find({
       category: categoryId,
-      status: true,
+      // status: true,
     })
       .populate('category')
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
+
+    console.log(products)
     const totalPages = Math.ceil(totalProducts / limit);
 
     res.locals.session = req.session || {};

@@ -18,36 +18,65 @@
         object-fit: cover;
         border: 1px solid #ddd;
     }
-    .form-control.error {
-        border-color: #dc3545;
-    }
-    .form-select.error {
+    .form-control.error, .form-select.error {
         border-color: #dc3545;
     }
     .text-danger {
         font-size: 0.875em;
         margin-top: 5px;
     }
+    .image-preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .image-preview-item {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        border: 1px solid #ddd;
+        overflow: hidden;
+    }
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .image-actions {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        justify-content: space-around;
+        padding: 5px;
+    }
+    .image-actions button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .image-actions button:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <section class="content-main">
     <div class="content-header">
-        <div>
-            <h1 class="content-title card-title">Edit Product</h1>
-        </div>
+        <h1 class="content-title card-title">Edit Product</h1>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-8">
                 <% if (messages.error && messages.error.length > 0) { %>
-                    <div class="alert alert-danger">
-                        <%= messages.error %>
-                    </div>
+                    <div class="alert alert-danger"><%= messages.error %></div>
                 <% } %>
                 <% if (messages.success && messages.success.length > 0) { %>
-                    <div class="alert alert-success">
-                        <%= messages.success %>
-                    </div>
+                    <div class="alert alert-success"><%= messages.success %></div>
                 <% } %>
                 <% if (errors && errors.length > 0) { %>
                     <div class="alert alert-danger">
@@ -59,10 +88,10 @@
                     </div>
                 <% } %>
                 <form 
-                id="editProductForm" 
-                method="post" 
-                action="/admin/editproduct/<%= product._id %>" 
-                enctype="multipart/form-data"
+                    id="editProductForm" 
+                    method="post" 
+                    action="/admin/editproduct/<%= product._id %>" 
+                    enctype="multipart/form-data"
                 >
                     <input type="hidden" name="id" value="<%= product._id %>">
 
@@ -137,32 +166,37 @@
                         <div id="categoryError" class="text-danger"></div>
                     </div>
 
-                    <!-- Image Preview Section -->
+                    <!-- Current Images Preview and Removal -->
+                    <div class="mb-4">
+                        <label class="form-label">Current Images</label>
+                        <div class="image-preview-container">
+                            <% if (product.productImage && product.productImage.length > 0) { %>
+                                <% product.productImage.forEach(function(image, index) { %>
+                                    <div class="image-preview-item" data-index="<%= index %>">
+                                        <img src="<%= image %>" alt="Product Image <%= index + 1 %>">
+                                        <div class="image-actions">
+                                            <button type="button" class="remove-image" data-index="<%= index %>">Remove</button>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <p>No images available</p>
+                            <% } %>
+                        </div>
+                        <input type="hidden" id="removedImages" name="removedImages" value="">
+                    </div>
+
+                    <!-- Image Upload Section -->
                     <div class="mb-4">
                         <label for="imageUpload" class="form-label">Upload New Images</label>
-                        <input type="file" id="imageUpload" class="form-control" accept="image/*" multiple />
-                        <div id="cropperModalContainer"></div>
+                        <input type="file" id="imageUpload" name="images" class="form-control" accept="image/*" multiple />
+                        <div id="newImagesPreview" class="d-flex flex-wrap mt-2 gap-2"></div>
                     </div>
-                    <a href="/admin/editimage/<%= product._id %>" class="btn btn-dark">Edit Images</a>
+
                     <div class="d-flex justify-content-center mt-3">
                         <button type="submit" class="btn btn-dark">Update Product</button>
                     </div>  
                 </form>
-                <div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                      <div class="modal-content">
-                        <div class="modal-body">
-                          <div>
-                            <img id="cropperImage" style="max-width: 100%; display: block;" />
-                          </div>
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" id="cropImageBtn" class="btn btn-primary">Crop & Save</button>
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
             </div>
         </div>
     </div>
@@ -171,26 +205,73 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('editProductForm');
+        const imageUpload = document.getElementById('imageUpload');
+        const newImagesPreview = document.getElementById('newImagesPreview');
+        const removedImagesInput = document.getElementById('removedImages');
         
-        // Form submission handler
+        let removedImages = [];
+        
+        // Form submission with debugging
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             if (validateForm()) {
-                this.submit();
+                // Update removedImages input
+                removedImagesInput.value = JSON.stringify(removedImages);
+                
+                // Log form data for debugging
+                const formData = new FormData(form);
+                console.log('Form Data:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+                
+                // Submit the form
+                form.submit();
             }
         });
 
-        // Real-time validation
-        const inputs = document.querySelectorAll('.form-control, .form-select');
-        inputs.forEach(input => {
-            input.addEventListener('input', function() {
-                validateField(this);
-            });
-            input.addEventListener('change', function() {
-                validateField(this);
+        // Handle new image uploads
+        imageUpload.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            // Clear existing previews
+            newImagesPreview.innerHTML = '';
+            
+            // Create previews for each file
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'position-relative';
+                    previewItem.style.width = '100px';
+                    previewItem.style.height = '100px';
+                    previewItem.style.overflow = 'hidden';
+                    previewItem.style.marginRight = '10px';
+                    
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.className = 'w-100 h-100';
+                    img.style.objectFit = 'cover';
+                    
+                    previewItem.appendChild(img);
+                    newImagesPreview.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
             });
         });
 
+        // Handle image removal
+        document.querySelectorAll('.remove-image').forEach(button => {
+            button.addEventListener('click', function() {
+                const imageIndex = parseInt(this.getAttribute('data-index'));
+                if (!removedImages.includes(imageIndex)) {
+                    removedImages.push(imageIndex);
+                }
+                this.closest('.image-preview-item').style.display = 'none';
+            });
+        });
+
+        // Form validation
         function validateField(field) {
             const errorElement = document.getElementById(field.id + 'Error');
             errorElement.innerHTML = '';
@@ -204,18 +285,21 @@
                     } else if (name.length < 2 || name.length > 100) {
                         showError(field, errorElement, 'Name must be 2-100 characters long');
                     } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-                        showError(field, errorElement, 'Name should only contain letters and spaces, no numbers allowed');
+                        showError(field, errorElement, 'Name should only contain letters and spaces');
                     }
                     break;
 
                 case 'description':
-                    const description = field.value.trim();
+                    const description = field.value;
                     if (!description) {
-                        showError(field, errorElement, 'Product description is required');
-                    } else if (description.length < 10 || description.length > 1000) {
-                        showError(field, errorElement, 'Description must be 10-1000 characters long');
-                    } else if (!/^[a-zA-Z\s]+$/.test(description)) {
-                        showError(field, errorElement, 'Description should only contain letters and spaces, no numbers allowed');
+                        showError(field, errorElement, 'Description is required');
+                    } else {
+                        const trimmedDescription = description.trim();
+                        if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
+                            showError(field, errorElement, 'Description must be 10–1000 characters long');
+                        } else if (!/^[a-zA-Z0-9\s,.]+$/.test(trimmedDescription)) {
+                            showError(field, errorElement, 'Description can only contain letters, numbers, spaces, periods, and commas');
+                        }
                     }
                     break;
 
@@ -264,65 +348,18 @@
             errorElement.innerHTML = message;
             field.classList.add('error');
         }
-    });
-</script>
-<script>
-    let cropper;
-    const imageInput = document.getElementById('imageUpload');
-    const cropperImage = document.getElementById('cropperImage');
 
-    imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                cropperImage.src = reader.result;
-                const modal = new bootstrap.Modal(document.getElementById('cropperModal'));
-                modal.show();
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    document.getElementById('cropperModal').addEventListener('shown.bs.modal', function () {
-        cropper = new Cropper(cropperImage, {
-            aspectRatio: 1,
-            viewMode: 1,
+        // Real-time validation
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                validateField(this);
+            });
+            input.addEventListener('change', function() {
+                validateField(this);
+            });
         });
     });
-
-    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', function () {
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-    });
-
-    document.getElementById('cropImageBtn').addEventListener('click', () => {
-        const canvas = cropper.getCroppedCanvas({
-            width: 800,
-            height: 800,
-        });
-
-        canvas.toBlob((blob) => {
-            const formData = new FormData();
-            formData.append('croppedImage', blob, 'cropped.jpg');
-            formData.append('id', "<%= product._id %>");
-
-            fetch('/admin/updatecroppedimage', {
-                method: 'POST',
-                body: formData
-            }).then(res => res.json())
-              .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message || 'Image upload failed');
-                }
-              });
-        }, 'image/jpeg');
-    });
 </script>
-
 
 <%- include('../partials/admin/footer') %>

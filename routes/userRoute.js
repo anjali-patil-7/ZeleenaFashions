@@ -38,9 +38,10 @@ router.post('/verify-email-update', verifyToken, profileController.verifyEmailOt
 
 
 // Shop routes
-router.get('/shop', shopController.getShopPage);
-router.get('/shopbyfilter/:categoryId', shopController.getShopByFilter);
-router.get('/singleproduct/:id', shopController.getSingleProduct);
+router.get('/shop',verifyToken, shopController.getShopPage);
+router.get('/shopbyfilter/:categoryId',verifyToken, shopController.getShopByFilter);
+router.get('/singleproduct/:id',verifyToken, shopController.getSingleProduct);
+
 
 
 module.exports = router;

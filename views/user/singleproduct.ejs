@@ -518,7 +518,7 @@
             <h4>Related Products</h4>
           </div>
         </div>
-        <div class="col-lg-12">
+        <div class="col-lg-6">
           <div class="hiraola-product_slider-3">
             <% relatedProduct.forEach(function(related) { %>
               <div class="slide-item">
@@ -618,37 +618,68 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  $(document).ready(function () {
-    // Initialize zoom on the main product image
-    $(".zoompro").elevateZoom({
+ $(document).ready(function () {
+  // First, destroy any existing instances to prevent conflicts
+  $('.zoompro').elevateZoom('destroy');
+  
+  // Initialize zoom with improved settings
+  $(".zoompro").elevateZoom({
+    gallery: "gallery",
+    galleryActiveClass: "active",
+    zoomType: "inner", // Changed to 'inner' for better mobile compatibility
+    cursor: "crosshair",
+    responsive: true,
+    zoomWindowFadeIn: 500,
+    zoomWindowFadeOut: 500,
+    easing: true
+  });
+
+  // Better event handler for gallery thumbnails
+  $("#gallery a").on("click", function (e) {
+    e.preventDefault();
+    
+    // Update active class manually to ensure visual indication works
+    $("#gallery a").removeClass("active");
+    $(this).addClass("active");
+    
+    var newImage = $(this).data("image");
+    var newZoomImage = $(this).data("zoom-image");
+    
+    // Update image
+    $('.zoompro').attr('src', newImage);
+    $('.zoompro').data('zoom-image', newZoomImage);
+    
+    // Reinitialize zoom for the new image
+    $('.zoompro').elevateZoom('destroy');
+    $('.zoompro').elevateZoom({
       gallery: "gallery",
       galleryActiveClass: "active",
-      zoomType: "window", // Changed to 'window' for better compatibility
+      zoomType: "inner",
       cursor: "crosshair",
+      responsive: true,
       zoomWindowFadeIn: 500,
       zoomWindowFadeOut: 500,
-      lensFadeIn: 500,
-      lensFadeOut: 500,
-    });
-
-    // Handle gallery thumbnail clicks
-    $("#gallery a").on("click", function (e) {
-      e.preventDefault();
-      var newImage = $(this).data("image");
-      var newZoomImage = $(this).data("zoom-image");
-      $(".zoompro").attr("src", newImage).attr("data-zoom-image", newZoomImage);
-      $(".zoompro").elevateZoom({
-        gallery: "gallery",
-        galleryActiveClass: "active",
-        zoomType: "window",
-        cursor: "crosshair",
-        zoomWindowFadeIn: 500,
-        zoomWindowFadeOut: 500,
-        lensFadeIn: 500,
-        lensFadeOut: 500,
-      });
+      easing: true
     });
   });
+  
+  // Fix for mobile devices
+  $(window).resize(function() {
+    $('.zoompro').elevateZoom('destroy');
+    setTimeout(function() {
+      $('.zoompro').elevateZoom({
+        gallery: "gallery",
+        galleryActiveClass: "active",
+        zoomType: window.innerWidth < 768 ? "inner" : "window",
+        cursor: "crosshair",
+        responsive: true,
+        zoomWindowFadeIn: 500,
+        zoomWindowFadeOut: 500,
+        easing: true
+      });
+    }, 300);
+  });
+});
 
   const MAX_QUANTITY = 7;
 

@@ -16,6 +16,7 @@ exports.getHomePage = async (req, res) => {
             .populate('category')
             .limit(10)
             .lean();
+            console.log(products)
         if (!products.length) {
             console.log('No active products found.');
         }

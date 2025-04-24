@@ -123,7 +123,7 @@ exports.postSignup = async (req, res) => {
                     <h2>Zeleena Fashions</h2>
                     <p>Your OTP for account verification is:</p>
                     <h3 style="color: #1D2951;">${otp}</h3>
-                    <p>This OTP is valid for 2 minutes.</p>
+                    <p>This OTP is valid for 1 minute.</p>
                     <p>If you did not request this, please ignore this email.</p>
                 </div>
             `,
@@ -263,7 +263,7 @@ exports.resendOTP = async (req, res) => {
                     <h2>Zeleena Fashions</h2>
                     <p>Your new OTP for account verification is:</p>
                     <h3 style="color: #1D2951;">${otp}</h3>
-                    <p>This OTP is valid for 2 minutes.</p>
+                    <p>This OTP is valid for 1 minutes.</p>
                     <p>If you did not request this, please ignore this email.</p>
                 </div>
             `,
@@ -475,7 +475,7 @@ exports.logout = (req, res) => {
             }
 
             // Redirect to login page with success message
-            res.redirect('/login?success_msg=You+have+been+logged+out+successfully!');
+            res.redirect('/login');
         });
     } catch (err) {
         console.error('Logout error:', err);
@@ -563,7 +563,7 @@ exports.postForgotPassword = async (req, res) => {
                     <h2>Zeleena Fashions</h2>
                     <p>Your OTP for password reset is:</p>
                     <h3 style="color: #1D2951;">${otp}</h3>
-                    <p>This OTP is valid for 2 minutes.</p>
+                    <p>This OTP is valid for 1 minutes.</p>
                     <p>If you did not request this, please ignore this email.</p>
                 </div>
             `,
@@ -809,7 +809,7 @@ exports.resendForgotPasswordOTP = async (req, res) => {
                     <h2>Zeleena Fashions</h2>
                     <p>Your new OTP for password reset is:</p>
                     <h3 style="color: #1D2951;">${otp}</h3>
-                    <p>This OTP is valid for 2 minutes.</p>
+                    <p>This OTP is valid for 1 minutes.</p>
                     <p>If you did not request this, please ignore this email.</p>
                 </div>
             `,

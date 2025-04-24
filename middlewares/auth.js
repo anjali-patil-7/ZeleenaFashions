@@ -25,4 +25,12 @@ const verifyToken = async (req, res, next) => {
     }
 };
 
-module.exports = { verifyToken };
+const islogin  =  (req,res,next)=>{
+    if(!req.session || !req.session.isAuth){
+        req.flash('error_msg','please log in to access this page ')
+        return res.redirect('/login')
+    }
+    next()
+}
+
+module.exports = { verifyToken ,islogin};
