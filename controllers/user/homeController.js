@@ -32,7 +32,11 @@ exports.getHomePage = async (req, res) => {
         if (req.session.isAuth && req.user) {
             const user = await User.findById(req.user.id).lean();
             userWishlist = user.wishlist || [];
+
+            
         }
+
+
 
         // Render the homepage with data
         res.render('user/home', {

@@ -1,52 +1,66 @@
-const Product = require('../../models/productSchema');
-const Category = require('../../models/categorySchema');
-const path = require('path');
-const fs = require('fs');
+const Product = require("../../models/productSchema");
+const Category = require("../../models/categorySchema");
+const path = require("path");
+const fs = require("fs");
 
 // Add Product
 exports.addProduct = async (req, res) => {
   try {
-    console.log('POST /admin/product/addproduct received');
-    console.log('Request Body:', req.body);
-    console.log('Uploaded Files:', req.files);
+    console.log("POST /admin/product/addproduct received");
+    console.log("Request Body:", req.body);
+    console.log("Uploaded Files:", req.files);
 
     const { name, description, price, stock, category, status } = req.body;
     const files = req.files || [];
 
     const errors = [];
     if (!name || name.trim().length < 2 || name.trim().length > 100) {
-      errors.push('Product name must be 2-100 characters long');
+      errors.push("Product name must be 2-100 characters long");
     } else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
-      errors.push('Product name should only contain letters and spaces');
+      errors.push("Product name should only contain letters and spaces");
     }
 
     if (!description || !description.trim()) {
-      errors.push('Description is required');
+      errors.push("Description is required");
     } else {
       const trimmedDescription = description.trim();
       if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
-        errors.push('Description must be 10–1000 characters long');
+        errors.push("Description must be 10–1000 characters long");
       } else if (!/^[a-zA-Z0-9\s,.]+$/.test(trimmedDescription)) {
-        errors.push('Description can only contain letters, numbers, spaces, periods, and commas');
+        errors.push(
+          "Description can only contain letters, numbers, spaces, periods, and commas"
+        );
       }
     }
 
-    if (!price || isNaN(price) || parseFloat(price) <= 0 || parseFloat(price) > 1000000) {
-      errors.push('Price must be between 0.01 and 1,000,000');
+    if (
+      !price ||
+      isNaN(price) ||
+      parseFloat(price) <= 0 ||
+      parseFloat(price) > 1000000
+    ) {
+      errors.push("Price must be between 0.01 and 1,000,000");
     }
 
-    if (!stock || isNaN(stock) || parseInt(stock) < 0 || parseInt(stock) > 10000) {
-      errors.push('Stock must be between 0 and 10,000');
+    if (
+      !stock ||
+      isNaN(stock) ||
+      parseInt(stock) < 0 ||
+      parseInt(stock) > 10000
+    ) {
+      errors.push("Stock must be between 0 and 10,000");
     }
 
     if (!category) {
-      errors.push('Category is required');
+      errors.push("Category is required");
     }
+    console.log("files>>>>", files);
 
     if (files.length !== 3) {
       errors.push(`Exactly 3 images are required, received ${files.length}`);
     } else {
-      const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+      const validExtensions = ["image/jpeg", "image/jpg", "image/png"];
+      console.log("validExtensions:",validExtensions)
       const maxSize = 5 * 1024 * 1024;
       files.forEach((file, index) => {
         if (!validExtensions.includes(file.mimetype)) {
@@ -59,18 +73,20 @@ exports.addProduct = async (req, res) => {
     }
 
     if (errors.length > 0) {
-      console.log('Validation errors:', errors);
+      console.log("Validation errors:", errors);
       const categories = await Category.find();
-      return res.render('admin/addproduct', {
+      return res.render("admin/addproduct", {
         product: { name, description, price, stock, category, status },
         categories,
         errors,
-        messages: { error: errors.join(', '), success: '' },
+        messages: { error: errors.join(", "), success: "" },
       });
     }
 
-    const imagePaths = files.map(file => `/uploads/products/${file.filename}`);
-    console.log('Image paths:', imagePaths);
+    const imagePaths = files.map(
+      (file) => `/uploads/products/${file.filename}`
+    );
+    console.log("Image paths:", imagePaths);
 
     const product = new Product({
       productName: name.trim(),
@@ -79,22 +95,23 @@ exports.addProduct = async (req, res) => {
       totalStock: parseInt(stock),
       category,
       productImage: imagePaths,
-      status: status === 'true',
+      status: status === "true",
     });
 
     await product.save();
-    console.log('Product saved:', product);
-    req.flash('success', 'Product added successfully');
-    res.redirect('/admin/product');
+    console.log("Product saved:", product);
+    req.flash("success", "Product added successfully");
+    res.redirect("/admin/product");
   } catch (error) {
-    console.error('Error adding product:', error);
+    console.error("Error adding product:", error);
     const categories = await Category.find();
-    const errorMessage = error.message || 'An error occurred while adding the product';
-    return res.render('admin/addproduct', {
+    const errorMessage =
+      error.message || "An error occurred while adding the product";
+    return res.render("admin/addproduct", {
       product: req.body,
       categories,
       errors: [errorMessage],
-      messages: { error: errorMessage, success: '' },
+      messages: { error: errorMessage, success: "" },
     });
   }
 };
@@ -102,49 +119,70 @@ exports.addProduct = async (req, res) => {
 // Edit Product
 exports.editProduct = async (req, res) => {
   try {
-    console.log('POST /admin/editproduct/:id received');
-    console.log('Request Body:', req.body);
-    console.log('Uploaded Files:', req.files);
+    console.log("POST /admin/editproduct/:id received");
+    console.log("Request Body:", req.body);
+    console.log("Uploaded Files:", req.files);
 
-    const { id, name, description, price, stock, category, status, removedImages } = req.body;
+    const {
+      id,
+      name,
+      description,
+      price,
+      stock,
+      category,
+      status,
+      removedImages,
+    } = req.body;
     const files = req.files || [];
 
     // Backend validation
     const errors = [];
     if (!name || name.trim().length < 2 || name.trim().length > 100) {
-      errors.push('Product name must be 2-100 characters long');
+      errors.push("Product name must be 2-100 characters long");
     } else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
-      errors.push('Product name should only contain letters and spaces');
+      errors.push("Product name should only contain letters and spaces");
     }
 
     if (!description || !description.trim()) {
-      errors.push('Description is required');
+      errors.push("Description is required");
     } else {
       const trimmedDescription = description.trim();
       if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
-        errors.push('Description must be 10–1000 characters long');
+        errors.push("Description must be 10–1000 characters long");
       } else if (!/^[a-zA-Z0-9\s,.]+$/.test(trimmedDescription)) {
-        errors.push('Description can only contain letters, numbers, spaces, periods, and commas');
+        errors.push(
+          "Description can only contain letters, numbers, spaces, periods, and commas"
+        );
       }
     }
 
-    if (!price || isNaN(price) || parseFloat(price) <= 0 || parseFloat(price) > 1000000) {
-      errors.push('Price must be between 0.01 and 1,000,000');
+    if (
+      !price ||
+      isNaN(price) ||
+      parseFloat(price) <= 0 ||
+      parseFloat(price) > 1000000
+    ) {
+      errors.push("Price must be between 0.01 and 1,000,000");
     }
 
-    if (!stock || isNaN(stock) || parseInt(stock) < 0 || parseInt(stock) > 10000) {
-      errors.push('Stock must be between 0 and 10,000');
+    if (
+      !stock ||
+      isNaN(stock) ||
+      parseInt(stock) < 0 ||
+      parseInt(stock) > 10000
+    ) {
+      errors.push("Stock must be between 0 and 10,000");
     }
 
     if (!category) {
-      errors.push('Category is required');
+      errors.push("Category is required");
     }
 
     // Fetch existing product
     const product = await Product.findById(id);
     if (!product) {
-      req.flash('error', 'Product not found');
-      return res.redirect('/admin/product');
+      req.flash("error", "Product not found");
+      return res.redirect("/admin/product");
     }
 
     // Parse removedImages
@@ -153,7 +191,7 @@ exports.editProduct = async (req, res) => {
       try {
         removedIndexes = JSON.parse(removedImages).map(Number);
       } catch (e) {
-        errors.push('Invalid removed images data');
+        errors.push("Invalid removed images data");
       }
     }
 
@@ -163,7 +201,11 @@ exports.editProduct = async (req, res) => {
       removedIndexes.sort((a, b) => b - a); // Sort descending to avoid index issues
       for (let index of removedIndexes) {
         if (index >= 0 && index < currentImages.length) {
-          const imagePath = path.join(__dirname, '../../public', currentImages[index]);
+          const imagePath = path.join(
+            __dirname,
+            "../../public",
+            currentImages[index]
+          );
           if (fs.existsSync(imagePath)) {
             fs.unlinkSync(imagePath); // Delete file
           }
@@ -173,14 +215,18 @@ exports.editProduct = async (req, res) => {
     }
 
     // Add new images
-    let newImagePaths = files.map(file => `/uploads/products/${file.filename}`);
+    let newImagePaths = files.map(
+      (file) => `/uploads/products/${file.filename}`
+    );
     currentImages = [...currentImages, ...newImagePaths];
 
     // Validate total images
     if (currentImages.length !== 3) {
-      errors.push(`Exactly 3 images are required, received ${currentImages.length} after processing`);
+      errors.push(
+        `Exactly 3 images are required, received ${currentImages.length} after processing`
+      );
     } else if (newImagePaths.length > 0) {
-      const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+      const validExtensions = ["image/jpeg", "image/jpg", "image/png"];
       const maxSize = 5 * 1024 * 1024;
       files.forEach((file, index) => {
         if (!validExtensions.includes(file.mimetype)) {
@@ -194,11 +240,11 @@ exports.editProduct = async (req, res) => {
 
     if (errors.length > 0) {
       const categories = await Category.find();
-      return res.render('admin/editproduct', {
+      return res.render("admin/editproduct", {
         product,
         categories,
         errors,
-        messages: { error: errors.join(', '), success: '' },
+        messages: { error: errors.join(", "), success: "" },
       });
     }
 
@@ -210,20 +256,22 @@ exports.editProduct = async (req, res) => {
       totalStock: parseInt(stock),
       category,
       productImage: currentImages,
-      status: status === 'true',
+      status: status === "true",
     });
 
-    req.flash('success', 'Product updated successfully');
-    res.redirect('/admin/product');
+    req.flash("success", "Product updated successfully");
+    res.redirect("/admin/product");
   } catch (error) {
-    console.error('Error updating product:', error);
-    const product = await Product.findById(req.body.id).populate('category').catch(() => null);
+    console.error("Error updating product:", error);
+    const product = await Product.findById(req.body.id)
+      .populate("category")
+      .catch(() => null);
     const categories = await Category.find();
-    return res.render('admin/editproduct', {
+    return res.render("admin/editproduct", {
       product,
       categories,
-      errors: [error.message || 'An error occurred while updating the product'],
-      messages: { error: error.message, success: '' },
+      errors: [error.message || "An error occurred while updating the product"],
+      messages: { error: error.message, success: "" },
     });
   }
 };
@@ -233,41 +281,41 @@ exports.getProducts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
-    const searchQuery = req.query.query || '';
+    const searchQuery = req.query.query || "";
 
     const query = searchQuery
       ? {
           $or: [
-            { productName: { $regex: searchQuery, $options: 'i' } },
-            { description: { $regex: searchQuery, $options: 'i' } },
+            { productName: { $regex: searchQuery, $options: "i" } },
+            { description: { $regex: searchQuery, $options: "i" } },
           ],
         }
       : {};
 
     const products = await Product.find(query)
-      .populate('category')
+      .populate("category")
       .skip((page - 1) * limit)
       .limit(limit);
 
     const totalProducts = await Product.countDocuments(query);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    res.render('admin/product', {
+    res.render("admin/product", {
       products,
       currentPage: page,
       totalPages,
       searchQuery,
-      messages: { error: req.flash('error'), success: req.flash('success') },
+      messages: { error: req.flash("error"), success: req.flash("success") },
     });
   } catch (error) {
     console.error(error);
-    req.flash('error', 'An error occurred while fetching products');
-    res.render('admin/product', {
+    req.flash("error", "An error occurred while fetching products");
+    res.render("admin/product", {
       products: [],
       currentPage: 1,
       totalPages: 1,
-      searchQuery: '',
-      messages: { error: req.flash('error'), success: req.flash('success') },
+      searchQuery: "",
+      messages: { error: req.flash("error"), success: req.flash("success") },
     });
   }
 };
@@ -279,7 +327,7 @@ exports.toggleProductStatus = async (req, res) => {
     const product = await Product.findById(productId);
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     product.status = !product.status;
@@ -288,7 +336,7 @@ exports.toggleProductStatus = async (req, res) => {
     res.json({ status: product.status });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'An error occurred' });
+    res.status(500).json({ message: "An error occurred" });
   }
 };
 
@@ -296,39 +344,39 @@ exports.toggleProductStatus = async (req, res) => {
 exports.renderAddProduct = async (req, res) => {
   try {
     const categories = await Category.find();
-    res.render('admin/addproduct', {
+    res.render("admin/addproduct", {
       product: null,
       categories,
       errors: [],
-      messages: { error: req.flash('error'), success: req.flash('success') },
+      messages: { error: req.flash("error"), success: req.flash("success") },
     });
   } catch (error) {
     console.error(error);
-    req.flash('error', 'An error occurred while loading the add product page');
-    res.redirect('/admin/product');
+    req.flash("error", "An error occurred while loading the add product page");
+    res.redirect("/admin/product");
   }
 };
 
 // Render Edit Product Page
 exports.renderEditProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('category');
+    const product = await Product.findById(req.params.id).populate("category");
     const categories = await Category.find();
 
     if (!product) {
-      req.flash('error', 'Product not found');
-      return res.redirect('/admin/product');
+      req.flash("error", "Product not found");
+      return res.redirect("/admin/product");
     }
 
-    res.render('admin/editproduct', {
+    res.render("admin/editproduct", {
       product,
       categories,
       errors: [],
-      messages: { error: req.flash('error'), success: req.flash('success') },
+      messages: { error: req.flash("error"), success: req.flash("success") },
     });
   } catch (error) {
     console.error(error);
-    req.flash('error', 'An error occurred while loading the edit product page');
-    res.redirect('/admin/product');
+    req.flash("error", "An error occurred while loading the edit product page");
+    res.redirect("/admin/product");
   }
 };

@@ -4,6 +4,7 @@ const homeController = require('../controllers/user/homeController');
 const shopController = require('../controllers/user/shopController');
 const profileController = require('../controllers/user/profileController');
 const { verifyToken } = require('../middlewares/auth');
+const { session } = require('passport');
 
 const router = express.Router();
 
@@ -16,14 +17,13 @@ router.post('/login', authController.postLogin);
 router.get('/verify-otp', authController.verifyOTP);
 router.post('/verify-otp', authController.verifyOTP);
 router.post('/resend-otp', authController.resendOTP);
-// router.get('/google', authController.googleAuth);
-router.get('/auth/google',authController.googleAuth)
+router.get('/auth/google',authController.googleAuth)    
 router.get('/auth/google/callback',authController.googleCallback)
 router.get('/logout', authController.logout);
 
 // Forgot password routes
-router.get('/forgot', authController.getForgotPassword);
-router.post('/forgot', authController.postForgotPassword);
+router.get('/forgot', authController.getForgotPassword); 
+router.post('/forgot', authController.postForgotPassword);  
 router.get('/verifyforgotpasswordotp', authController.verifyForgotPasswordOTP);
 router.post('/verifyforgotpasswordotp', authController.verifyForgotPasswordOTP);
 router.post('/resend-forgot-otp', authController.resendForgotPasswordOTP);
@@ -41,6 +41,17 @@ router.post('/verify-email-update', verifyToken, profileController.verifyEmailOt
 router.get('/shop',verifyToken, shopController.getShopPage);
 router.get('/shopbyfilter/:categoryId',verifyToken, shopController.getShopByFilter);
 router.get('/singleproduct/:id',verifyToken, shopController.getSingleProduct);
+
+
+// //changepassword
+router.get('/changepassword',verifyToken,(req,res)=>{
+    res.render('user/changepassword',{
+        session:req.session || {},
+        error_msg:req.session.error_msg || '',
+        success_msg:req.session.success_msg || ''
+    })
+})
+router.post('/changepassword',verifyToken, authController.changePassword)
 
 
 

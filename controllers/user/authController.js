@@ -35,7 +35,7 @@ exports.getLogin = (req, res) => {
 
 // Handle signup form submission
 exports.postSignup = async (req, res) => {
-    const { userName, email, phone, password, confirmPassword, referralCode } = req.body;
+    const { userName, email, phone, password, confirmPassword } = req.body;
     let errors = [];
 
     try {
@@ -93,7 +93,7 @@ exports.postSignup = async (req, res) => {
             res.locals.session.isAuth = req.session.isAuth || false;
             return res.render('user/register', {
                 errors,
-                input: { userName, email, phone, referralCode },
+                input: { userName, email, phone,  },
                 error_msg: '',
                 success_msg: '',
                 session: res.locals.session,
@@ -105,8 +105,7 @@ exports.postSignup = async (req, res) => {
             name: userName,
             email,
             phone,
-            password,
-            referralCode,
+            password
         };
 
         // Generate and store OTP
@@ -143,7 +142,7 @@ exports.postSignup = async (req, res) => {
         res.locals.session.isAuth = req.session.isAuth || false;
         return res.render('user/register', {
             errors,
-            input: { userName, email, phone, referralCode },
+            input: { userName, email, phone},
             error_msg: '',
             success_msg: '',
             session: res.locals.session,
@@ -204,8 +203,7 @@ exports.verifyOTP = async (req, res) => {
             email: signupData.email,
             phone: signupData.phone,
             password: hashedPassword,
-            isVerified: true,
-            referralCode: signupData.referralCode || undefined,
+            isVerified: true
         });
 
         const token = jwt.sign(
@@ -827,3 +825,89 @@ exports.resendForgotPasswordOTP = async (req, res) => {
         });
     }
 };
+
+//Handle change password form submission
+exports.changePassword = async(req,res)=>{
+    const {current_password,new_password,confirm_password} = req.body;
+    try{
+        if( !new_password || !confirm_password){
+            return res.json({
+                success : false,
+                message : 'New password and confirm password are required'
+            })
+        }
+        //validate new password length
+        if(new_password.length < 6){
+            return res.json({
+                success:false,
+                message:'New password must be at least 6 characters long'
+            })
+        }
+        //check if new password and confirm password match
+        if(new_password !== confirm_password){
+            return res.json({
+                success:false,
+                message:'New password and confirm password do not match'
+            })
+        }
+        //get authenticate user
+        const userId = req.user.id;
+        const user = await user.findById(userId)
+
+        if(!user){
+            return res.json({
+                success:false,
+                message:'user not found'
+            })
+        }
+        if(user.password){
+            if(!current_password){
+                return res.json({
+                    success:false,
+                    message:'current password is required'
+                })
+            }
+            //verify current password
+            const isMatch = await bcrypt.compare(current_password,user.password)
+            if(!isMatch){
+                return res.json({
+                    success:false,
+                    message:'Current password is incorrect'
+                })
+            }
+            //check if new password is different from current password 
+            const isSamepassword = await bcrypt.compare(new_password,user.password)
+            if(isSamepassword){
+                return res.json({
+                    success:false,
+                    message:'New password must be different from current password'
+                })
+            }
+        }else{
+            //if user doesnt have a password
+            if(current_password){
+                return res.json({
+                    success:false,
+                    message:'No current password exists for this account. Leave the current password field empty'
+                })
+            }
+        }
+        //Hash new password
+        const hashedPassword = await bcrypt.hash(new_password,10)
+        //update user's password
+        user.password = hashedPassword;
+        await user.save()
+
+        //send success respose
+        return res.json({
+            success:true,
+            message:'password changed successfully'
+        })
+    }catch(err){
+        console.error('change password error:',err)
+        return res.json({
+            success:false,
+            message:'An unexcepted error occurred . Please try again'
+        })
+    }
+}
