@@ -19,7 +19,6 @@ exports.getSingleProduct = async (req, res) => {
     // Fetch the product by ID
     const product = await Product.findById(productId).populate('category');
     if (!product) {
-      console.log('Product not found for ID:', productId);
       return res.redirect('/shop?error=Product+not+found');
     }
 
@@ -59,6 +58,9 @@ exports.getShopPage = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 9;
     const sort = req.query.sort || '';
+    const search = req.query.search || '';
+    const minPrice = parseFloat(req.query.minPrice) || 0;
+    const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
 
     let sortOption = {};
     switch (sort) {
@@ -79,10 +81,20 @@ exports.getShopPage = async (req, res) => {
     }
 
     const categories = await Category.find({ status: true }).lean();
-    const totalProducts = await Product.countDocuments({ status: true });
+    
+    // Build query
+    let query = { status: true };
+    
+    // Add search functionality
+    if (search) {
+      query.productName = { $regex: search, $options: 'i' };
+    }
+    
+    // Add price range filter
+    query.price = { $gte: minPrice, $lte: maxPrice };
 
-    console.log(totalProducts)
-    const products = await Product.find({status: true})
+    const totalProducts = await Product.countDocuments(query);
+    const products = await Product.find(query)
       .populate('category')
       .sort(sortOption)
       .skip((page - 1) * limit)
@@ -111,7 +123,10 @@ exports.getShopPage = async (req, res) => {
       totalProducts,
       limit,
       sort,
-      offers, // Pass offers array (empty or populated)
+      search,
+      minPrice,
+      maxPrice,
+      offers,
       error_msg: req.session.error_msg || '',
       success_msg: req.session.success_msg || '',
       session: res.locals.session,
@@ -132,7 +147,10 @@ exports.getShopPage = async (req, res) => {
       totalProducts: 0,
       limit: 9,
       sort: '',
-      offers: [], // Pass empty offers array in error case
+      search: '',
+      minPrice: 0,
+      maxPrice: Infinity,
+      offers: [],
       error_msg: 'An unexpected error occurred.',
       success_msg: '',
       session: res.locals.session,
@@ -146,6 +164,9 @@ exports.getShopByFilter = async (req, res) => {
     const categoryId = req.params.categoryId;
     const page = parseInt(req.query.page) || 1;
     const limit = 9;
+    const search = req.query.search || '';
+    const minPrice = parseFloat(req.query.minPrice) || 0;
+    const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
 
     const currentCategory = await Category.findById(categoryId).lean();
     if (!currentCategory || !currentCategory.status) {
@@ -154,21 +175,25 @@ exports.getShopByFilter = async (req, res) => {
     }
 
     const categories = await Category.find({ status: true }).lean();
-    const totalProducts = await Product.countDocuments({
+    
+    // Build query
+    let query = {
       category: categoryId,
       status: true,
-    });
-    const products = await Product.find({
-      category: categoryId,
-      // status: true,
-    })
+      price: { $gte: minPrice, $lte: maxPrice }
+    };
+    
+    if (search) {
+      query.productName = { $regex: search, $options: 'i' };
+    }
+
+    const totalProducts = await Product.countDocuments(query);
+    const products = await Product.find(query)
       .populate('category')
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-
-    console.log(products)
     const totalPages = Math.ceil(totalProducts / limit);
 
     res.locals.session = req.session || {};
@@ -186,7 +211,10 @@ exports.getShopByFilter = async (req, res) => {
       totalPages,
       totalProducts,
       limit,
-      offers, // Pass offers array
+      search,
+      minPrice,
+      maxPrice,
+      offers,
       error_msg: req.session.error_msg || '',
       success_msg: req.session.success_msg || '',
       session: res.locals.session,
@@ -207,7 +235,10 @@ exports.getShopByFilter = async (req, res) => {
       totalPages: 1,
       totalProducts: 0,
       limit: 9,
-      offers: [], // Pass empty offers array
+      search: '',
+      minPrice: 0,
+      maxPrice: Infinity,
+      offers: [],
       error_msg: 'An unexpected error occurred.',
       success_msg: '',
       session: res.locals.session,

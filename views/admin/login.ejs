@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="/public/admin/assets/imgs/favicon.png">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: #ffffff;
-            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f7fa;
+            font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -21,12 +26,22 @@
 
         .login-container {
             width: 100%;
-            max-width: 420px;
+            max-width: 450px;
             padding: 40px;
             background: #ffffff;
-            border: 1px solid #000000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border-radius: 8px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-container img {
+            max-width: 120px;
+            height: auto;
         }
 
         .login-header {
@@ -35,15 +50,16 @@
         }
 
         .login-header h2 {
-            color: #000000;
-            font-weight: 600;
-            font-size: 28px;
-            margin-bottom: 10px;
+            color: #1a1a1a;
+            font-weight: 700;
+            font-size: 24px;
+            margin-bottom: 8px;
         }
 
         .login-header p {
-            color: #666;
+            color: #6b7280;
             font-size: 14px;
+            font-weight: 400;
         }
 
         .login-form {
@@ -53,39 +69,56 @@
         }
 
         .input-group {
+            position: relative;
             display: flex;
             flex-direction: column;
         }
 
         .input-group label {
             margin-bottom: 8px;
-            color: #000000;
+            color: #1a1a1a;
             font-weight: 500;
             font-size: 14px;
         }
 
         .input-group input {
-            padding: 14px 16px;
-            border: 1px solid #000000;
-            border-radius: 4px;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
             font-size: 15px;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
+            background: #f9fafb;
         }
 
         .input-group input:focus {
             outline: none;
-            border-color: #FFD700;
-            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: #ffffff;
         }
 
         .input-group.error input {
-            border-color: #d32f2f;
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #6b7280;
+            font-size: 16px;
+            transition: color 0.2s ease;
+        }
+
+        .input-group input:focus + i {
+            color: #3b82f6;
         }
 
         .error-message {
-            color: #d32f2f;
-            font-size: 13px;
-            margin-top: 5px;
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 6px;
             display: none;
         }
 
@@ -95,83 +128,94 @@
 
         .login-btn {
             padding: 14px;
-            background-color: #000000;
-            color: #FFD700;
+            background-color: #3b82f6;
+            color: #ffffff;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease;
             margin-top: 10px;
         }
 
         .login-btn:hover {
-            background-color: #FFD700;
-            color: #000000;
+            background-color: #2563eb;
+            transform: translateY(-1px);
         }
 
-        /* Flash Messages */
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
         .flash-message {
             display: flex;
             align-items: center;
-            padding: 14px 20px;
+            padding: 12px 16px;
             margin-bottom: 20px;
             border-radius: 8px;
+            font-size: 14px;
             font-weight: 500;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.3s ease-in-out;
             position: fixed;
-            top: 30px;
-            right: 30px;
-            max-width: 350px;
+            top: 20px;
+            right: 20px;
+            max-width: 400px;
             z-index: 1000;
             border-left: 4px solid;
         }
 
         .flash-message svg {
-            width: 22px;
-            height: 22px;
-            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            flex-shrink: 0;
         }
 
-        .error-message {
-            background-color: #ffebee;
-            color: #d32f2f;
-            border-left-color: #d32f2f;
+        .error-message.flash-message {
+            background-color: #fef2f2;
+            color: #ef4444;
+            border-left-color: #ef4444;
         }
 
-        .success-message {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border-left-color: #2e7d32;
+        .success-message.flash-message {
+            background-color: #f0fdf4;
+            color: #15803d;
+            border-left-color: #15803d;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .login-container {
-                padding: 30px 20px;
-                margin: 20px;
-                width: auto;
+                padding: 24px;
+                margin: 16px;
             }
-            
+
             .flash-message {
-                max-width: 280px;
-                right: 20px;
-                left: 20px;
-                margin: 0 auto;
+                max-width: 90%;
+                right: 16px;
+                left: 16px;
+                top: 16px;
+            }
+
+            .login-header h2 {
+                font-size: 20px;
+            }
+
+            .login-btn {
+                font-size: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <% if (error_msg && error_msg.length > 0) { %>
-        <div class="flash-message error-message" id="flash-message">
+    <% if (error_msg) { %>
+        <div class="flash-message error-message" id="error-flash-message" role="alert">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -181,8 +225,8 @@
         </div>
     <% } %>
     
-    <% if (success_msg && success_msg.length > 0) { %>
-        <div class="flash-message success-message" id="flash-message">
+    <% if (success_msg) { %>
+        <div class="flash-message success-message" id="success-flash-message" role="alert">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -192,21 +236,26 @@
     <% } %>
 
     <div class="login-container">
+        <div class="logo-container">
+            <img src="/user/assets/images/menu/logo/Logo.png" alt="Zeleena Fashions Logo" class="logo-img">
+        </div>
         <div class="login-header">
             <h2>Admin Login</h2>
-            <p>Enter your credentials to access the dashboard</p>
+            <p>Access your dashboard with your credentials</p>
         </div>
         
         <form class="login-form" method="post" action="/admin/login" onsubmit="return validateForm(event)">
             <div class="input-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Enter your email" name="email">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="Enter your email" name="email" aria-describedby="email-error">
                 <span class="error-message" id="email-error"></span>
             </div>
             
             <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" name="password">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Enter your password" name="password" aria-describedby="password-error">
                 <span class="error-message" id="password-error"></span>
             </div>
             
@@ -219,12 +268,10 @@
             event.preventDefault();
             let isValid = true;
 
-            // Reset previous error states
             document.querySelectorAll('.input-group').forEach(group => {
                 group.classList.remove('error');
             });
 
-            // Email validation
             const email = document.getElementById('email').value.trim();
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const emailGroup = document.getElementById('email').parentElement;
@@ -240,7 +287,6 @@
                 isValid = false;
             }
 
-            // Password validation
             const password = document.getElementById('password').value;
             const passwordGroup = document.getElementById('password').parentElement;
             const passwordError = document.getElementById('password-error');
@@ -251,11 +297,10 @@
                 isValid = false;
             } else if (password.length < 6) {
                 passwordGroup.classList.add('error');
-                passwordError.textContent = 'Password must be at least 6 characters long';
+                passwordError.textContent = 'Password must be at least 6 characters';
                 isValid = false;
             }
 
-            // If all validations pass, submit the form
             if (isValid) {
                 event.target.submit();
             }
@@ -263,7 +308,6 @@
             return isValid;
         }
 
-        // Real-time validation
         document.getElementById('email').addEventListener('input', function() {
             const email = this.value.trim();
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -292,7 +336,7 @@
                 passwordError.textContent = 'Password is required';
             } else if (password.length < 6) {
                 passwordGroup.classList.add('error');
-                passwordError.textContent = 'Password must be at least 6 characters long';
+                passwordError.textContent = 'Password must be at least 6 characters';
             } else {
                 passwordGroup.classList.remove('error');
                 passwordError.textContent = '';
@@ -300,16 +344,23 @@
         });
 
         function removeFlashMessage() {
-            const flashMessage = document.getElementById("flash-message");
-            if (flashMessage) {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(flashMessage => {
                 setTimeout(() => {
-                    flashMessage.style.animation = 'fadeIn 0.3s ease-in-out reverse';
+                    flashMessage.style.transition = 'opacity 0.3s ease-in-out';
+                    flashMessage.style.opacity = '0';
                     setTimeout(() => flashMessage.remove(), 300);
-                }, 3000);
-            }
+                }, 4000);
+            });
         }
 
-        window.onload = removeFlashMessage;
+        window.onload = () => {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            if (flashMessages.length > 0) {
+                console.log('Flash messages found:', flashMessages.length);
+                removeFlashMessage();
+            }
+        };
     </script>
 </body>
 </html>

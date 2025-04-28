@@ -3,7 +3,7 @@
 <section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
     <div class="content-header">
         <div>
-            <h2 class="content-title" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 600;">Users List</h2>
+            <h2 class="content Faust, sans-serif; font-weight: 600;">Users List</h2>
             <p style="color: #666;">Users Management</p>
         </div>
     </div>
@@ -17,7 +17,7 @@
                     name="query" 
                     placeholder="Search by username, email or phone..." 
                     style="flex: 1; padding: 10px 15px; border: 1px solid #000000; border-radius: 4px 0 0 4px; font-family: 'Montserrat', sans-serif;"
-                    value="<%= locals.searchQuery || '' %>"
+                    value="<%= searchQuery || '' %>"
                 >
                 <button 
                     type="submit" 
@@ -27,7 +27,7 @@
                 >
                     Search
                 </button>
-                <% if (locals.searchQuery) { %>
+                <% if (searchQuery) { %>
                     <a 
                         href="/admin/users" 
                         style="background-color: #f8f8f8; color: #000000; padding: 10px 15px; border: 1px solid #000000; border-left: none; text-decoration: none; display: flex; align-items: center; font-family: 'Montserrat', sans-serif;"
@@ -150,7 +150,7 @@
         }
     </style>
 
-    <% if (users.length>0) { %>
+    <% if (users.length > 0) { %>
         <table class="users-table">
             <thead>
                 <tr>
@@ -165,7 +165,7 @@
             <tbody>
                 <% users.forEach((user, index) => { %>
                 <tr id="user-row-<%= user.id %>">
-                    <td><%= index + 1 %></td>
+                    <td><%= (currentPage - 1) * 5 + index + 1 %></td>
                     <td><%= user.userName %></td>
                     <td><%= user.email %></td>
                     <td><%= user.phone %></td>
@@ -187,27 +187,53 @@
         <p class="no-data">No Users found</p>
     <% } %>
     
-    <div class="pagination">
-        <% if (currentPage > 1) { %>
-            <a href="/admin/users?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">←</a>
-        <% } %>
-        
-        <% for (let i = 1; i <= totalPages; i++) { %>
-            <a href="/admin/users?page=<%= i %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
-        <% } %>
-        
-        <% if (currentPage < totalPages) { %>
-            <a href="/admin/users?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">→</a>
-        <% } %>
-    </div>
-    
+    <% if (users.length > 0 && totalPages > 1) { %>
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/admin/users?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
+            <% } %>
+            
+            <% 
+                const maxPagesToShow = 5;
+                const halfRange = Math.floor(maxPagesToShow / 2);
+                let startPage = Math.max(1, currentPage - halfRange);
+                let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+                if (endPage - startPage + 1 < maxPagesToShow) {
+                    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                }
+            %>
+            <% if (startPage > 1) { %>
+                <a href="/admin/users?page=1<%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
+                <% if (startPage > 2) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+            <% } %>
+
+            <% for (let i = startPage; i <= endPage; i++) { %>
+                <a href="/admin/users?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                    <%= i %>
+                </a>
+            <% } %>
+
+            <% if (endPage < totalPages) { %>
+                <% if (endPage < totalPages - 1) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+                <a href="/admin/users?page=<%= totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+            <% } %>
+
+            <% if (currentPage < totalPages) { %>
+                <a href="/admin/users?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+            <% } %>
+        </div>
+    <% } %>
 </section>
 
 <%- include('../partials/admin/footer') %>
 
 <script>
     function toggleUserStatus(userId, currentStatus) {
-        // Show confirmation dialog
         Swal.fire({
             title: "Are you sure?",
             text: `Do you want to ${currentStatus ? "block" : "unblock"} this user?`,
@@ -223,16 +249,13 @@
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Get the button element
                 const button = document.getElementById(`block-btn-${userId}`);
                 const statusCell = document.getElementById(`status-${userId}`);
                 
-                // Add spinner to button
                 const originalText = button.innerHTML;
                 button.innerHTML = '<div class="spinner"></div>';
                 button.disabled = true;
                 
-                // Send AJAX request
                 fetch(`/admin/api/block/${userId}`, {
                     method: 'POST',
                     headers: {
@@ -246,13 +269,11 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Update button text and status cell
                     button.innerHTML = data.status ? "Block" : "UnBlock";
                     button.disabled = false;
                     statusCell.textContent = data.status ? "Active" : "Inactive";
                     statusCell.style.color = data.status ? "#28a745" : "#dc3545";
                     
-                    // Show success message
                     Swal.fire({
                         title: "Success!",
                         text: `User ${data.status ? "unblocked" : "blocked"} successfully`,
@@ -269,7 +290,6 @@
                     button.innerHTML = originalText;
                     button.disabled = false;
                     
-                    // Show error message
                     Swal.fire({
                         title: "Error!",
                         text: "Something went wrong. Please try again.",

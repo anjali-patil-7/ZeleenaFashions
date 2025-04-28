@@ -3,16 +3,16 @@ const authController = require('../controllers/user/authController');
 const homeController = require('../controllers/user/homeController');
 const shopController = require('../controllers/user/shopController');
 const profileController = require('../controllers/user/profileController');
-const { verifyToken } = require('../middlewares/auth');
+const { verifyToken ,ifLogged, logged } = require('../middlewares/auth');
 const { session } = require('passport');
 
 const router = express.Router();
 
 router.get('/', homeController.getHomePage);
 
-router.get('/register', authController.getSignup);
+router.get('/register',ifLogged, authController.getSignup);
 router.post('/register', authController.postSignup);
-router.get('/login', authController.getLogin);
+router.get('/login',ifLogged, authController.getLogin);
 router.post('/login', authController.postLogin);
 router.get('/verify-otp', authController.verifyOTP);
 router.post('/verify-otp', authController.verifyOTP);

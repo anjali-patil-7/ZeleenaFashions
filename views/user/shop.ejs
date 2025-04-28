@@ -15,6 +15,22 @@
     right: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
+  .search-form {
+    margin-bottom: 20px;
+  }
+  .price-range {
+    margin: 20px 0;
+  }
+  .slider {
+    width: 100%;
+    margin: 10px 0;
+  }
+  .filter-controls {
+    margin-top: 10px;
+  }
+  .clear-search-btn {
+    margin-left: 5px;
+  }
 </style>
 
 <!-- Begin Hiraola's Breadcrumb Area -->
@@ -49,10 +65,37 @@
               </ul>
             </div>
           </div>
+          <div class="price-range">
+            <h5>Price Range</h5>
+            <div id="price-slider" class="slider"></div>
+            <div class="price-values">
+              <span>Price: ₹</span>
+              <span id="min-price">0</span> - ₹<span id="max-price">10000</span>
+            </div>
+            <div class="filter-controls">
+              <button id="apply-price-filter" class="btn btn-primary">Apply Filter</button>
+              <button id="clear-filters" class="btn btn-secondary">Clear Filters</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="col-lg-9 order-1 order-lg-2">
         <div class="shop-toolbar">
+          <div class="search-form">
+            <form id="search-form" action="/shop" method="GET">
+              <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search products..." value="<%= search || '' %>">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fa fa-search"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary clear-search-btn" title="Clear Search">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
           <div class="product-view-mode">
             <a class="active grid-3" data-target="gridview-3" data-toggle="tooltip" data-placement="top" title="Grid View"><i class="fa fa-th"></i></a>
             <a class="list" data-target="listview" data-toggle="tooltip" data-placement="top" title="List View"><i class="fa fa-th-list"></i></a>
@@ -146,19 +189,19 @@
                 <div class="col-lg-6 col-md-6 col-sm-6">
                   <ul class="hiraola-pagination-box">
                     <% if (currentPage > 1) { %>
-                      <li><a href="/shop?page=1<%= sort ? '&sort=' + sort : '' %>">|<</a></li>
-                      <li><a class="Previous" href="/shop?page=<%= currentPage - 1 %><%= sort ? '&sort=' + sort : '' %>"><i class="ion-ios-arrow-left"></i></a></li>
+                      <li><a href="/shop?page=1<%= sort ? '&sort=' + sort : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">|<</a></li>
+                      <li><a class="Previous" href="/shop?page=<%= currentPage - 1 %><%= sort ? '&sort=' + sort : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>"><i class="ion-ios-arrow-left"></i></a></li>
                     <% } %>
                     <% for(let i = 1; i <= totalPages; i++) { %>
                       <% if (i === currentPage) { %>
                         <li class="active"><a href="javascript:void(0)"><%= i %></a></li>
                       <% } else { %>
-                        <li><a href="/shop?page=<%= i %><%= sort ? '&sort=' + sort : '' %>"><%= i %></a></li>
+                        <li><a href="/shop?page=<%= i %><%= sort ? '&sort=' + sort : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>"><%= i %></a></li>
                       <% } %>
                     <% } %>
                     <% if (currentPage < totalPages) { %>
-                      <li><a class="Next" href="/shop?page=<%= currentPage + 1 %><%= sort ? '&sort=' + sort : '' %>"><i class="ion-ios-arrow-right"></i></a></li>
-                      <li><a href="/shop?page=<%= totalPages %><%= sort ? '&sort=' + sort : '' %>">|></a></li>
+                      <li><a class="Next" href="/shop?page=<%= currentPage + 1 %><%= sort ? '&sort=' + sort : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>"><i class="ion-ios-arrow-right"></i></a></li>
+                      <li><a href="/shop?page=<%= totalPages %><%= sort ? '&sort=' + sort : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">|></a></li>
                     <% } %>
                   </ul>
                 </div>
@@ -181,6 +224,10 @@
 
 <%- include('../partials/user/footer') %>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+
 <script>
   function sortProducts() {
     const sortSelect = document.getElementById('sortSelect');
@@ -197,7 +244,63 @@
     window.location.href = currentUrl.toString();
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  $(document).ready(function() {
+    $("#price-slider").slider({
+      range: true,
+      min: 0,
+      max: 10000,
+      values: [<%= minPrice || 0 %>, <%= maxPrice || 10000 %>],
+      slide: function(event, ui) {
+        $("#min-price").text(ui.values[0]);
+        $("#max-price").text(ui.values[1]);
+      }
+    });
+
+    $("#apply-price-filter").click(function() {
+      const minPrice = $("#price-slider").slider("values", 0);
+      const maxPrice = $("#price-slider").slider("values", 1);
+      const currentUrl = new URL(window.location.href);
+      
+      currentUrl.searchParams.set('minPrice', minPrice);
+      currentUrl.searchParams.set('maxPrice', maxPrice);
+      currentUrl.searchParams.set('page', '1');
+      
+      window.location.href = currentUrl.toString();
+    });
+
+    $("#clear-filters").click(function() {
+      const currentUrl = new URL(window.location.href);
+      
+      // Clear all filter parameters
+      currentUrl.searchParams.delete('search');
+      currentUrl.searchParams.delete('sort');
+      currentUrl.searchParams.delete('minPrice');
+      currentUrl.searchParams.delete('maxPrice');
+      currentUrl.searchParams.set('page', '1');
+      
+      // Reset UI elements
+      $("#search-form input[name='search']").val('');
+      $("#sortSelect").val('');
+      $("#price-slider").slider("values", [0, 10000]);
+      $("#min-price").text('0');
+      $("#max-price").text('10000');
+      
+      window.location.href = currentUrl.toString();
+    });
+
+    $(".clear-search-btn").click(function() {
+      const currentUrl = new URL(window.location.href);
+      
+      // Clear only the search parameter
+      currentUrl.searchParams.delete('search');
+      currentUrl.searchParams.set('page', '1');
+      
+      // Reset search input
+      $("#search-form input[name='search']").val('');
+      
+      window.location.href = currentUrl.toString();
+    });
+
     const wishlistButtons = document.querySelectorAll('.hiraola-add_compare');
 
     wishlistButtons.forEach((button) => {

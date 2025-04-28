@@ -4,9 +4,16 @@ const bcrypt = require('bcryptjs');
 // Get all users with pagination and search
 const getUsers = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 10; // Users per page
-        const searchQuery = req.query.query || '';
+        let page = parseInt(req.query.page) || 1;
+        const limit = 5; // Changed to 5 users per page
+        const searchQuery = req.query.query ? req.query.query.trim() : '';
+
+        // Validate page number
+        if (page < 1 || isNaN(page)) {
+            page = 1;
+        }
+
+        console.log(`Page: ${page}, Search Query: ${searchQuery}, Limit: ${limit}`);
 
         // Build search conditions
         const searchConditions = {
@@ -22,7 +29,12 @@ const getUsers = async (req, res) => {
 
         // Get total count for pagination
         const totalUsers = await User.countDocuments(searchConditions);
-        const totalPages = Math.ceil(totalUsers / limit);
+        let totalPages = Math.ceil(totalUsers / limit) || 1;
+
+        // Redirect to last page if page exceeds totalPages
+        if (page > totalPages) {
+            return res.redirect(`/admin/users?page=${totalPages}${searchQuery ? '&query=' + encodeURIComponent(searchQuery) : ''}`);
+        }
 
         // Fetch users with pagination
         const users = await User.find(searchConditions)
@@ -42,20 +54,24 @@ const getUsers = async (req, res) => {
             status: !user.isBlocked // Active if not blocked
         }));
 
+        console.log(`Total Users: ${totalUsers}, Total Pages: ${totalPages}, Users Fetched: ${users.length}`);
+
         res.render('admin/users', {
             users: transformedUsers,
             currentPage: page,
             totalPages,
-            searchQuery: searchQuery || null
+            searchQuery,
+            messages: { error: req.flash('error'), success: req.flash('success') }
         });
     } catch (error) {
         console.error('Error fetching users:', error);
-        res.status(500).render('admin/users', {
+        req.flash('error', 'Failed to load users. Please try again later.');
+        res.render('admin/users', {
             users: [],
             currentPage: 1,
             totalPages: 1,
-            searchQuery: null,
-            error: 'Failed to load users. Please try again later.'
+            searchQuery: '',
+            messages: { error: req.flash('error'), success: req.flash('success') }
         });
     }
 };
@@ -90,10 +106,6 @@ const toggleUserStatus = async (req, res) => {
         });
     }
 };
-
-
-
-
 
 module.exports = {
     getUsers,

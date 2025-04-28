@@ -2,140 +2,133 @@
 
 <style>
     .flash-message {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    font-weight: 500;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.3s ease-in-out;
-
-    /* Positioning */
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    max-width: 300px; /* Adjust as needed */
-    z-index: 1000;
-}
-
-.flash-message svg {
-    width: 24px;
-    height: 24px;
-    margin-right: 12px;
-    flex-shrink: 0;
-}
-
-.error-message {
-    background-color: #ffebee;
-    color: #d32f2f;
-    border-left: 4px solid #d32f2f;
-}
-
-.success-message {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-left: 4px solid #2e7d32;
-}
-
-/* Optional: Add fade-in animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        max-width: 300px;
+        z-index: 1000;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-    </style>
+    .flash-message svg {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .error-message {
+        background-color: #ffebee;
+        color: #d32f2f;
+        border-left: 4px solid #d32f2f;
+    }
+
+    .success-message {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border-left: 4px solid #2e7d32;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
 <% if (error_msg && error_msg.length > 0) { %>
     <div class="flash-message error-message" id="flash-message">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-      <span><%= error_msg %></span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span><%= error_msg %></span>
     </div>
-  <% } %>
+<% } %>
 
-  <% if (success_msg && success_msg.length > 0) { %>
+<% if (success_msg && success_msg.length > 0) { %>
     <div class="flash-message success-message" id="flash-message">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
-      <span><%= success_msg %></span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span><%= success_msg %></span>
     </div>
-  <% } %>
+<% } %>
 
-        <!-- Begin Hiraola's Breadcrumb Area -->
-        <div class="breadcrumb-area">
-            <div class="container">
-                <div class="breadcrumb-content">
-                    <h2>Other</h2>
-                    <ul>
-                        <li><a href="/home">Home</a></li>
-                        <li class="active">OTP Verification</li>
-                    </ul>
-                </div>
-            </div>
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Other</h2>
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li class="active">OTP Verification</li>
+            </ul>
         </div>
-        <!-- Hiraola's Breadcrumb Area End Here -->
-        <!-- Begin Hiraola's Login Register Area -->
-        <div class="hiraola-login-register_area">
-            <div class="container">
-                <div class="row d-flex justify-content-center">
-                    <div class="col-sm-12 col-md-12 col-xs-12 col-lg-6">
-                        <!-- OTP Verification Form -->
-                        <form action="/verify-otp" method="post" id="otpForm">
-                            <input type="hidden" name="type" value="">
-                            <div class="login-form">
-                                <h4 class="login-title">OTP Verification</h4>
-                                <div class="row">
-                                    <div class="col-md-12 col-12 mb-3">
-                                        <p class="text-center">Please enter the OTP sent to your email/phone</p>
-                                    </div>
-                                    <div class="col-md-12 col-12">
-                                        <label>Enter OTP*</label>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="0">
-                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="1">
-                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="2">
-                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="3">
-                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="4">
-                                            <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="5">
-                                        </div>
-                                        <input type="hidden" name="otp" id="otpValue">
-                                    </div>
-                                    <div class="col-md-12 mt-4">
-                                        <div class="text-center">
-                                            <p>Didn't receive the code? 
-                                                <a href="#" class="text-primary" id="resendBtn" style="display: none;">Resend OTP</a>
-                                                <span id="timerText" class="text-muted">Time remaining: <span id="timer">01:00</span></span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <button type="submit" class="hiraola-login_btn" id="verifyButton" disabled>Verify OTP</button>
-                                    </div>
+    </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+<!-- Begin Hiraola's Login Register Area -->
+<div class="hiraola-login-register_area">
+    <div class="container">
+        <div class="row d-flex justify-content-center">
+            <div class="col-sm-12 col-md-12 col-xs-12 col-lg-6">
+                <!-- OTP Verification Form -->
+                <form id="otpForm">
+                    <input type="hidden" name="type" value="">
+                    <div class="login-form">
+                        <h4 class="login-title">OTP Verification</h4>
+                        <div class="row">
+                            <div class="col-md-12 col-12 mb-3">
+                                <p class="text-center">Please enter the OTP sent to your email/phone</p>
+                            </div>
+                            <div class="col-md-12 col-12">
+                                <label>Enter OTP*</label>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="0">
+                                    <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="1">
+                                    <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="2">
+                                    <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="3">
+                                    <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="4">
+                                    <input type="text" class="form-control text-center otp-input" maxlength="1" style="width: 50px;" data-index="5">
+                                </div>
+                                <input type="hidden" name="otp" id="otpValue">
+                            </div>
+                            <div class="col-md-12 mt-4">
+                                <div class="text-center">
+                                    <p>Didn't receive the code? 
+                                        <a href="#" class="text-primary" id="resendBtn" style="display: none;">Resend OTP</a>
+                                        <span id="timerText" class="text-muted">Time remaining: <span id="timer">01:00</span></span>
+                                    </p>
                                 </div>
                             </div>
-                        </form>
+                            <div class="col-md-12">
+                                <button type="submit" class="hiraola-login_btn" id="verifyButton" disabled>Verify OTP</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
-        
+    </div>
+</div>
 
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('.otp-input');
     const form = document.getElementById('otpForm');
     const verifyButton = document.getElementById('verifyButton');
@@ -143,7 +136,9 @@
     const timerElement = document.getElementById('timer');
     const resendBtn = document.getElementById('resendBtn');
     const timerText = document.getElementById('timerText');
-    let timeLeft = 60; //1mints
+
+    // Initialize timer from session storage or default to 60 seconds
+    let timeLeft = sessionStorage.getItem('otpTimer') ? parseInt(sessionStorage.getItem('otpTimer')) : 60;
     let timerInterval;
 
     // Focus first input on load
@@ -186,24 +181,45 @@
         const seconds = timeLeft % 60;
         timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         
-        if (timeLeft === 0) {
+        if (timeLeft <= 0) {
             resendBtn.style.display = 'inline';
             timerText.style.display = 'none';
             clearInterval(timerInterval);
+            sessionStorage.removeItem('otpTimer');
         } else {
             timeLeft--;
+            sessionStorage.setItem('otpTimer', timeLeft);
         }
     }
 
-    // Start initial timer
+    // Start timer only if timeLeft is greater than 0
     function startTimer() {
-        clearInterval(timerInterval);
-        timeLeft = 60;
-        timerInterval = setInterval(updateTimer, 1000);
-        updateTimer();
+        if (timeLeft > 0) {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        } else {
+            resendBtn.style.display = 'inline';
+            timerText.style.display = 'none';
+        }
     }
 
     startTimer();
+
+    // Function to show flash message
+    function showFlashMessage(message, type = 'error') {
+        const flashContainer = document.createElement('div');
+        flashContainer.className = `flash-message ${type}-message`;
+        flashContainer.id = 'flash-message';
+        flashContainer.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-${type === 'error' ? 'alert-circle' : 'check-circle'}">
+                ${type === 'error' ? '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>' : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>'}
+            </svg>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(flashContainer);
+        setTimeout(() => flashContainer.remove(), 3000);
+    }
 
     // Handle resend click
     resendBtn.addEventListener('click', async function(e) {
@@ -222,6 +238,8 @@
 
             if (data.status === 'success') {
                 // Reset timer and UI
+                timeLeft = 60;
+                sessionStorage.setItem('otpTimer', timeLeft);
                 startTimer();
                 resendBtn.style.display = 'none';
                 timerText.style.display = 'inline';
@@ -233,13 +251,13 @@
                 // Update button state
                 updateVerifyButton();
                 
-                alert('OTP resent successfully');
+                showFlashMessage('OTP resent successfully', 'success');
             } else {
-                alert(data.message || 'Failed to resend OTP');
+                showFlashMessage(data.message || 'Failed to resend OTP', 'error');
             }
         } catch (error) {
             console.error('Error resending OTP:', error);
-            alert('Failed to resend OTP. Please try again.');
+            showFlashMessage('Failed to resend OTP. Please try again.', 'error');
         }
     });
 
@@ -252,27 +270,57 @@
         }
     }
 
-    // Handle form submission
-    form.addEventListener('submit', function(e) {
+    // Handle form submission via AJAX
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const otp = Array.from(inputs).map(input => input.value).join('');
         otpValue.value = otp;
-        this.submit();
-    });
-});
 
+        try {
+            const response = await fetch('/verify-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ otp }),
+                credentials: 'include'
+            });
 
-function removeFlashMessage() {
-        const flashMessage = document.getElementById("flash-message");
-        if (flashMessage) {
-          setTimeout(() => {
-            flashMessage.remove();
-          }, 3000);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Redirect on success
+                window.location.href = '/?success_msg=Registration+successful!';
+            } else {
+                // Show error message without refreshing
+                showFlashMessage(data.message, 'error');
+                if (data.message === 'OTP has expired. Please request a new one.') {
+                    resendBtn.style.display = 'inline';
+                    timerText.style.display = 'none';
+                    clearInterval(timerInterval);
+                    sessionStorage.removeItem('otpTimer');
+                }
+                // Clear inputs
+                inputs.forEach(input => input.value = '');
+                inputs[0].focus();
+                updateVerifyButton();
+            }
+        } catch (error) {
+            console.error('Error verifying OTP:', error);
+            showFlashMessage('An unexpected error occurred.', 'error');
         }
-      }
+    });
 
-      window.onload = removeFlashMessage;
-      
-            </script>
-        <!-- Hiraola's Login Register Area  End Here -->
-        <%- include('../partials/user/footer') %>
+    // Remove initial flash message
+    function removeFlashMessage() {
+        const flashMessage = document.getElementById('flash-message');
+        if (flashMessage) {
+            setTimeout(() => flashMessage.remove(), 3000);
+        }
+    }
+
+    window.onload = removeFlashMessage;
+});
+</script>
+<!-- Hiraola's Login Register Area End Here -->
+<%- include('../partials/user/footer') %>

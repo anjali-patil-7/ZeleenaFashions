@@ -3,10 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Zeleena Fashion𝓼</title>
+    <title>Zeleena Fashions</title>
     <link rel="shortcut icon" type="image/x-icon" href="/public/user/assets/images/favicon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body, html {
             height: 100%;
@@ -34,16 +36,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         
         .login-container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
-            padding: 30px;
+            padding: 40px;
             width: 100%;
             max-width: 500px;
             transition: all 0.3s ease;
+            text-align: center;
         }
         
         .login-container:hover {
@@ -54,16 +58,15 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 20px;
-            text-align: center;
             font-size: 24px;
         }
         
         .form-control {
-            height: 40px;
-            border-radius: 6px;
+            height: 45px;
+            border-radius: 8px;
             box-shadow: none;
             margin-bottom: 5px;
-            padding-left: 15px;
+            padding-left: 20px;
             border: 1px solid #e8e8e8;
             transition: all 0.3s;
             font-size: 14px;
@@ -71,24 +74,24 @@
         
         .form-control:focus {
             border-color: #1D2951;
-            box-shadow: 0 0 0 0.25rem rgba(50, 70, 136, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(55, 76, 145, 0.2);
         }
         
         .default-btn {
             width: 100%;
-            height: 40px;
-            background: linear-gradient(135deg, #1D2951 0%, #1D2951 100%);
+            height: 45px;
+            background: linear-gradient(135deg, #1D2951 0%, #374c91 100%);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 500;
-            margin-bottom: 15px;
             margin-top: 10px;
+            margin-bottom: 20px;
             transition: all 0.3s;
         }
         
         .default-btn:hover {
-            background: linear-gradient(135deg, #1D2951 0%, #1D2951 100%);
+            background: linear-gradient(135deg, #374c91 0%, #1D2951 100%);
             transform: translateY(-2px);
         }
         
@@ -96,8 +99,8 @@
             display: block;
             text-align: center;
             color: #6c757d;
-            font-size: 13px;
-            margin-top: 10px;
+            font-size: 14px;
+            margin-top: 15px;
             text-decoration: none;
             transition: color 0.3s;
         }
@@ -107,20 +110,18 @@
         }
         
         .register-link {
-            display: block;
-            text-align: center;
-            margin-top: 5px;
+            margin-top: 10px;
         }
         
         .google-btn {
             width: 100%;
-            height: 40px;
+            height: 45px;
             background: #fff;
             color: #757575;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 500;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             transition: all 0.3s;
             display: flex;
             align-items: center;
@@ -137,7 +138,7 @@
         
         .google-icon {
             margin-right: 10px;
-            font-size: 16px;
+            font-size: 18px;
         }
         
         .google-icon i {
@@ -152,7 +153,7 @@
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 15px 0;
+            margin: 20px 0;
         }
         
         .divider::before,
@@ -165,18 +166,19 @@
         .divider span {
             padding: 0 10px;
             color: #6c757d;
-            font-size: 13px;
+            font-size: 14px;
         }
         
         .error-text {
             color: #dc3545;
-            font-size: 11px;
-            margin-bottom: 10px;
+            font-size: 12px;
+            margin-bottom: 15px;
             display: none;
+            text-align: left;
         }
         
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 20px;
         }
         
         .is-invalid {
@@ -184,10 +186,11 @@
         }
         
         .alert {
-            padding: 8px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: left;
         }
         
         .alert-danger {
@@ -195,12 +198,127 @@
             border-color: #f5c6cb;
             color: #721c24;
         }
+
+        .flash-message {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .flash-message svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .success-message {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            max-width: 100px;
+            height: auto;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 20px;
+                max-width: 90%;
+            }
+            
+            .flash-message {
+                max-width: 80%;
+                right: 10px;
+                top: 10px;
+            }
+            
+            .login-area h2 {
+                font-size: 20px;
+            }
+            
+            .form-control {
+                height: 40px;
+                font-size: 13px;
+            }
+            
+            .default-btn, .google-btn {
+                height: 40px;
+                font-size: 13px;
+            }
+            
+            .alert {
+                font-size: 13px;
+            }
+            
+            .error-text {
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flash-message error-message" id="flash-message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span><%= error_msg %></span>
+        </div>
+    <% } %>
+  
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flash-message success-message" id="flash-message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span><%= success_msg %></span>
+        </div>
+    <% } %>
+
     <div class="bg-wrapper">
         <div class="blur-overlay">
             <div class="login-container">
+                <div class="logo-container">
+                    <img src="/user/assets/images/menu/logo/Logo.png" alt="Zeleena Fashions Logo" class="logo-img">
+                </div>
                 <section class="login-area">
                     <div class="login-content">
                         <h2>Create Your Account</h2>
@@ -274,38 +392,32 @@
             const passwordError = document.getElementById('passwordError');
             const confirmPasswordError = document.getElementById('confirmPasswordError');
             
-            // Function to validate name (letters and spaces only)
             function isValidName(name) {
                 return /^[A-Za-z\s]+$/.test(name);
             }
             
-            // Function to validate email
             function isValidEmail(email) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 return emailRegex.test(email);
             }
             
-            // Function to validate phone number (exactly 10 digits)
             function isValidPhoneNumber(phone) {
                 const phoneRegex = /^\d{10}$/;
                 return phoneRegex.test(phone);
             }
             
-            // Function to show error
             function showError(input, errorElement, message) {
                 input.classList.add('is-invalid');
                 errorElement.style.display = 'block';
                 errorElement.textContent = message;
             }
             
-            // Function to hide error
             function hideError(input, errorElement) {
                 input.classList.remove('is-invalid');
                 errorElement.style.display = 'none';
                 errorElement.textContent = '';
             }
             
-            // Username validation
             username.addEventListener('blur', function() {
                 const value = username.value.trim();
                 if (!value) {
@@ -319,7 +431,6 @@
                 }
             });
             
-            // Email validation
             email.addEventListener('blur', function() {
                 const value = email.value.trim();
                 if (!value) {
@@ -331,7 +442,6 @@
                 }
             });
             
-            // Phone number validation
             phone.addEventListener('blur', function() {
                 const value = phone.value.trim();
                 if (!value) {
@@ -343,7 +453,6 @@
                 }
             });
             
-            // Password validation
             password.addEventListener('blur', function() {
                 const value = password.value.trim();
                 if (!value) {
@@ -354,7 +463,6 @@
                     hideError(password, passwordError);
                 }
                 
-                // Check confirm password if it has a value
                 if (confirmPassword.value.trim()) {
                     if (password.value !== confirmPassword.value) {
                         showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
@@ -364,7 +472,6 @@
                 }
             });
             
-            // Confirm password validation
             confirmPassword.addEventListener('blur', function() {
                 const value = confirmPassword.value.trim();
                 if (!value) {
@@ -376,11 +483,9 @@
                 }
             });
             
-            // Form submission validation
             form.addEventListener('submit', function(e) {
                 let isValid = true;
                 
-                // Validate username
                 const usernameValue = username.value.trim();
                 if (!usernameValue) {
                     showError(username, nameError, 'Name is required');
@@ -395,7 +500,6 @@
                     hideError(username, nameError);
                 }
                 
-                // Validate email
                 const emailValue = email.value.trim();
                 if (!emailValue) {
                     showError(email, emailError, 'Email is required');
@@ -407,7 +511,6 @@
                     hideError(email, emailError);
                 }
                 
-                // Validate phone number
                 const phoneValue = phone.value.trim();
                 if (!phoneValue) {
                     showError(phone, phoneError, 'Phone number is required');
@@ -419,7 +522,6 @@
                     hideError(phone, phoneError);
                 }
                 
-                // Validate password
                 const passwordValue = password.value.trim();
                 if (!passwordValue) {
                     showError(password, passwordError, 'Password is required');
@@ -431,7 +533,6 @@
                     hideError(password, passwordError);
                 }
                 
-                // Validate confirm password
                 const confirmPasswordValue = confirmPassword.value.trim();
                 if (!confirmPasswordValue) {
                     showError(confirmPassword, confirmPasswordError, 'Please confirm your password');
@@ -443,13 +544,11 @@
                     hideError(confirmPassword, confirmPasswordError);
                 }
                 
-                // Prevent form submission if validation fails
                 if (!isValid) {
                     e.preventDefault();
                 }
             });
             
-            // Clear errors on input
             username.addEventListener('input', function() {
                 hideError(username, nameError);
             });
@@ -465,7 +564,6 @@
             password.addEventListener('input', function() {
                 hideError(password, passwordError);
                 
-                // Check confirm password if it has a value
                 if (confirmPassword.value.trim()) {
                     if (password.value !== confirmPassword.value) {
                         showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
@@ -483,6 +581,17 @@
                 }
             });
         });
+
+        function removeFlashMessage() {
+            const flashMessage = document.getElementById("flash-message");
+            if (flashMessage) {
+                setTimeout(() => {
+                    flashMessage.remove();
+                }, 3000);
+            }
+        }
+
+        window.onload = removeFlashMessage;
     </script>
 </body>
 </html>

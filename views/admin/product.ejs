@@ -18,7 +18,7 @@
                     name="query" 
                     placeholder="Search by product name or description..." 
                     style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px 0 0 5px;"
-                    value="<%= locals.searchQuery || '' %>"
+                    value="<%= searchQuery || '' %>"
                 >
                 <button 
                     type="submit" 
@@ -26,7 +26,7 @@
                 >
                     Search
                 </button>
-                <% if (locals.searchQuery) { %>
+                <% if (searchQuery) { %>
                     <a 
                         href="/admin/product" 
                         style="background-color: #f8f8f8; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-left: none; text-decoration: none; display: flex; align-items: center;"
@@ -181,7 +181,7 @@
             <tbody>
                 <% products.forEach((product, index) => { %>
                     <tr id="product-row-<%= product._id %>">
-                        <td><%= index + 1 %></td>
+                        <td><%= (currentPage - 1) * 5 + index + 1 %></td>
                         <td><%= product.productName %></td>
                         <td>
                             <% if (product.productImage && product.productImage[0]) { %>
@@ -216,28 +216,53 @@
         <p class="no-data">No products found</p>
     <% } %>
 
-    <div class="pagination">
-        <% if (currentPage > 1) { %>
-            <a href="/admin/product?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">←</a>
-        <% } %>
+    <% if (products.length > 0 && totalPages > 1) { %>
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/admin/product?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
+            <% } %>
 
-        <% for (let i = 1; i <= totalPages; i++) { %>
-            <a href="/admin/product?page=<%= i %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
-                <%= i %>
-            </a>
-        <% } %>
+            <% 
+                const maxPagesToShow = 5;
+                const halfRange = Math.floor(maxPagesToShow / 2);
+                let startPage = Math.max(1, currentPage - halfRange);
+                let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
-        <% if (currentPage < totalPages) { %>
-            <a href="/admin/product?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">→</a>
-        <% } %>
-    </div>
+                if (endPage - startPage + 1 < maxPagesToShow) {
+                    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                }
+            %>
+            <% if (startPage > 1) { %>
+                <a href="/admin/product?page=1<%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
+                <% if (startPage > 2) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+            <% } %>
+
+            <% for (let i = startPage; i <= endPage; i++) { %>
+                <a href="/admin/product?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                    <%= i %>
+                </a>
+            <% } %>
+
+            <% if (endPage < totalPages) { %>
+                <% if (endPage < totalPages - 1) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+                <a href="/admin/product?page=<%= totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+            <% } %>
+
+            <% if (currentPage < totalPages) { %>
+                <a href="/admin/product?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+            <% } %>
+        </div>
+    <% } %>
 </section>
 
 <%- include('../partials/admin/footer') %>
 
 <script>
     function toggleProductStatus(productId, currentStatus) {
-        // Show confirmation dialog
         Swal.fire({
             title: "Are you sure?",
             text: `Do you want to ${currentStatus ? "block" : "unblock"} this product?`,
@@ -249,16 +274,13 @@
             cancelButtonText: "No"
         }).then((result) => {
             if (result.isConfirmed) {
-                // Get the button element
                 const button = document.getElementById(`block-btn-${productId}`);
                 const statusCell = document.getElementById(`status-${productId}`);
                 
-                // Add spinner to button
                 const originalText = button.innerHTML;
                 button.innerHTML = '<div class="spinner"></div>';
                 button.disabled = true;
                 
-                // Send AJAX request
                 fetch(`/admin/api/blockproduct/${productId}`, {
                     method: 'POST',
                     headers: {
@@ -272,12 +294,10 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Update button text and status cell
                     button.innerHTML = data.status ? "Block" : "Unblock";
                     button.disabled = false;
                     statusCell.textContent = data.status ? "Active" : "Inactive";
                     
-                    // Show success message
                     Swal.fire({
                         title: "Success!",
                         text: `Product ${data.status ? "unblocked" : "blocked"} successfully`,
@@ -290,7 +310,6 @@
                     button.innerHTML = originalText;
                     button.disabled = false;
                     
-                    // Show error message
                     Swal.fire({
                         title: "Error!",
                         text: "Something went wrong. Please try again.",

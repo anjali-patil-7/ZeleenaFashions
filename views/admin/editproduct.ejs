@@ -1,5 +1,9 @@
 <%- include('../partials/admin/header') %>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+
 <style>
     .preview-box {
         margin-bottom: 15px;
@@ -63,6 +67,74 @@
     .image-actions button:hover {
         text-decoration: underline;
     }
+    .crop-modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.7);
+    }
+    .crop-modal-content {
+        position: relative;
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 800px;
+    }
+    .crop-container {
+        height: 400px;
+        width: 100%;
+        background-color: #f0f0f0;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .crop-img {
+        display: none;
+    }
+    .crop-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+    .crop-controls {
+        display: flex;
+        gap: 10px;
+    }
+    .crop-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .close-crop-modal {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .crop-info {
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #495057;
+    }
+    .croppie-container {
+        width: 100%;
+        height: 100%;
+    }
+    .croppie-container .cr-viewport {
+        border: 2px solid #fff;
+        box-shadow: 0 0 2000px 2000px rgba(0, 0, 0, 0.5);
+    }
 </style>
 
 <section class="content-main">
@@ -94,6 +166,8 @@
                     enctype="multipart/form-data"
                 >
                     <input type="hidden" name="id" value="<%= product._id %>">
+                    <input type="hidden" id="removedImages" name="removedImages" value="[]">
+                    <input type="hidden" id="replacedImages" name="replacedImages" value="[]">
 
                     <div class="mb-4">
                         <label for="name" class="form-label">Product Name</label>
@@ -166,7 +240,6 @@
                         <div id="categoryError" class="text-danger"></div>
                     </div>
 
-                    <!-- Current Images Preview and Removal -->
                     <div class="mb-4">
                         <label class="form-label">Current Images</label>
                         <div class="image-preview-container">
@@ -176,6 +249,7 @@
                                         <img src="<%= image %>" alt="Product Image <%= index + 1 %>">
                                         <div class="image-actions">
                                             <button type="button" class="remove-image" data-index="<%= index %>">Remove</button>
+                                            <button type="button" class="replace-image" data-index="<%= index %>">Replace</button>
                                         </div>
                                     </div>
                                 <% }); %>
@@ -183,10 +257,8 @@
                                 <p>No images available</p>
                             <% } %>
                         </div>
-                        <input type="hidden" id="removedImages" name="removedImages" value="">
                     </div>
 
-                    <!-- Image Upload Section -->
                     <div class="mb-4">
                         <label for="imageUpload" class="form-label">Upload New Images</label>
                         <input type="file" id="imageUpload" name="images" class="form-control" accept="image/*" multiple />
@@ -202,59 +274,122 @@
     </div>
 </section>
 
+<div id="cropModal" class="crop-modal">
+    <div class="crop-modal-content">
+        <span class="close-crop-modal">×</span>
+        <h4>Crop Image (400 x 400)</h4>
+        <div class="crop-info">
+            All product images will be cropped to a 400x400 pixel square format. Use the controls below to adjust your image.
+        </div>
+        <div class="crop-container" id="cropContainer">
+            <img id="cropImage" class="crop-img" src="">
+        </div>
+        <div class="crop-actions">
+            <div class="crop-controls">
+                <button id="zoomIn" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-search-plus"></i> Zoom In
+                </button>
+                <button id="zoomOut" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-search-minus"></i> Zoom Out
+                </button>
+                <button id="rotateLeft" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-undo"></i> Rotate Left
+                </button>
+                <button id="rotateRight" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-redo"></i> Rotate Right
+                </button>
+                <button id="reset" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-sync"></i> Reset
+                </button>
+            </div>
+            <div class="crop-buttons">
+                <button id="cancelCrop" class="btn btn-secondary">Cancel</button>
+                <button id="confirmCrop" class="btn btn-primary">Confirm Crop</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="replaceImageInput" style="display: none;" accept="image/*">
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('editProductForm');
         const imageUpload = document.getElementById('imageUpload');
         const newImagesPreview = document.getElementById('newImagesPreview');
         const removedImagesInput = document.getElementById('removedImages');
-        
+        const replacedImagesInput = document.getElementById('replacedImages');
+        const replaceImageInput = document.getElementById('replaceImageInput');
+        const cropModal = document.getElementById('cropModal');
+        const cropContainer = document.getElementById('cropContainer');
+        const confirmCropBtn = document.getElementById('confirmCrop');
+        const cancelCropBtn = document.getElementById('cancelCrop');
+        const closeModalBtn = document.querySelector('.close-crop-modal');
+
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        const rotateLeftBtn = document.getElementById('rotateLeft');
+        const rotateRightBtn = document.getElementById('rotateRight');
+        const resetBtn = document.getElementById('reset');
+
+        const CROP_WIDTH = 400;
+        const CROP_HEIGHT = 400;
+
         let removedImages = [];
-        
-        // Form submission with debugging
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            if (validateForm()) {
-                // Update removedImages input
-                removedImagesInput.value = JSON.stringify(removedImages);
-                
-                // Log form data for debugging
-                const formData = new FormData(form);
-                console.log('Form Data:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}: ${value}`);
-                }
-                
-                // Submit the form
-                form.submit();
+        let replacedImages = {};
+        let newImagesData = [];
+        let currentCroppie = null;
+        let currentReplacementIndex = null;
+        let currentFile = null;
+        let isNewImage = false;
+
+        // Initialize Croppie instance
+        function initializeCroppie(imageUrl) {
+            if (currentCroppie) {
+                currentCroppie.destroy();
             }
-        });
+            currentCroppie = new Croppie(cropContainer, {
+                viewport: { width: CROP_WIDTH, height: CROP_HEIGHT, type: 'square' },
+                boundary: { width: 600, height: 400 },
+                showZoomer: true,
+                enableOrientation: true,
+                enableResize: false
+            });
+            currentCroppie.bind({
+                url: imageUrl,
+                zoom: 0
+            });
+        }
+
+        // Open crop modal
+        function openCropModal(imageUrl) {
+            cropModal.style.display = 'block';
+            initializeCroppie(imageUrl);
+        }
+
+        // Close crop modal
+        function closeCropModal() {
+            if (currentCroppie) {
+                currentCroppie.destroy();
+                currentCroppie = null;
+            }
+            cropModal.style.display = 'none';
+            replaceImageInput.value = '';
+            imageUpload.value = '';
+            currentFile = null;
+            isNewImage = false;
+            currentReplacementIndex = null;
+        }
 
         // Handle new image uploads
         imageUpload.addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
-            
-            // Clear existing previews
-            newImagesPreview.innerHTML = '';
-            
-            // Create previews for each file
-            files.forEach((file, index) => {
+            files.forEach(file => {
+                isNewImage = true;
+                currentFile = file;
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'position-relative';
-                    previewItem.style.width = '100px';
-                    previewItem.style.height = '100px';
-                    previewItem.style.overflow = 'hidden';
-                    previewItem.style.marginRight = '10px';
-                    
-                    const img = document.createElement('img');
-                    img.src = event.target.result;
-                    img.className = 'w-100 h-100';
-                    img.style.objectFit = 'cover';
-                    
-                    previewItem.appendChild(img);
-                    newImagesPreview.appendChild(previewItem);
+                    openCropModal(event.target.result);
                 };
                 reader.readAsDataURL(file);
             });
@@ -267,8 +402,183 @@
                 if (!removedImages.includes(imageIndex)) {
                     removedImages.push(imageIndex);
                 }
-                this.closest('.image-preview-item').style.display = 'none';
+                if (replacedImages[imageIndex]) {
+                    delete replacedImages[imageIndex];
+                }
+                const previewItem = this.closest('.image-preview-item');
+                previewItem.remove(); // Remove the preview item entirely
+                validateForm();
             });
+        });
+
+        // Handle image replacement
+        document.querySelectorAll('.replace-image').forEach(button => {
+            button.addEventListener('click', function() {
+                currentReplacementIndex = parseInt(this.getAttribute('data-index'));
+                isNewImage = false;
+                replaceImageInput.click();
+            });
+        });
+
+        replaceImageInput.addEventListener('change', function(event) {
+            if (event.target.files && event.target.files[0]) {
+                currentFile = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    openCropModal(e.target.result);
+                };
+                reader.readAsDataURL(currentFile);
+            }
+        });
+
+        // Crop controls
+        zoomInBtn.addEventListener('click', function() {
+            if (currentCroppie) {
+                currentCroppie.setZoom(currentCroppie.get().zoom + 0.1);
+            }
+        });
+
+        zoomOutBtn.addEventListener('click', function() {
+            if (currentCroppie) {
+                currentCroppie.setZoom(currentCroppie.get().zoom - 0.1);
+            }
+        });
+
+        rotateLeftBtn.addEventListener('click', function() {
+            if (currentCroppie) {
+                currentCroppie.rotate(-90);
+            }
+        });
+
+        rotateRightBtn.addEventListener('click', function() {
+            if (currentCroppie) {
+                currentCroppie.rotate(90);
+            }
+        });
+
+        resetBtn.addEventListener('click', function() {
+            if (currentCroppie) {
+                currentCroppie.bind({
+                    url: currentCroppie.get().url,
+                    zoom: 0,
+                    orientation: 1
+                });
+            }
+        });
+
+        // Confirm crop
+        confirmCropBtn.addEventListener('click', function() {
+            if (!currentCroppie) return;
+
+            currentCroppie.result({
+                type: 'blob',
+                size: { width: CROP_WIDTH, height: CROP_HEIGHT },
+                format: 'jpeg',
+                quality: 0.95
+            }).then(blob => {
+                const fileName = isNewImage ? `new_${Date.now()}.jpg` : `replaced_${currentReplacementIndex}.jpg`;
+                const file = new File([blob], fileName, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                if (isNewImage) {
+                    newImagesData.push(file);
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+                    previewItem.style.width = '200px';
+                    previewItem.style.height = '200px';
+                    previewItem.style.position = 'relative';
+
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(blob);
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+
+                    const actions = document.createElement('div');
+                    actions.className = 'image-actions';
+                    actions.innerHTML = `
+                        <button type="button" class="remove-new-image">Remove</button>
+                    `;
+                    previewItem.appendChild(img);
+                    previewItem.appendChild(actions);
+                    newImagesPreview.appendChild(previewItem);
+
+                    // Add remove functionality for new images
+                    previewItem.querySelector('.remove-new-image').addEventListener('click', function() {
+                        const index = newImagesData.indexOf(file);
+                        if (index > -1) {
+                            newImagesData.splice(index, 1);
+                        }
+                        previewItem.remove();
+                        validateForm();
+                    });
+                } else {
+                    replacedImages[currentReplacementIndex] = file;
+                    const imagePreview = document.querySelector(`.image-preview-item[data-index="${currentReplacementIndex}"] img`);
+                    if (imagePreview) {
+                        imagePreview.src = URL.createObjectURL(blob);
+                    }
+                    const index = removedImages.indexOf(currentReplacementIndex);
+                    if (index > -1) {
+                        removedImages.splice(index, 1);
+                    }
+                }
+
+                closeCropModal();
+                validateForm();
+            }).catch(error => {
+                console.error('Error generating cropped image:', error);
+                alert('Error cropping image. Please try again.');
+            });
+        });
+
+        cancelCropBtn.addEventListener('click', closeCropModal);
+        closeModalBtn.addEventListener('click', closeCropModal);
+
+        // Form submission
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            if (!validateForm()) return;
+
+            removedImagesInput.value = JSON.stringify(removedImages);
+            replacedImagesInput.value = JSON.stringify(Object.keys(replacedImages).map(Number));
+
+            const formData = new FormData(form);
+            newImagesData.forEach(file => {
+                formData.append('images', file);
+            });
+            Object.entries(replacedImages).forEach(([index, file]) => {
+                formData.append(`replace_${index}`, file);
+            });
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        const data = await response.json();
+                        if (data.success) {
+                            window.location.href = '/admin/product';
+                        } else {
+                            alert(data.message || 'Error updating product');
+                        }
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Server response:', text);
+                    alert('Error updating product. Please try again.');
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('An error occurred. Please try again.');
+            }
         });
 
         // Form validation
@@ -290,16 +600,13 @@
                     break;
 
                 case 'description':
-                    const description = field.value;
+                    const description = field.value.trim();
                     if (!description) {
                         showError(field, errorElement, 'Description is required');
-                    } else {
-                        const trimmedDescription = description.trim();
-                        if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
-                            showError(field, errorElement, 'Description must be 10–1000 characters long');
-                        } else if (!/^[a-zA-Z0-9\s,.]+$/.test(trimmedDescription)) {
-                            showError(field, errorElement, 'Description can only contain letters, numbers, spaces, periods, and commas');
-                        }
+                    } else if (description.length < 10 || description.length > 1000) {
+                        showError(field, errorElement, 'Description must be 10–1000 characters long');
+                    } else if (!/^[a-zA-Z0-9\s,.]+$/.test(description)) {
+                        showError(field, errorElement, 'Description can only contain letters, numbers, spaces, periods, and commas');
                     }
                     break;
 
@@ -332,7 +639,7 @@
         function validateForm() {
             let isValid = true;
             const fields = ['name', 'description', 'price', 'stock', 'category'];
-            
+
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 validateField(field);
@@ -340,6 +647,20 @@
                     isValid = false;
                 }
             });
+
+            const remainingImages = <%= product.productImage.length %> - removedImages.length;
+            const totalImages = remainingImages + newImagesData.length + Object.keys(replacedImages).length;
+
+            const imageError = document.getElementById('imageError') || document.createElement('div');
+            imageError.id = 'imageError';
+            imageError.className = 'text-danger';
+            imageError.innerHTML = '';
+            imageUpload.parentNode.appendChild(imageError);
+
+            if (totalImages !== 3) {
+                imageError.innerHTML = `Exactly 3 images are required. Currently you have ${totalImages} images.`;
+                isValid = false;
+            }
 
             return isValid;
         }
@@ -349,7 +670,6 @@
             field.classList.add('error');
         }
 
-        // Real-time validation
         const inputs = document.querySelectorAll('.form-control, .form-select');
         inputs.forEach(input => {
             input.addEventListener('input', function() {
@@ -358,6 +678,12 @@
             input.addEventListener('change', function() {
                 validateField(this);
             });
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target === cropModal) {
+                closeCropModal();
+            }
         });
     });
 </script>

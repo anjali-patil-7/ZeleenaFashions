@@ -190,6 +190,13 @@
                 transform: translateY(0);
             }
         }
+
+        .error-text {
+            color: #d32f2f;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -222,7 +229,7 @@
             </div>
             
             <!-- OTP Verification Form -->
-            <form action="/verifyforgotpasswordotp" method="post" id="otpForm" class="otp-form">
+            <form id="otpForm" class="otp-form">
                 <h4 class="login-title">OTP Verification</h4>
                 <p class="text-center text-muted">Please enter the OTP sent to your email/phone</p>
                 
@@ -245,6 +252,7 @@
                 </div>
                 
                 <button type="submit" class="hiraola-login_btn" id="verifyButton" disabled>Verify OTP</button>
+                <p class="error-text" id="errorText"></p>
             </form>
         </div>
     </div>
@@ -259,7 +267,8 @@
             const timerElement = document.getElementById('timer');
             const resendBtn = document.getElementById('resendBtn');
             const timerText = document.getElementById('timerText');
-            let timeLeft = 60; // 1minutes
+            const errorText = document.getElementById('errorText');
+            let timeLeft = parseInt(localStorage.getItem('otpTimer')) || 60; // Persist timer state
             let timerInterval;
 
             // Focus first input on load
@@ -302,24 +311,39 @@
                 const seconds = timeLeft % 60;
                 timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 
-                if (timeLeft === 0) {
+                if (timeLeft <= 0) {
                     resendBtn.style.display = 'inline';
                     timerText.style.display = 'none';
+                    verifyButton.disabled = true; // Disable verify button when timer expires
+                    showError('OTP has expired. Please request a new one.');
+                    localStorage.removeItem('otpTimer');
                     clearInterval(timerInterval);
                 } else {
                     timeLeft--;
+                    localStorage.setItem('otpTimer', timeLeft); // Persist timer state
                 }
             }
 
-            // Start initial timer
+            // Start or resume timer
             function startTimer() {
-                clearInterval(timerInterval);
-                timeLeft = 6;
-                timerInterval = setInterval(updateTimer, 1000);
-                updateTimer();
+                if (timeLeft > 0) {
+                    timerInterval = setInterval(updateTimer, 1000);
+                    updateTimer();
+                } else {
+                    updateTimer(); // Immediately show expired state
+                }
             }
 
             startTimer();
+
+            // Show error message
+            function showError(message) {
+                errorText.textContent = message;
+                errorText.style.display = 'block';
+                setTimeout(() => {
+                    errorText.style.display = 'none';
+                }, 5000);
+            }
 
             // Handle resend click
             resendBtn.addEventListener('click', async function(e) {
@@ -338,6 +362,8 @@
 
                     if (data.status === 'success') {
                         // Reset timer and UI
+                        timeLeft = 60;
+                        localStorage.setItem('otpTimer', timeLeft);
                         startTimer();
                         resendBtn.style.display = 'none';
                         timerText.style.display = 'inline';
@@ -349,31 +375,72 @@
                         // Update button state
                         updateVerifyButton();
                         
-                        alert('OTP resent successfully');
+                        // Show success message
+                        const successMessage = document.createElement('div');
+                        successMessage.className = 'flash-message success-message';
+                        successMessage.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span>OTP resent successfully</span>
+                        `;
+                        document.body.appendChild(successMessage);
+                        setTimeout(() => successMessage.remove(), 3000);
                     } else {
-                        alert(data.message || 'Failed to resend OTP');
+                        showError(data.message || 'Failed to resend OTP');
                     }
                 } catch (error) {
                     console.error('Error resending OTP:', error);
-                    alert('Failed to resend OTP. Please try again.');
+                    showError('Failed to resend OTP. Please try again.');
                 }
             });
 
             // Update verify button state
             function updateVerifyButton() {
                 const isComplete = Array.from(inputs).every(input => input.value.length === 1);
-                verifyButton.disabled = !isComplete;
+                verifyButton.disabled = !isComplete || timeLeft <= 0;
                 if (isComplete) {
                     otpValue.value = Array.from(inputs).map(input => input.value).join('');
                 }
             }
 
-            // Handle form submission
-            form.addEventListener('submit', function(e) {
+            // Handle form submission via AJAX
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const otp = Array.from(inputs).map(input => input.value).join('');
                 otpValue.value = otp;
-                this.submit();
+
+                try {
+                    const response = await fetch('/verifyforgotpasswordotp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ otp }),
+                        credentials: 'include'
+                    });
+
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            // Redirect to reset password page
+                            window.location.href = '/reset-password';
+                        } else {
+                            showError(data.message || 'Wrong OTP entered. Please try again.');
+                            inputs.forEach(input => input.value = '');
+                            inputs[0].focus();
+                            updateVerifyButton();
+                        }
+                    } else {
+                        // Handle HTML response (successful OTP verification)
+                        window.location.href = '/reset-password';
+                    }
+                } catch (error) {
+                    console.error('Error verifying OTP:', error);
+                    showError('An unexpected error occurred.');
+                }
             });
 
             // Handle flash message removal

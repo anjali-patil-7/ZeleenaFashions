@@ -37,7 +37,7 @@ router.get('/editcategory/:id',adminSession, categoryController.getEditCategory)
 router.post('/editcategory/:id',adminSession, categoryUpload.single('image'), categoryController.updateCategory);
 router.post('/toggleCategory/:id',adminSession, categoryController.toggleCategoryStatus);
 router.delete('/deleteCategory/:id',adminSession, categoryController.deleteCategory);
-http://localhost:3000/admin/categories
+
 // Product routes
 router.get('/product',adminSession, productController.getProducts);
 router.get('/addproduct',adminSession, productController.renderAddProduct);
@@ -52,15 +52,15 @@ router.get('/users',adminSession, userController.getUsers);
 router.post('/api/block/:userId',adminSession, userController.toggleUserStatus);
 
 // Catch-all route for undefined admin routes
-router.use((req, res) => {
-  res.status(404).render('admin/404');
-});
+// router.use((req, res) => {
+//   res.status(404).render('admin/404');
+// });
 
-// Error handling middleware for admin routes
-router.use((err, req, res, next) => {
-  console.error('Admin route error:', err);
-  req.flash('error_msg', 'Something went wrong');
-  res.status(500).render('admin/404');
-});
+// // Error handling middleware for admin routes
+// router.use((err, req, res, next) => {
+//   console.error('Admin route error:', err);
+//   req.flash('error_msg', 'Something went wrong');
+//   res.status(500).render('admin/404');
+// });
 
 module.exports = router;
