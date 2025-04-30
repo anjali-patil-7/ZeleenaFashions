@@ -659,6 +659,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 $(document).ready(function () {
   // Initialize elevateZoom on the main image
@@ -741,20 +745,23 @@ $(document).ready(function () {
 const MAX_QUANTITY = 7;
 
 async function addToCart(productId) {
-  console.log("Entering addToCart method");
-  const quantity = document.querySelector(".cart-plus-minus-box").value;
-  console.log("Quantity:", quantity);
+  const quantity = parseInt(document.querySelector(".cart-plus-minus-box").value);
+  if (isNaN(quantity) || quantity < 1) {
+    Swal.fire({
+      icon: "error",
+      title: "Invalid Quantity",
+      text: "Please select a valid quantity",
+    });
+    return;
+  }
 
   try {
-    const response = await fetch("/addtocart/" + productId, {
+    const response = await fetch(`/addtocart/${productId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        productId: productId,
-        quantity: quantity,
-      }),
+      body: JSON.stringify({ quantity }),
     });
 
     const data = await response.json();

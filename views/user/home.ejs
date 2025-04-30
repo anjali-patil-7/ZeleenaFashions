@@ -124,7 +124,7 @@
             <div class="col grid-half grid-md_half order-md-2 order-lg-3">
                 <div class="banner-item img-hover_effect">
                     <a href="/shop">
-                        <img class="img-full" src="/public/user/assets/images/banner/1_1.jpg" alt="Hiraola's Banner">
+                        <img class="img-full" src="/user/assets/images/banner/1_1.jpg" alt="Hiraola's Banner">
                     </a>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                                 <div class="single_product" style="border: 1px solid #ddd; padding: 10px; background: #fff; text-align: center;">
                                     <div class="product-img" style="position: relative;">
                                         <a href="/singleproduct/<%= product._id %>">
-                                            <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>" style="width: 100%; height: 150px; object-fit: cover;">
+                                            <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>" style="width: 100%; height: 150px; object-fit: cover;">
                                         </a>
                                         <% if (product.createdAt) { 
                                             const createdAtDate = new Date(product.createdAt);

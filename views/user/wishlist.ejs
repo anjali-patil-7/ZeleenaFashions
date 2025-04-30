@@ -1,0 +1,300 @@
+<%- include('../partials/user/header') %>
+<style>
+  .wishlist-page-total .btn {
+    background-color: #595959 !important;
+    border-color: #595959 !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .wishlist-page-total .btn:hover {
+    background-color: #1d2951 !important;
+    border-color: #1d2951 !important;
+  }
+
+  .wishlist-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .wishlist-actions .btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .empty-wishlist {
+    text-align: center;
+    padding: 50px 0;
+  }
+
+  .empty-wishlist i {
+    font-size: 50px;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+
+  .empty-wishlist h3 {
+    margin-bottom: 15px;
+    color: #595959;
+  }
+
+  .empty-wishlist p {
+    margin-bottom: 20px;
+    color: #777;
+  }
+
+  .in-stock {
+    color: #28a745; /* Green for in stock */
+    font-weight: bold;
+  }
+
+  .out-of-stock {
+    color: #dc3545; /* Red for out of stock */
+    font-weight: bold;
+  }
+</style>
+
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+  <div class="container">
+    <div class="breadcrumb-content">
+      <h2>Other</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li class="active">Wishlist</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+
+<!-- Begin Hiraola's Wishlist Area -->
+<div class="hiraola-wishlist-area">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <form action="javascript:void(0)">
+          <div class="table-content table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="hiraola-product-thumbnail">Sl. No</th>
+                  <th class="hiraola-product-thumbnail">Images</th>
+                  <th class="wishlist-product-name">Product</th>
+                  <th class="hiraola-product-price">Unit Price</th>
+                  <th class="hiraola-product-stock-status">Stock Status</th>
+                  <th class="hiraola-product-add-cart">Actions</th>
+                  <th class="hiraola-product-remove">Remove</th>
+                </tr>
+              </thead>
+              <tbody id="wishlist-items">
+                <% if (wishlistDetails.length > 0 && wishlistDetails[0].wishlistItems && wishlistDetails[0].wishlistItems.length > 0) { %>
+                  <% let index = 1; %>
+                  <% wishlistDetails[0].wishlistItems.forEach(item => { %>
+                    <tr class="wishlist-item" data-product-id="<%= item.productId._id %>">
+                      <td class="hiraola-product-price">
+                        <span class="amount"><%= index++ %></span>
+                      </td>
+                      <td class="hiraola-product-thumbnail">
+                        <a href="/product/<%= item.productId._id %>">
+                          <img
+                            src="/<%= item.productId.productImage[0] %>"
+                            alt="Product Image"
+                            style="width: 70px; height: 70px"
+                          />
+                        </a>
+                      </td>
+                      <td class="hiraola-product-name">
+                        <a href="/product/<%= item.productId._id %>"><%= item.productId.productName %></a>
+                      </td>
+                      <td class="hiraola-product-price">
+                        <span class="amount product-price"><%= item.productId.price.toFixed(2) %></span>
+                      </td>
+                      <td class="hiraola-product-stock-status">
+                        <% if (item.productId.totalStock > 0) { %>
+                          <span class="in-stock">In Stock</span>
+                        <% } else { %>
+                          <span class="out-of-stock">Out of Stock</span>
+                        <% } %>
+                      </td>
+                      <td class="hiraola-product-add-cart">
+                        <div class="wishlist-actions">
+                          <button 
+                            class="btn btn-primary add-to-cart" 
+                            onclick="addToCart('<%= item.productId._id %>')"
+                            style="background-color: #1d2951; border-color: #1d2951;" 
+                            <%= item.productId.totalStock <= 0 ? 'disabled' : '' %>
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
+                      </td>
+                      <td class="hiraola-product-remove">
+                        <a href="javascript:void(0);" onclick="removeFromWishlist('<%= item.productId._id %>')">
+                          <i class="fa fa-trash" title="Remove"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr id="empty-wishlist-row">
+                    <td colspan="7">
+                      <div class="empty-wishlist">
+                        <i class="fa fa-heart-o"></i>
+                        <h3>Your Wishlist is Empty</h3>
+                        <p>Start adding items you love to your wishlist</p>
+                        <a href="/shop" class="btn btn-primary" >Continue Shopping</a>
+                      </div>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="wishlist-page-total text-right">
+                <a href="/shop" class="btn btn-secondary">Continue Shopping</a>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/user/footer') %>
+
+<script>
+  function removeFromWishlist(productId) {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to remove this product from your wishlist?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, remove it!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: "/wishlist/remove",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ productId }),
+          success: function (response) {
+            // Remove the item from the DOM
+            $(`.wishlist-item[data-product-id="${productId}"]`).fadeOut(300, function() {
+              $(this).remove();
+              
+              // Check if wishlist is now empty
+              if ($("#wishlist-items tr").length === 0) {
+                $("#wishlist-items").html(`
+                  <tr id="empty-wishlist-row">
+                    <td colspan="7">
+                      <div class="empty-wishlist">
+                        <i class="fa fa-heart-o"></i>
+                        <h3>Your Wishlist is Empty</h3>
+                        <p>Start adding items you love to your wishlist</p>
+                        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+                      </div>
+                    </td>
+                  </tr>
+                `);
+              }
+            });
+            
+            // Show success notification
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: true
+            });
+            
+            Toast.fire({
+              icon: 'success',
+              title: 'Product removed from wishlist'
+            });
+          },
+          error: function (xhr) {
+            const errorData = xhr.responseJSON || {};
+            Swal.fire({
+              icon: "error",
+              title: "Remove Failed",
+              text: errorData.message || "Error removing from wishlist",
+            });
+          }
+        });
+      }
+    });
+  }
+
+  function addToCart(productId) {
+    Swal.fire({
+      title: "Add to Cart?",
+      text: "Do you want to add this product to your cart?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, add it!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: "/wishlist/add-to-cart",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ productId }),
+          success: function (response) {
+            // Remove the item from the wishlist
+            $(`.wishlist-item[data-product-id="${productId}"]`).fadeOut(300, function() {
+              $(this).remove();
+              
+              // Check if wishlist is now empty
+              if ($("#wishlist-items tr").length === 0) {
+                $("#wishlist-items").html(`
+                  <tr id="empty-wishlist-row">
+                    <td colspan="7">
+                      <div class="empty-wishlist">
+                        <i class="fa fa-heart-o"></i>
+                        <h3>Your Wishlist is Empty</h3>
+                        <p>Start adding items you love to your wishlist</p>
+                        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+                      </div>
+                    </td>
+                  </tr>
+                `);
+              }
+            });
+            
+            // Show success notification
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: true
+            });
+            
+            Toast.fire({
+              icon: 'success',
+              title: 'Product added to cart and removed from wishlist'
+            });
+          },
+          error: function (xhr) {
+            const errorData = xhr.responseJSON || {};
+            Swal.fire({
+              icon: "error",
+              title: "Add to Cart Failed",
+              text: errorData.message || "Error adding to cart",
+            });
+          }
+        });
+      }
+    });
+  }
+</script>

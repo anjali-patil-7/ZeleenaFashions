@@ -1,0 +1,384 @@
+<%- include('../partials/user/header') %>
+
+<style>
+  .address-container {
+    background-color: #f5f5f5;
+    padding: 2rem 0;
+    min-height: 100vh;
+  }
+
+  .address-card {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 0 auto;
+    max-width: 600px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #1d2951;
+    outline: none;
+  }
+
+  .save-address-as {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .save-address-as label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #555;
+  }
+
+  .save-address-as input[type="radio"] {
+    margin: 0;
+  }
+
+  .submit-btn {
+    background: #1d2951;
+    color: white;
+    border: none;
+    padding: 1rem;
+    width: 100%;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .submit-btn:hover {
+    background-color: #b08c4a;
+  }
+
+  .char-count {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+
+  .error-text {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+  }
+
+  .form-group input.is-invalid,
+  .form-group select.is-invalid,
+  .form-group textarea.is-invalid {
+    border-color: #dc3545;
+  }
+
+  .form-error-container {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+</style>
+
+<form action="/createaddress" method="POST" id="addressForm">
+  <div class="address-container">
+    <div class="address-card">
+      <h2>Add Shipping Details</h2>
+      <div class="form-error-container" id="formErrors"></div>
+
+      <!-- Contact Details -->
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="contact-number">Contact Number *</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <select style="flex: 0 0 80px;">
+            <option value="+91">+91</option>
+            <!-- Add more country codes if needed -->
+          </select>
+          <input type="tel" id="contact-number" name="mobile" placeholder="Enter your contact number" required>
+          <div class="error-text"></div>
+        </div>
+      </div>
+
+      <!-- Address Details -->
+      <div class="form-group">
+        <label for="country">Country *</label>
+        <select id="country" name="country" required>
+          <option value="IN">India</option>
+          <!-- Add more countries if needed -->
+        </select>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="pincode">Pincode *</label>
+        <input type="text" id="pincode" name="pincode" placeholder="Enter your pincode" required>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="city">City *</label>
+        <input type="text" id="city" name="city" placeholder="Enter your city" required>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="state">State *</label>
+        <input type="text" id="state" name="state" placeholder="Enter your state" required>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="houseNo">House No., Building *</label>
+        <input type="text" id="houseNo" name="houseName" placeholder="Enter your house number or building name" required>
+        <div class="error-text"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="street">Street, Area *</label>
+        <input type="text" id="street" name="street" placeholder="Enter your street and area" required>
+        <div class="error-text"></div>
+      </div>
+
+      <!-- Save Address As -->
+      <div class="save-address-as">
+        <label>
+          <input type="radio" name="saveAs" value="Home" required> Home
+        </label>
+        <label>
+          <input type="radio" name="saveAs" value="Work"> Work
+        </label>
+        <label>
+          <input type="radio" name="saveAs" value="Other"> Other
+        </label>
+        <div class="error-text"></div>
+      </div>
+
+      <!-- Submit Button -->
+      <button class="submit-btn">Save Address</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('addressForm');
+    const inputs = form.querySelectorAll('input, select');
+    const submitBtn = form.querySelector('.submit-btn');
+    const formErrorContainer = document.getElementById('formErrors');
+
+    // Validation rules matching backend
+    const validationRules = {
+      name: {
+        validate: (value) => value && value.trim().length >= 3,
+        error: 'Name must be at least 3 characters',
+      },
+      email: {
+        validate: (value) => value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+        error: 'Invalid email address',
+      },
+      mobile: {
+        validate: (value) => value && /^\d{10}$/.test(value),
+        error: 'Invalid mobile number (must be 10 digits)',
+      },
+      pincode: {
+        validate: (value) => value && /^\d{6}$/.test(value),
+        error: 'Invalid pincode (must be 6 digits)',
+      },
+      houseName: {
+        validate: (value) => value && value.trim().length > 0,
+        error: 'House name/number is required',
+      },
+      street: {
+        validate: (value) => value && value.trim().length > 0,
+        error: 'Street/road is required',
+      },
+      city: {
+        validate: (value) => value && value.trim().length > 0,
+        error: 'City is required',
+      },
+      state: {
+        validate: (value) => value && value.trim().length > 0,
+        error: 'State is required',
+      },
+      country: {
+        validate: (value) => value && value.trim().length > 0,
+        error: 'Country is required',
+      },
+      saveAs: {
+        validate: (value) => value && ['Home', 'Work', 'Other'].includes(value),
+        error: 'Please select an address type',
+      },
+    };
+
+    // Function to add error message element
+    function addErrorElement(input) {
+      let errorDiv = input.parentElement.querySelector('.error-text');
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'error-text';
+        input.parentElement.appendChild(errorDiv);
+      }
+      return errorDiv;
+    }
+
+    // Function to validate a single input
+    function validateInput(input) {
+      const name = input.name;
+      const value = input.type === 'radio' ? form.querySelector(`input[name="${name}"]:checked`)?.value : input.value;
+      const rule = validationRules[name];
+
+      if (!rule) return true;
+
+      const isValid = rule.validate(value);
+      const errorDiv = addErrorElement(input);
+
+      if (!isValid) {
+        input.classList.add('is-invalid');
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = rule.error;
+      } else {
+        input.classList.remove('is-invalid');
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+      }
+
+      return isValid;
+    }
+
+    // Clear form-level errors
+    function clearFormErrors() {
+      formErrorContainer.style.display = 'none';
+      formErrorContainer.innerHTML = '';
+    }
+
+    // Display form-level errors
+    function displayFormErrors(errors) {
+      formErrorContainer.style.display = 'block';
+      formErrorContainer.innerHTML = errors.map(err => `<p>${err}</p>`).join('');
+    }
+
+    // Real-time validation on input change
+    inputs.forEach((input) => {
+      input.addEventListener('input', () => {
+        validateInput(input);
+      });
+      input.addEventListener('blur', () => {
+        validateInput(input);
+      });
+    });
+
+    // Handle radio buttons separately
+    const saveAsRadios = form.querySelectorAll('input[name="saveAs"]');
+    saveAsRadios.forEach((radio) => {
+      radio.addEventListener('change', () => {
+        validateInput(radio);
+      });
+    });
+
+    // Form submission with AJAX
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearFormErrors();
+
+      // Validate all inputs
+      let isValid = true;
+      Object.keys(validationRules).forEach((name) => {
+        const input = form.querySelector(`[name="${name}"]`) || form.querySelector(`input[name="${name}"]`);
+        if (input && !validateInput(input)) {
+          isValid = false;
+        }
+      });
+
+      if (!isValid) {
+        displayFormErrors(['Please correct the errors in the form']);
+        return;
+      }
+
+      // Disable submit button to prevent multiple submissions
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      // Collect form data
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+      // Explicitly set isDefault to false
+      data.isDefault = false;
+
+      // Send AJAX request
+      fetch('/createaddress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((result) => {
+          if (result.success) {
+            // Redirect to address page on success
+            window.location.href = '/address';
+          } else {
+            // Display server-side validation errors
+            const errors = result.errors || ['Error adding address'];
+            displayFormErrors(errors);
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          displayFormErrors(['Error adding address. Please try again.']);
+        })
+        .finally(() => {
+          // Re-enable submit button
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save Address';
+        });
+    });
+  });
+</script>
+
+<%- include('../partials/user/footer') %>

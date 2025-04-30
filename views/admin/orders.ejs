@@ -1,0 +1,235 @@
+<%- include('../partials/admin/header') %>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title">Orders List</h2>
+            <p>Orders Management</p>
+        </div>
+    </div>
+
+    <!-- Search Container -->
+    <div class="search-container" style="margin-bottom: 20px;">
+        <form action="/admin/orders" method="GET">
+            <div style="display: flex; max-width: 500px;">
+                <input 
+                    type="text" 
+                    name="query" 
+                    placeholder="Search by order ID, customer name or status..." 
+                    style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px 0 0 5px;"
+                    value="<%= locals.searchQuery || '' %>"
+                >
+                <button 
+                    type="submit" 
+                    style="background-color: #000000; color: white; padding: 8px 15px; border: none; border-radius: 0 5px 5px 0; cursor: pointer;"
+                >
+                    Search
+                </button>
+                <% if (locals.searchQuery) { %>
+                    <a 
+                        href="/admin/orders" 
+                        style="background-color: #f8f8f8; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-left: none; text-decoration: none; display: flex; align-items: center;"
+                    >
+                        Clear
+                    </a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .add-category-btn {
+            background-color: #000000;
+            color: white;
+            font-size: 14px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #000000;
+        }
+
+        .users-table th {
+            padding: 12px;
+            text-align: center;
+            background-color: #f8f8f8;
+            font-weight: bold;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+
+        .users-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #000000;
+            vertical-align: middle;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 80px;
+            background-color: #000000;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .page-link.active {
+            background-color: #000000;
+            color: white;
+            border-color: #4a90e2;
+        }
+
+        .page-link:hover {
+            background-color: #f5f5f5;
+        }
+
+        .active.page-link:hover {
+            background-color: #000000;
+        }
+
+        .no-data {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: #28a745;
+        }
+
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .badge-danger {
+            background-color: #dc3545;
+        }
+
+        .badge-info {
+            background-color: #17a2b8;
+        }
+    </style>
+
+    <% if (orders && orders.length > 0) { %>
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>SL.No</th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Order Status</th>
+                    <th>Payment Status</th>
+                    <th>Return Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.forEach((order, index) => { %>
+                <tr data-order-id="<%= order.id %>">
+                    <td><%= ((currentPage - 1) * limit) + index + 1 %></td>
+                    <td><%= order.orderNumber %></td>
+                    <td><%= order.userName %></td>
+                    <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
+                    <td>₹<%= order.finalAmount ? order.finalAmount.toFixed(2) : '0.00' %></td>
+                    <td>
+                        <span class="status-badge badge-<%= order.status === 'Delivered' ? 'success' : order.status === 'Cancelled' ? 'danger' : order.status === 'Returned' ? 'info' : 'warning' %>">
+                            <%= order.status %>
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge badge-<%= order.paymentStatus === 'Paid' ? 'success' : order.paymentStatus === 'failed' ? 'danger' : order.paymentStatus === 'refunded' || order.paymentStatus === 'partially-refunded' ? 'info' : 'warning' %>">
+                            <%= order.paymentStatus %>
+                        </span>
+                    </td>
+                    <td>
+                        <% if (order.hasReturnRequest) { %>
+                        <span class="status-badge badge-warning">Return Requested</span>
+                        <% } else if (order.hasReturnApproved) { %>
+                        <span class="status-badge badge-success">Return Approved</span>
+                        <% } else if (order.hasReturnRejected) { %>
+                        <span class="status-badge badge-danger">Return Rejected</span>
+                        <% } else { %>
+                        <span class="text-muted">None</span>
+                        <% } %>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/admin/orders/<%= order.id %>" class="action-btn">View</a>
+                        </div>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p class="no-data">No Orders found</p>
+    <% } %>
+
+    <div class="pagination">
+        <% if (currentPage > 1) { %>
+            <a href="/admin/orders?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
+        <% } %>
+
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/admin/orders?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                <%= i %>
+            </a>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <a href="/admin/orders?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+        <% } %>
+    </div>
+</section>
+
+<%- include('../partials/admin/footer') %>

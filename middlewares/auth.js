@@ -8,9 +8,10 @@ const verifyToken = (req, res, next) => {
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+        req.user = { id: decoded.id }; // Ensure req.user.id is set
         next();
     } catch (err) {
+        console.error('Token verification error:', err);
         req.flash('error_msg', 'Invalid or expired token.');
         res.clearCookie('token', {
             httpOnly: true,

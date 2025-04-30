@@ -1,0 +1,551 @@
+<%- include('../partials/user/header') %>
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>Edit Address</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/profile">My Account</a></li>
+                <li><a href="/address">Addresses</a></li>
+                <li class="active">Edit Address</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+
+<!-- Begin Hiraola's Page Content Area -->
+<main class="page-content">
+    <!-- Begin Hiraola's Account Page Area -->
+    <div class="account-page-area">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-dashboard-tab" href="/profile" aria-controls="account-dashboard" aria-selected="false">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-orders-tab" href="/orders" aria-controls="account-orders" aria-selected="false">Orders</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" id="account-address-tab" href="/address" aria-controls="account-address" aria-selected="true">Addresses</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-details-tab" href="/changepassword" aria-controls="account-details" aria-selected="false">Change Password</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-logout-tab" href="/logout" role="tab" aria-selected="false">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-9">
+                    <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
+                        <div class="tab-pane fade show active" id="account-address" role="tabpanel" aria-labelledby="account-address-tab">
+                            <div class="address-edit-wrapper">
+                                <div class="address-form-header">
+                                    <h4 class="address-form-title">Edit Address</h4>
+                                </div>
+                                
+                                <% if (errors && errors.length > 0) { %>
+                                    <div class="alert alert-danger">
+                                        <% errors.forEach(error => { %>
+                                            <div><%= error %></div>
+                                        <% }) %>
+                                    </div>
+                                <% } %>
+                                <% if (error_msg && error_msg.length > 0) { %>
+                                    <div class="alert alert-danger">
+                                        <%= error_msg %>
+                                    </div>
+                                <% } %>
+                                <% if (success_msg && success_msg.length > 0) { %>
+                                    <div class="alert alert-success">
+                                        <%= success_msg %>
+                                    </div>
+                                <% } %>
+                                
+                                <form id="editAddressForm" action="/address/update/<%= addressId %>" method="POST" class="address-form" novalidate>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class cybersource-rest-client="form-group">
+                                                <label for="name">Full Name <span class="required">*</span></label>
+                                                <input type="text" id="name" name="name" value="<%= address.name %>" class="form-control" required>
+                                                <small id="nameError" class="error-text">Name is required</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="mobile">Mobile Number <span class="required">*</span></label>
+                                                <input type="tel" id="mobile" name="mobile" value="<%= address.mobile %>" class="form-control" required>
+                                                <small id="mobileError" class="error-text">Please enter a valid mobile number</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="email">Email Address <span class="required">*</span></label>
+                                                <input type="email" id="email" name="email" value="<%= address.email %>" class="form-control" required>
+                                                <small id="emailError" class="error-text">Please enter a valid email address</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="pincode">Pincode <span class="required">*</span></label>
+                                                <input type="text" id="pincode" name="pincode" value="<%= address.pincode %>" class="form-control" required>
+                                                <small id="pincodeError" class="error-text">Please enter a valid pincode</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="houseName">House Name/Number <span class="required">*</span></label>
+                                                <input type="text" id="houseName" name="houseName" value="<%= address.houseName %>" class="form-control" required>
+                                                <small id="houseNameError" class="error-text">House name/number is required</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="street">Street/Road <span class="required">*</span></label>
+                                                <input type="text" id="street" name="street" value="<%= address.street %>" class="form-control" required>
+                                                <small id="streetError" class="error-text">Street/road is required</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="city">City <span class="required">*</span></label>
+                                                <input type="text" id="city" name="city" value="<%= address.city %>" class="form-control" required>
+                                                <small id="cityError" class="error-text">City is required</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="state">State <span class="required">*</span></label>
+                                                <input type="text" id="state" name="state" value="<%= address.state %>" class="form-control" required>
+                                                <small id="stateError" class="error-text">State is required</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="country">Country <span class="required">*</span></label>
+                                                <input type="text" id="country" name="country" value="<%= address.country %>" class="form-control" required>
+                                                <small id="countryError" class="error-text">Country is required</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="saveAs">Address Type <span class="required">*</span></label>
+                                                <select id="saveAs" name="saveAs" class="form-control" required>
+                                                    <option value="Home" <%= address.saveAs === 'Home' ? 'selected' : '' %>>Home</option>
+                                                    <option value="Work" <%= address.saveAs === 'Work' ? 'selected' : '' %>>Work</option>
+                                                    <option value="Other" <%= address.saveAs === 'Other' ? 'selected' : '' %>>Other</option>
+                                                </select>
+                                                <small id="saveAsError" class="error-text">Please select an address type</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group form-check">
+                                        <input type="checkbox" class="form-check-input" id="isDefault" name="isDefault" <%= address.isDefault ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="isDefault">Make this my default address</label>
+                                    </div>
+                                    
+                                    <div class="form-actions">
+                                        <button type="submit" class="save-address-btn">Update Address</button>
+                                        <a href="/address" class="cancel-btn">Cancel</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Hiraola's Account Page Area End Here -->
+</main>
+<!-- Hiraola's Page Content Area End Here -->
+
+<style>
+/* Address Form Styles */
+.address-edit-wrapper {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 25px;
+}
+
+.address-form-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.address-form-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+    color: #333;
+}
+
+.address-form .form-group {
+    margin-bottom: 20px;
+}
+
+.address-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+    font-size: 14px;
+}
+
+.address-form .required {
+    color: #F44336;
+}
+
+.address-form .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.address-form .form-control:focus {
+    border-color: #333;
+    outline: none;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.form-check-input {
+    margin-right: 8px;
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: #555;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.save-address-btn {
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.save-address-btn:hover {
+    background-color: #222;
+}
+
+.cancel-btn {
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    color: #555;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* Error styling */
+.error-text {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.alert {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .save-address-btn, .cancel-btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editAddressForm');
+    
+    // Get all input elements
+    const nameInput = document.getElementById('name');
+    const mobileInput = document.getElementById('mobile');
+    const emailInput = document.getElementById('email');
+    const pincodeInput = document.getElementById('pincode');
+    const houseNameInput = document.getElementById('houseName');
+    const streetInput = document.getElementById('street');
+    const cityInput = document.getElementById('city');
+    const stateInput = document.getElementById('state');
+    const countryInput = document.getElementById('country');
+    const saveAsInput = document.getElementById('saveAs');
+    
+    // Get all error message elements
+    const nameError = document.getElementById('nameError');
+    const mobileError = document.getElementById('mobileError');
+    const emailError = document.getElementById('emailError');
+    const pincodeError = document.getElementById('pincodeError');
+    const houseNameError = document.getElementById('houseNameError');
+    const streetError = document.getElementById('streetError');
+    const cityError = document.getElementById('cityError');
+    const stateError = document.getElementById('stateError');
+    const countryError = document.getElementById('countryError');
+    const saveAsError = document.getElementById('saveAsError');
+    
+    // Validation functions
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    function isValidMobile(mobile) {
+        const mobileRegex = /^\d{10}$/;
+        return mobileRegex.test(mobile.replace(/\D/g, ''));
+    }
+    
+    function isValidPincode(pincode) {
+        const pincodeRegex = /^\d{6}$/;
+        return pincodeRegex.test(pincode.replace(/\D/g, ''));
+    }
+    
+    // Function to show error
+    function showError(input, errorElement, message) {
+        input.classList.add('is-invalid');
+        errorElement.style.display = 'block';
+        errorElement.textContent = message;
+        return false;
+    }
+    
+    // Function to hide error
+    function hideError(input, errorElement) {
+        input.classList.remove('is-invalid');
+        errorElement.style.display = 'none';
+        return true;
+    }
+    
+    // Validate name
+    function validateName() {
+        if (nameInput.value.trim() === '') {
+            return showError(nameInput, nameError, 'Name is required');
+        } else if (nameInput.value.trim().length < 3) {
+            return showError(nameInput, nameError, 'Name should be at least 3 characters');
+        } else {
+            return hideError(nameInput, nameError);
+        }
+    }
+    
+    // Validate mobile
+    function validateMobile() {
+        if (mobileInput.value.trim() === '') {
+            return showError(mobileInput, mobileError, 'Mobile number is required');
+        } else if (!isValidMobile(mobileInput.value)) {
+            return showError(mobileInput, mobileError, 'Please enter a valid mobile number (10 digits)');
+        } else {
+            return hideError(mobileInput, mobileError);
+        }
+    }
+    
+    // Validate email
+    function validateEmail() {
+        if (emailInput.value.trim() === '') {
+            return showError(emailInput, emailError, 'Email is required');
+        } else if (!isValidEmail(emailInput.value)) {
+            return showError(emailInput, emailError, 'Please enter a valid email address');
+        } else {
+            return hideError(emailInput, emailError);
+        }
+    }
+    
+    // Validate pincode
+    function validatePincode() {
+        if (pincodeInput.value.trim() === '') {
+            return showError(pincodeInput, pincodeError, 'Pincode is required');
+        } else if (!isValidPincode(pincodeInput.value)) {
+            return showError(pincodeInput, pincodeError, 'Please enter a valid pincode (6 digits)');
+        } else {
+            return hideError(pincodeInput, pincodeError);
+        }
+    }
+    
+    // Validate house name
+    function validateHouseName() {
+        if (houseNameInput.value.trim() === '') {
+            return showError(houseNameInput, houseNameError, 'House name/number is required');
+        } else {
+            return hideError(houseNameInput, houseNameError);
+        }
+    }
+    
+    // Validate street
+    function validateStreet() {
+        if (streetInput.value.trim() === '') {
+            return showError(streetInput, streetError, 'Street/road is required');
+        } else {
+            return hideError(streetInput, streetError);
+        }
+    }
+    
+    // Validate city
+    function validateCity() {
+        if (cityInput.value.trim() === '') {
+            return showError(cityInput, cityError, 'City is required');
+        } else {
+            return hideError(cityInput, cityError);
+        }
+    }
+    
+    // Validate state
+    function validateState() {
+        if (stateInput.value.trim() === '') {
+            return showError(stateInput, stateError, 'State is required');
+        } else {
+            return hideError(stateInput, stateError);
+        }
+    }
+    
+    // Validate country
+    function validateCountry() {
+        if (countryInput.value.trim() === '') {
+            return showError(countryInput, countryError, 'Country is required');
+        } else {
+            return hideError(countryInput, countryError);
+        }
+    }
+    
+    // Validate saveAs
+    function validateSaveAs() {
+        if (saveAsInput.value === '') {
+            return showError(saveAsInput, saveAsError, 'Please select an address type');
+        } else {
+            return hideError(saveAsInput, saveAsError);
+        }
+    }
+    
+    // Add blur event listeners for real-time validation
+    nameInput.addEventListener('blur', validateName);
+    mobileInput.addEventListener('blur', validateMobile);
+    emailInput.addEventListener('blur', validateEmail);
+    pincodeInput.addEventListener('blur', validatePincode);
+    houseNameInput.addEventListener('blur', validateHouseName);
+    streetInput.addEventListener('blur', validateStreet);
+    cityInput.addEventListener('blur', validateCity);
+    stateInput.addEventListener('blur', validateState);
+    countryInput.addEventListener('blur', validateCountry);
+    saveAsInput.addEventListener('blur', validateSaveAs);
+    
+    // Add input event listeners to clear errors when user types
+    nameInput.addEventListener('input', function() { hideError(nameInput, nameError); });
+    mobileInput.addEventListener('input', function() { hideError(mobileInput, mobileError); });
+    emailInput.addEventListener('input', function() { hideError(emailInput, emailError); });
+    pincodeInput.addEventListener('input', function() { hideError(pincodeInput, pincodeError); });
+    houseNameInput.addEventListener('input', function() { hideError(houseNameInput, houseNameError); });
+    streetInput.addEventListener('input', function() { hideError(streetInput, streetError); });
+    cityInput.addEventListener('input', function() { hideError(cityInput, cityError); });
+    stateInput.addEventListener('input', function() { hideError(stateInput, stateError); });
+    countryInput.addEventListener('input', function() { hideError(countryInput, countryError); });
+    saveAsInput.addEventListener('change', function() { hideError(saveAsInput, saveAsError); });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        // Prevent default form submission
+        e.preventDefault();
+        
+        // Validate all fields
+        const isNameValid = validateName();
+        const isMobileValid = validateMobile();
+        const isEmailValid = validateEmail();
+        const isPincodeValid = validatePincode();
+        const isHouseNameValid = validateHouseName();
+        const isStreetValid = validateStreet();
+        const isCityValid = validateCity();
+        const isStateValid = validateState();
+        const isCountryValid = validateCountry();
+        const isSaveAsValid = validateSaveAs();
+        
+        // If all validations pass, submit the form
+        if (
+            isNameValid && 
+            isMobileValid && 
+            isEmailValid && 
+            isPincodeValid && 
+            isHouseNameValid && 
+            isStreetValid && 
+            isCityValid && 
+            isStateValid && 
+            isCountryValid && 
+            isSaveAsValid
+        ) {
+            this.submit();
+        } else {
+            // Scroll to first error
+            const firstInvalidElement = document.querySelector('.is-invalid');
+            if (firstInvalidElement) {
+                firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalidElement.focus();
+            }
+        }
+    });
+});
+</script>
+
+<%- include('../partials/user/footer') %>

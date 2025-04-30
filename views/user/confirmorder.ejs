@@ -1,0 +1,230 @@
+<%- include('../partials/user/header') %>
+
+<style>
+    .confirmation-container {
+        text-align: center;
+        padding: 40px 30px 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+        font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        animation: pulse 2s ease-in-out;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .success-icon svg {
+        fill: white;
+        width: 40px;
+        height: 40px;
+    }
+    h1 {
+        font-size: 28px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    .order-id {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 16px;
+        background-color: #f8f8f8;
+        display: inline-block;
+        padding: 8px 15px;
+        border-radius: 20px;
+        border: 1px dashed #ddd;
+    }
+    .view-button {
+        background-color: #595959;
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-bottom: 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .view-button:hover {
+        background-color: #1d2951;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(139, 35, 50, 0.3);
+    }
+    .divider {
+        border-top: 1px solid #eee;
+        margin: 30px 0;
+        position: relative;
+    }
+    .divider:after {
+        content: "Order Details";
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 0 20px;
+        color: #1d2951;
+        font-size: 14px;
+    }
+    .order-content {
+        display: flex;
+        max-width: 1000px;
+        margin: 0 auto;
+        gap: 30px;
+    }
+    .products-section {
+        flex: 1;
+    }
+    .product-container {
+        display: flex;
+        margin-bottom: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+    .product-container:hover {
+        transform: translateY(-5px);
+    }
+    .product-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        margin-right: 30px;
+        border-radius: 8px;
+    }
+    .product-details {
+        flex-grow: 1;
+    }
+    .product-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1d2951;
+        margin-bottom: 8px;
+    }
+    .product-id {
+        color: #888;
+        font-size: 14px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .delivery-info {
+        margin-top: 15px;
+        font-weight: bold;
+        background-color: #f9f9f9;
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .discount-info {
+        color: #4CAF50;
+        margin-top: 10px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+    .discount-info:before {
+        content: "✓";
+        margin-right: 5px;
+        font-weight: bold;
+    }
+    .price {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        text-align: right;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    .summary-section {
+        width: 300px;
+    }
+    .order-summary {
+        width: 100%;
+        border: none;
+        padding: 25px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        position: static;
+        top: 20px;
+    }
+    .summary-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1d2951;
+        margin-bottom: 20px;
+        text-align: center;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        padding: 5px 0;
+    }
+    .total-row {
+        font-weight: bold;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid #ddd;
+        font-size: 18px;
+    }
+    .savings-row {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    .clearfix::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+    .neg-discount {
+        color: #4CAF50;
+        font-weight: 500;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+        .order-content {
+            flex-direction: column;
+        }
+        .summary-section {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="confirmation-container">
+    <div class="success-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
+        </svg>
+    </div>
+    <h1> Your Order is Confirmed!</h1>
+    <div class="order-id">ORDER NUMBER <%= order.orderNumber %></div>
+    <div>
+       <a href="/orders"><button class="view-button">View Order details</button></a> 
+    <a href="/shop"><button class="view-button">Continue Shopping</button>
+    </div></a>
+    
+</div>
+
+
+<%- include('../partials/user/footer') %>

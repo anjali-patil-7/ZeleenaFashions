@@ -1,0 +1,364 @@
+<%- include('../partials/user/header') %>
+<!-- Begin Hiraola's Breadcrumb Area -->
+<div class="breadcrumb-area">
+    <div class="container">
+        <div class="breadcrumb-content">
+            <h2>My Address Book</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/profile">My Account</a></li>
+                <li class="active">Addresses</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- Hiraola's Breadcrumb Area End Here -->
+
+<!-- Begin Hiraola's Page Content Area -->
+<main class="page-content">
+    <!-- Begin Hiraola's Account Page Area -->
+    <div class="account-page-area">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-dashboard-tab" href="/profile" aria-controls="account-dashboard" aria-selected="false">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-orders-tab" href="/orders" aria-controls="account-orders" aria-selected="false">Orders</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" id="account-address-tab" href="#account-address" aria-controls="account-address" aria-selected="true">Addresses</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-address-tab" href="/walletHistory" aria-controls="account-address" aria-selected="false">Wallet</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-details-tab" href="/changepassword" aria-controls="account-details" aria-selected="false">Change Password</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="account-logout-tab" href="#" onclick="logout()" role="tab" aria-selected="false">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-9">
+                    <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
+                        <div class="tab-pane fade show active" id="account-address" role="tabpanel" aria-labelledby="account-address-tab">
+                            <div class="address-book-wrapper">
+                                <div class="address-book-header">
+                                    <h4 class="address-title">Address Book</h4>
+                                    <a href="/createaddress" class="add-address-btn">Add New Address</a>
+                                </div>
+                                
+                                <% if (address && address.length > 0) { %>
+                                    <div class="address-list">
+                                        <% address.forEach(function(address) { %>
+                                            <div class="address-card <%= address.isDefault ? 'default-address' : '' %>">
+                                                <div class="address-content">
+                                                    <% if (address.isDefault) { %>
+                                                        <span class="default-badge">Default</span>
+                                                    <% } %>
+                                                    <h5 class="address-name"><%= address.name %></h5>
+                                                    <div class="address-details">
+                                                        <p>
+                                                            <% if (address.houseName && address.houseName.trim() !== '') { %><%= address.houseName %>, <% } %>
+                                                            <% if (address.street && address.street.trim() !== '') { %><%= address.street %>, <% } %>
+                                                            <% if (address.city && address.city.trim() !== '') { %><%= address.city %>, <% } %>
+                                                            <% if (address.state && address.state.trim() !== '') { %><%= address.state %>, <% } %>
+                                                            <% if (address.pincode && address.pincode.trim() !== '') { %><%= address.pincode %>, <% } %>
+                                                            <% if (address.country && address.country.trim() !== '') { %><%= address.country %><% } %>
+                                                        </p>
+                                                        <p class="address-phone"><i class="fa fa-phone"></i> <%= address.mobile %></p>
+                                                        <span class="address-type"><%= address.saveAs %></span>
+                                                    </div>
+                                                </div>
+                                                <div class="address-actions">
+                                                    <a href="/address/edit/<%= address._id %>" class="action-btn edit-btn" title="Edit">
+                                                        <i class="fas fa-pencil-alt" aria-hidden="true"></i> Edit
+                                                    </a>
+                                                    <% if (!address.isDefault) { %>
+                                                        <button type="button" class="action-btn delete-btn" title="Delete" onclick="confirmDelete('<%= address._id %>')">
+                                                            <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                                                        </button>
+                                                        <form action="/address/delete/<%= address._id %>" method="POST" id="delete-form-<%= address._id %>" class="action-form" style="display:none;">
+                                                        </form>
+                                                        <form action="/address/default/<%= address._id %>" method="POST" class="action-form">
+                                                            <button type="submit" class="set-default-btn">Set as Default</button>
+                                                        </form>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="no-address-message">
+                                        <p>You don't have any saved addresses yet.</p>
+                                        <a href="/createaddress" class="add-first-address">Add Your First Address</a>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Hiraola's Account Page Area End Here -->
+</main>
+<!-- Hiraola's Page Content Area End Here -->
+
+<style>
+/* Address Book Styles - Refined */
+.address-book-wrapper {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 25px;
+}
+
+.address-book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.address-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+    color: #333;
+}
+
+.add-address-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #333;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.add-address-btn:hover {
+    background-color: #222;
+}
+
+.address-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 15px;
+}
+
+.address-card {
+    position: relative;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    background-color: #fafafa;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.address-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.default-address {
+    border-color: #4CAF50;
+    background-color: #f8fff8;
+}
+
+.address-content {
+    padding: 16px;
+    position: relative;
+}
+
+.default-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+.address-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-right: 60px;
+    color: #333;
+}
+
+.address-details {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.address-details p {
+    margin-bottom: 8px;
+}
+
+.address-phone {
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.address-type {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.address-actions {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #eaeaea;
+    border-radius: 0 0 4px 4px;
+}
+
+.action-form {
+    margin: 0;
+    display: inline;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    margin-right: 10px;
+    text-decoration: none;
+}
+
+.action-btn i {
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+.edit-btn:hover {
+    color: #2196F3;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.delete-btn:hover {
+    color: #F44336;
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.set-default-btn {
+    margin-left: auto;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: #555;
+}
+
+.set-default-btn:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
+}
+
+.no-address-message {
+    text-align: center;
+    padding: 40px 0;
+    color: #666;
+}
+
+.add-first-address {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.add-first-address:hover {
+    background-color: #222;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .address-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .address-book-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+</style>
+
+<script>
+    function confirmDelete(addressId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This address will be permanently deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit the form
+                document.getElementById('delete-form-' + addressId).submit();
+            }
+        });
+    }
+
+
+    function logout() {
+        Swal.fire({
+            title: `Are you sure?`,
+            text: `Do you want to continue to logout?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#000000",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Logout",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/logout";
+            }
+        });
+    }
+
+
+</script>
+
+<%- include('../partials/user/footer') %>

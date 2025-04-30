@@ -313,379 +313,419 @@
 <input type="file" id="replaceImageInput" style="display: none;" accept="image/*">
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('editProductForm');
-        const imageUpload = document.getElementById('imageUpload');
-        const newImagesPreview = document.getElementById('newImagesPreview');
-        const removedImagesInput = document.getElementById('removedImages');
-        const replacedImagesInput = document.getElementById('replacedImages');
-        const replaceImageInput = document.getElementById('replaceImageInput');
-        const cropModal = document.getElementById('cropModal');
-        const cropContainer = document.getElementById('cropContainer');
-        const confirmCropBtn = document.getElementById('confirmCrop');
-        const cancelCropBtn = document.getElementById('cancelCrop');
-        const closeModalBtn = document.querySelector('.close-crop-modal');
-
-        const zoomInBtn = document.getElementById('zoomIn');
-        const zoomOutBtn = document.getElementById('zoomOut');
-        const rotateLeftBtn = document.getElementById('rotateLeft');
-        const rotateRightBtn = document.getElementById('rotateRight');
-        const resetBtn = document.getElementById('reset');
-
-        const CROP_WIDTH = 400;
-        const CROP_HEIGHT = 400;
-
-        let removedImages = [];
-        let replacedImages = {};
-        let newImagesData = [];
-        let currentCroppie = null;
-        let currentReplacementIndex = null;
-        let currentFile = null;
-        let isNewImage = false;
-
-        // Initialize Croppie instance
-        function initializeCroppie(imageUrl) {
-            if (currentCroppie) {
-                currentCroppie.destroy();
-            }
-            currentCroppie = new Croppie(cropContainer, {
-                viewport: { width: CROP_WIDTH, height: CROP_HEIGHT, type: 'square' },
-                boundary: { width: 600, height: 400 },
-                showZoomer: true,
-                enableOrientation: true,
-                enableResize: false
-            });
-            currentCroppie.bind({
-                url: imageUrl,
-                zoom: 0
-            });
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('editProductForm');
+      const imageUpload = document.getElementById('imageUpload');
+      const newImagesPreview = document.getElementById('newImagesPreview');
+      const removedImagesInput = document.getElementById('removedImages');
+      const replacedImagesInput = document.getElementById('replacedImages');
+      const replaceImageInput = document.getElementById('replaceImageInput');
+      const cropModal = document.getElementById('cropModal');
+      const cropContainer = document.getElementById('cropContainer');
+      const confirmCropBtn = document.getElementById('confirmCrop');
+      const cancelCropBtn = document.getElementById('cancelCrop');
+      const closeModalBtn = document.querySelector('.close-crop-modal');
+  
+      const zoomInBtn = document.getElementById('zoomIn');
+      const zoomOutBtn = document.getElementById('zoomOut');
+      const rotateLeftBtn = document.getElementById('rotateLeft');
+      const rotateRightBtn = document.getElementById('rotateRight');
+      const resetBtn = document.getElementById('reset');
+  
+      const CROP_WIDTH = 400;
+      const CROP_HEIGHT = 400;
+  
+      let removedImages = [];
+      let replacedImages = {};
+      let newImagesData = [];
+      let currentCroppie = null;
+      let currentReplacementIndex = null;
+      let currentFile = null;
+      let isNewImage = false;
+  
+      // Initialize Croppie instance
+      function initializeCroppie(imageUrl) {
+        if (currentCroppie) {
+          currentCroppie.destroy();
         }
-
-        // Open crop modal
-        function openCropModal(imageUrl) {
-            cropModal.style.display = 'block';
-            initializeCroppie(imageUrl);
-        }
-
-        // Close crop modal
-        function closeCropModal() {
-            if (currentCroppie) {
-                currentCroppie.destroy();
-                currentCroppie = null;
-            }
-            cropModal.style.display = 'none';
-            replaceImageInput.value = '';
-            imageUpload.value = '';
-            currentFile = null;
-            isNewImage = false;
-            currentReplacementIndex = null;
-        }
-
-        // Handle new image uploads
-        imageUpload.addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                isNewImage = true;
-                currentFile = file;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    openCropModal(event.target.result);
-                };
-                reader.readAsDataURL(file);
-            });
+        currentCroppie = new Croppie(cropContainer, {
+          viewport: { width: CROP_WIDTH, height: CROP_HEIGHT, type: 'square' },
+          boundary: { width: 600, height: 400 },
+          showZoomer: true,
+          enableOrientation: true,
+          enableResize: false,
         });
-
-        // Handle image removal
-        document.querySelectorAll('.remove-image').forEach(button => {
-            button.addEventListener('click', function() {
-                const imageIndex = parseInt(this.getAttribute('data-index'));
-                if (!removedImages.includes(imageIndex)) {
-                    removedImages.push(imageIndex);
+        currentCroppie.bind({
+          url: imageUrl,
+          zoom: 0,
+        });
+      }
+  
+      // Open crop modal
+      function openCropModal(imageUrl) {
+        cropModal.style.display = 'block';
+        initializeCroppie(imageUrl);
+      }
+  
+      // Close crop modal
+      function closeCropModal() {
+        if (currentCroppie) {
+          currentCroppie.destroy();
+          currentCroppie = null;
+        }
+        cropModal.style.display = 'none';
+        replaceImageInput.value = '';
+        imageUpload.value = '';
+        currentFile = null;
+        isNewImage = false;
+        currentReplacementIndex = null;
+      }
+  
+      // Calculate total images
+      function getTotalImages() {
+        const remainingImages = <%= product.productImage.length %> - removedImages.length;
+        return remainingImages + newImagesData.length + Object.keys(replacedImages).length;
+      }
+  
+      // Update hidden inputs
+      function updateHiddenInputs() {
+        removedImagesInput.value = JSON.stringify(removedImages);
+        replacedImagesInput.value = JSON.stringify(Object.keys(replacedImages).map(Number));
+      }
+  
+      // Handle new image uploads
+      imageUpload.addEventListener('change', function (e) {
+        const totalImages = getTotalImages();
+        const files = Array.from(e.target.files);
+        if (totalImages + files.length > 3) {
+          alert(`Cannot add ${files.length} more image(s). Exactly 3 images are required. You currently have ${totalImages}.`);
+          imageUpload.value = '';
+          return;
+        }
+        files.forEach(file => {
+          isNewImage = true;
+          currentFile = file;
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            openCropModal(event.target.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+  
+      // Handle image removal
+      document.querySelectorAll('.remove-image').forEach(button => {
+        button.addEventListener('click', function () {
+          const imageIndex = parseInt(this.getAttribute('data-index'));
+          if (!removedImages.includes(imageIndex)) {
+            removedImages.push(imageIndex);
+          }
+          if (replacedImages[imageIndex]) {
+            delete replacedImages[imageIndex];
+          }
+          const previewItem = this.closest('.image-preview-item');
+          previewItem.remove();
+          validateForm();
+          updateHiddenInputs();
+        });
+      });
+  
+      // Handle image replacement
+      document.querySelectorAll('.replace-image').forEach(button => {
+        button.addEventListener('click', function () {
+          currentReplacementIndex = parseInt(this.getAttribute('data-index'));
+          isNewImage = false;
+          replaceImageInput.click();
+        });
+      });
+  
+      replaceImageInput.addEventListener('change', function (event) {
+        if (event.target.files && event.target.files[0]) {
+          currentFile = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            openCropModal(e.target.result);
+          };
+          reader.readAsDataURL(currentFile);
+        }
+      });
+  
+      // Crop controls
+      zoomInBtn.addEventListener('click', function () {
+        if (currentCroppie) {
+          currentCroppie.setZoom(currentCroppie.get().zoom + 0.1);
+        }
+      });
+  
+      zoomOutBtn.addEventListener('click', function () {
+        if (currentCroppie) {
+          currentCroppie.setZoom(currentCroppie.get().zoom - 0.1);
+        }
+      });
+  
+      rotateLeftBtn.addEventListener('click', function () {
+        if (currentCroppie) {
+          currentCroppie.rotate(-90);
+        }
+      });
+  
+      rotateRightBtn.addEventListener('click', function () {
+        if (currentCroppie) {
+          currentCroppie.rotate(90);
+        }
+      });
+  
+      resetBtn.addEventListener('click', function () {
+        if (currentCroppie) {
+          currentCroppie.bind({
+            url: currentCroppie.get().url,
+            zoom: 0,
+            orientation: 1,
+          });
+        }
+      });
+  
+      // Confirm crop
+      confirmCropBtn.addEventListener('click', function () {
+        if (!currentCroppie) return;
+  
+        const totalImages = getTotalImages();
+        if (isNewImage && totalImages >= 3) {
+          alert('Cannot add more images. Exactly 3 images are required.');
+          closeCropModal();
+          return;
+        }
+  
+        currentCroppie
+          .result({
+            type: 'blob',
+            size: { width: CROP_WIDTH, height: CROP_HEIGHT },
+            format: 'jpeg',
+            quality: 0.95,
+          })
+          .then(blob => {
+            const fileName = isNewImage
+              ? `new_${Date.now()}.jpg`
+              : `replaced_${currentReplacementIndex}.jpg`;
+            const file = new File([blob], fileName, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+  
+            if (isNewImage) {
+              newImagesData.push(file);
+              const previewItem = document.createElement('div');
+              previewItem.className = 'image-preview-item';
+              previewItem.style.width = '200px';
+              previewItem.style.height = '200px';
+              previewItem.style.position = 'relative';
+  
+              const img = document.createElement('img');
+              img.src = URL.createObjectURL(blob);
+              img.style.width = '100%';
+              img.style.height = '100%';
+              img.style.objectFit = 'cover';
+  
+              const actions = document.createElement('div');
+              actions.className = 'image-actions';
+              actions.innerHTML = `
+                <button type="button" class="remove-new-image">Remove</button>
+              `;
+              previewItem.appendChild(img);
+              previewItem.appendChild(actions);
+              newImagesPreview.appendChild(previewItem);
+  
+              previewItem.querySelector('.remove-new-image').addEventListener('click', function () {
+                const index = newImagesData.indexOf(file);
+                if (index > -1) {
+                  newImagesData.splice(index, 1);
                 }
-                if (replacedImages[imageIndex]) {
-                    delete replacedImages[imageIndex];
-                }
-                const previewItem = this.closest('.image-preview-item');
-                previewItem.remove(); // Remove the preview item entirely
+                previewItem.remove();
                 validateForm();
-            });
-        });
-
-        // Handle image replacement
-        document.querySelectorAll('.replace-image').forEach(button => {
-            button.addEventListener('click', function() {
-                currentReplacementIndex = parseInt(this.getAttribute('data-index'));
-                isNewImage = false;
-                replaceImageInput.click();
-            });
-        });
-
-        replaceImageInput.addEventListener('change', function(event) {
-            if (event.target.files && event.target.files[0]) {
-                currentFile = event.target.files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    openCropModal(e.target.result);
-                };
-                reader.readAsDataURL(currentFile);
+                updateHiddenInputs();
+              });
+            } else {
+              replacedImages[currentReplacementIndex] = file;
+              const imagePreview = document.querySelector(
+                `.image-preview-item[data-index="${currentReplacementIndex}"] img`
+              );
+              if (imagePreview) {
+                imagePreview.src = URL.createObjectURL(blob);
+              }
+              const index = removedImages.indexOf(currentReplacementIndex);
+              if (index > -1) {
+                removedImages.splice(index, 1);
+              }
             }
+  
+            closeCropModal();
+            validateForm();
+            updateHiddenInputs();
+          })
+          .catch(error => {
+            console.error('Error generating cropped image:', error);
+            alert('Error cropping image. Please try again.');
+          });
+      });
+  
+      cancelCropBtn.addEventListener('click', closeCropModal);
+      closeModalBtn.addEventListener('click', closeCropModal);
+  
+      // Form submission
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (!validateForm()) return;
+  
+        const formData = new FormData(form);
+        newImagesData.forEach(file => {
+          formData.append('images', file);
         });
-
-        // Crop controls
-        zoomInBtn.addEventListener('click', function() {
-            if (currentCroppie) {
-                currentCroppie.setZoom(currentCroppie.get().zoom + 0.1);
+        Object.entries(replacedImages).forEach(([index, file]) => {
+          formData.append(`replace_${index}`, file);
+        });
+  
+        try {
+          const submitBtn = form.querySelector('button[type="submit"]');
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = 'Updating...';
+  
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+          });
+  
+          if (response.ok) {
+            if (response.redirected) {
+              window.location.href = response.url;
+            } else {
+              const data = await response.json();
+              if (data.success) {
+                window.location.href = '/admin/product';
+              } else {
+                alert(data.message || 'Error updating product');
+              }
             }
-        });
-
-        zoomOutBtn.addEventListener('click', function() {
-            if (currentCroppie) {
-                currentCroppie.setZoom(currentCroppie.get().zoom - 0.1);
-            }
-        });
-
-        rotateLeftBtn.addEventListener('click', function() {
-            if (currentCroppie) {
-                currentCroppie.rotate(-90);
-            }
-        });
-
-        rotateRightBtn.addEventListener('click', function() {
-            if (currentCroppie) {
-                currentCroppie.rotate(90);
-            }
-        });
-
-        resetBtn.addEventListener('click', function() {
-            if (currentCroppie) {
-                currentCroppie.bind({
-                    url: currentCroppie.get().url,
-                    zoom: 0,
-                    orientation: 1
-                });
-            }
-        });
-
-        // Confirm crop
-        confirmCropBtn.addEventListener('click', function() {
-            if (!currentCroppie) return;
-
-            currentCroppie.result({
-                type: 'blob',
-                size: { width: CROP_WIDTH, height: CROP_HEIGHT },
-                format: 'jpeg',
-                quality: 0.95
-            }).then(blob => {
-                const fileName = isNewImage ? `new_${Date.now()}.jpg` : `replaced_${currentReplacementIndex}.jpg`;
-                const file = new File([blob], fileName, {
-                    type: 'image/jpeg',
-                    lastModified: Date.now()
-                });
-
-                if (isNewImage) {
-                    newImagesData.push(file);
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'image-preview-item';
-                    previewItem.style.width = '200px';
-                    previewItem.style.height = '200px';
-                    previewItem.style.position = 'relative';
-
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(blob);
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'cover';
-
-                    const actions = document.createElement('div');
-                    actions.className = 'image-actions';
-                    actions.innerHTML = `
-                        <button type="button" class="remove-new-image">Remove</button>
-                    `;
-                    previewItem.appendChild(img);
-                    previewItem.appendChild(actions);
-                    newImagesPreview.appendChild(previewItem);
-
-                    // Add remove functionality for new images
-                    previewItem.querySelector('.remove-new-image').addEventListener('click', function() {
-                        const index = newImagesData.indexOf(file);
-                        if (index > -1) {
-                            newImagesData.splice(index, 1);
-                        }
-                        previewItem.remove();
-                        validateForm();
-                    });
-                } else {
-                    replacedImages[currentReplacementIndex] = file;
-                    const imagePreview = document.querySelector(`.image-preview-item[data-index="${currentReplacementIndex}"] img`);
-                    if (imagePreview) {
-                        imagePreview.src = URL.createObjectURL(blob);
-                    }
-                    const index = removedImages.indexOf(currentReplacementIndex);
-                    if (index > -1) {
-                        removedImages.splice(index, 1);
-                    }
-                }
-
-                closeCropModal();
-                validateForm();
-            }).catch(error => {
-                console.error('Error generating cropped image:', error);
-                alert('Error cropping image. Please try again.');
-            });
-        });
-
-        cancelCropBtn.addEventListener('click', closeCropModal);
-        closeModalBtn.addEventListener('click', closeCropModal);
-
-        // Form submission
-        form.addEventListener('submit', async function(event) {
-            event.preventDefault();
-            if (!validateForm()) return;
-
-            removedImagesInput.value = JSON.stringify(removedImages);
-            replacedImagesInput.value = JSON.stringify(Object.keys(replacedImages).map(Number));
-
-            const formData = new FormData(form);
-            newImagesData.forEach(file => {
-                formData.append('images', file);
-            });
-            Object.entries(replacedImages).forEach(([index, file]) => {
-                formData.append(`replace_${index}`, file);
-            });
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                    } else {
-                        const data = await response.json();
-                        if (data.success) {
-                            window.location.href = '/admin/product';
-                        } else {
-                            alert(data.message || 'Error updating product');
-                        }
-                    }
-                } else {
-                    const text = await response.text();
-                    console.error('Server response:', text);
-                    alert('Error updating product. Please try again.');
-                }
-            } catch (error) {
-                console.error('Submission error:', error);
-                alert('An error occurred. Please try again.');
-            }
-        });
-
-        // Form validation
-        function validateField(field) {
-            const errorElement = document.getElementById(field.id + 'Error');
-            errorElement.innerHTML = '';
-            field.classList.remove('error');
-
-            switch(field.id) {
-                case 'name':
-                    const name = field.value.trim();
-                    if (!name) {
-                        showError(field, errorElement, 'Product name is required');
-                    } else if (name.length < 2 || name.length > 100) {
-                        showError(field, errorElement, 'Name must be 2-100 characters long');
-                    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-                        showError(field, errorElement, 'Name should only contain letters and spaces');
-                    }
-                    break;
-
-                case 'description':
-                    const description = field.value.trim();
-                    if (!description) {
-                        showError(field, errorElement, 'Description is required');
-                    } else if (description.length < 10 || description.length > 1000) {
-                        showError(field, errorElement, 'Description must be 10–1000 characters long');
-                    } else if (!/^[a-zA-Z0-9\s,.]+$/.test(description)) {
-                        showError(field, errorElement, 'Description can only contain letters, numbers, spaces, periods, and commas');
-                    }
-                    break;
-
-                case 'price':
-                    const price = parseFloat(field.value);
-                    if (!field.value || isNaN(price) || price <= 0) {
-                        showError(field, errorElement, 'Price must be greater than 0');
-                    } else if (price > 1000000) {
-                        showError(field, errorElement, 'Price cannot exceed 1,000,000');
-                    }
-                    break;
-
-                case 'stock':
-                    const stock = parseInt(field.value);
-                    if (!field.value || isNaN(stock) || stock < 0) {
-                        showError(field, errorElement, 'Stock must be 0 or greater');
-                    } else if (stock > 10000) {
-                        showError(field, errorElement, 'Stock cannot exceed 10,000');
-                    }
-                    break;
-
-                case 'category':
-                    if (!field.value) {
-                        showError(field, errorElement, 'Please select a category');
-                    }
-                    break;
-            }
+          } else {
+            const text = await response.text();
+            console.error('Server response:', text);
+            alert('Error updating product. Please try again.');
+          }
+        } catch (error) {
+          console.error('Submission error:', error);
+          alert('An error occurred. Please try again.');
+        } finally {
+          const submitBtn = form.querySelector('button[type="submit"]');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Update Product';
         }
-
-        function validateForm() {
-            let isValid = true;
-            const fields = ['name', 'description', 'price', 'stock', 'category'];
-
-            fields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                validateField(field);
-                if (field.classList.contains('error')) {
-                    isValid = false;
-                }
-            });
-
-            const remainingImages = <%= product.productImage.length %> - removedImages.length;
-            const totalImages = remainingImages + newImagesData.length + Object.keys(replacedImages).length;
-
-            const imageError = document.getElementById('imageError') || document.createElement('div');
-            imageError.id = 'imageError';
-            imageError.className = 'text-danger';
-            imageError.innerHTML = '';
-            imageUpload.parentNode.appendChild(imageError);
-
-            if (totalImages !== 3) {
-                imageError.innerHTML = `Exactly 3 images are required. Currently you have ${totalImages} images.`;
-                isValid = false;
+      });
+  
+      // Form validation
+      function validateField(field) {
+        const errorElement = document.getElementById(field.id + 'Error');
+        errorElement.innerHTML = '';
+        field.classList.remove('error');
+  
+        switch (field.id) {
+          case 'name':
+            const name = field.value.trim();
+            if (!name) {
+              showError(field, errorElement, 'Product name is required');
+            } else if (name.length < 2 || name.length > 100) {
+              showError(field, errorElement, 'Name must be 2-100 characters long');
+            } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+              showError(field, errorElement, 'Name should only contain letters and spaces');
             }
-
-            return isValid;
-        }
-
-        function showError(field, errorElement, message) {
-            errorElement.innerHTML = message;
-            field.classList.add('error');
-        }
-
-        const inputs = document.querySelectorAll('.form-control, .form-select');
-        inputs.forEach(input => {
-            input.addEventListener('input', function() {
-                validateField(this);
-            });
-            input.addEventListener('change', function() {
-                validateField(this);
-            });
-        });
-
-        window.addEventListener('click', function(event) {
-            if (event.target === cropModal) {
-                closeCropModal();
+            break;
+  
+          case 'description':
+            const description = field.value.trim();
+            if (!description) {
+              showError(field, errorElement, 'Description is required');
+            } else if (description.length < 10 || description.length > 1000) {
+              showError(field, errorElement, 'Description must be 10–1000 characters long');
+            } else if (!/^[a-zA-Z0-9\s,.]+$/.test(description)) {
+              showError(field, errorElement, 'Description can only contain letters, numbers, spaces, periods, and commas');
             }
+            break;
+  
+          case 'price':
+            const price = parseFloat(field.value);
+            if (!field.value || isNaN(price) || price <= 0) {
+              showError(field, errorElement, 'Price must be greater than 0');
+            } else if (price > 1000000) {
+              showError(field, errorElement, 'Price cannot exceed 1,000,000');
+            }
+            break;
+  
+          case 'stock':
+            const stock = parseInt(field.value);
+            if (!field.value || isNaN(stock) || stock < 0) {
+              showError(field, errorElement, 'Stock must be 0 or greater');
+            } else if (stock > 10000) {
+              showError(field, errorElement, 'Stock cannot exceed 10,000');
+            }
+            break;
+  
+          case 'category':
+            if (!field.value) {
+              showError(field, errorElement, 'Please select a category');
+            }
+            break;
+        }
+      }
+  
+      function validateForm() {
+        let isValid = true;
+        const fields = ['name', 'description', 'price', 'stock', 'category'];
+  
+        fields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          validateField(field);
+          if (field.classList.contains('error')) {
+            isValid = false;
+          }
         });
+  
+        const totalImages = getTotalImages();
+        const imageError = document.getElementById('imageError') || document.createElement('div');
+        imageError.id = 'imageError';
+        imageError.className = 'text-danger';
+        imageError.innerHTML = '';
+        imageUpload.parentNode.appendChild(imageError);
+  
+        if (totalImages !== 3) {
+          imageError.innerHTML = `Exactly 3 images are required. Currently you have ${totalImages} images.`;
+          isValid = false;
+        }
+  
+        return isValid;
+      }
+  
+      function showError(field, errorElement, message) {
+        errorElement.innerHTML = message;
+        field.classList.add('error');
+      }
+  
+      const inputs = document.querySelectorAll('.form-control, .form-select');
+      inputs.forEach(input => {
+        input.addEventListener('input', function () {
+          validateField(this);
+        });
+        input.addEventListener('change', function () {
+          validateField(this);
+        });
+      });
+  
+      window.addEventListener('click', function (event) {
+        if (event.target === cropModal) {
+          closeCropModal();
+        }
+      });
+  
+      // Initialize hidden inputs
+      updateHiddenInputs();
     });
-</script>
+  </script>
 
 <%- include('../partials/admin/footer') %>

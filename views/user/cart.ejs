@@ -1,0 +1,678 @@
+<%- include('../partials/user/header') %>
+
+<style>
+  .cart-container {
+    padding: 30px 0;
+  }
+  .cart-table {
+    margin-bottom: 30px;
+    border: 1px solid #eee;
+  }
+  .cart-table th {
+    background-color: #f8f9fa;
+    padding: 15px;
+    font-weight: 600;
+  }
+  .cart-table td {
+    padding: 20px;
+    vertical-align: middle;
+  }
+  .product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .price-display {
+    display: flex;
+    flex-direction: column;
+  }
+  .original-price {
+    text-decoration: line-through;
+    color: #777;
+    font-size: 0.9rem;
+  }
+  .discounted-price {
+    color: #28a745;
+    font-weight: 600;
+  }
+  .discount-tag {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    margin-left: 5px;
+  }
+  .quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .qty-btn {
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .qty-input {
+    width: 60px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+  }
+  .cart-summary-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .summary-row.total {
+    font-weight: 600;
+    font-size: 1.2rem;
+    border-bottom: none;
+  }
+  .btn-primary {
+    background-color: #1d2951;
+    border-color: #1d2951;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    background-color: #1d2951;
+    border-color: #1d2951;
+  }
+  .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    padding: 10px 20px;
+  }
+  .flash-message {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-in-out;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 300px;
+    z-index: 1000;
+  }
+  .flash-message svg {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .error-message {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-left: 4px solid #d32f2f;
+  }
+  .success-message {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<% if (error_msg && error_msg.length > 0) { %>
+  <div class="flash-message error-message" id="flash-message">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span><%= error_msg %></span>
+  </div>
+<% } %>
+
+<% if (success_msg && success_msg.length > 0) { %>
+  <div class="flash-message success-message" id="flash-message">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span><%= success_msg %></span>
+  </div>
+<% } %>
+
+<div class="breadcrumb-area">
+  <div class="container">
+    <div class="breadcrumb-content">
+      <h2>Shopping Cart</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li class="active">Cart</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="cart-container">
+  <div class="container">
+    <!-- Debugging: Output cartDetails to console -->
+    <script>
+      console.log('cartDetails:', <%- JSON.stringify(cartDetails) %>);
+    </script>
+
+    <% if (cartDetails && cartDetails.cartItem && Array.isArray(cartDetails.cartItem) && cartDetails.cartItem.length > 0) { %>
+      <div class="table-content table-responsive">
+        <table class="table cart-table">
+          <thead>
+            <tr>
+              <th>Sl. No</th>
+              <th>Image</th>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let index = 1; %>
+            <% cartDetails.cartItem.forEach(item => { %>
+              <% if (item && item.productId && item.productId._id && item.productId.productName && item.productId.productImage && item.productId.productImage.length > 0) { %>
+                <tr class="cart-item" data-product-id="<%= item.productId._id %>">
+                  <td><%= index++ %></td>
+                  <td>
+                    <img class="product-image" src="<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>">
+                  </td>
+                  <td>
+                    <a href="/product/<%= item.productId._id %>"><%= item.productId.productName %></a>
+                    <% const prodId = item.productId._id.toString(); %>
+                    <% if (appliedOffers && appliedOffers[prodId]) { %>
+                      <div class="offer-info mt-1">
+                        <span><%= appliedOffers[prodId].name %></span>
+                        <span class="discount-tag"><%= appliedOffers[prodId].discount %>% OFF</span>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="price-display">
+                      <% if (appliedOffers && appliedOffers[prodId]) { %>
+                        <span class="original-price">₹<%= item.productId.price.toFixed(2) %></span>
+                        <span class="discounted-price">₹<%= appliedOffers[prodId].discountedPrice.toFixed(2) %></span>
+                      <% } else { %>
+                        <span>₹<%= item.price.toFixed(2) %></span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="quantity">
+                    <div class="cart-plus-minus">
+                      <input
+                        class="cart-plus-minus-box"
+                        value="<%= item.quantity %>"
+                        type="text"
+                        data-product-id="<%= item.productId._id %>"
+                        data-product-stock="<%= item.productId.totalStock || item.stock %>"
+                        data-product-price="<%= item.productId.price || item.price %>"
+                        data-discounted-price="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].discountedPrice : (item.productId.price || item.price) %>"
+                        data-has-discount="<%= appliedOffers && appliedOffers[prodId] ? 'true' : 'false' %>"
+                        data-discount-percentage="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].discount : 0 %>"
+                        data-discount-name="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].name : '' %>"
+                      />
+                      <div class="dec qtybutton">
+                        <i class="fa fa-angle-down"></i>
+                      </div>
+                      <div class="inc qtybutton">
+                        <i class="fa fa-angle-up"></i>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="item-total">
+                    <% if (appliedOffers && appliedOffers[prodId]) { %>
+                      <% const discountedTotal = appliedOffers[prodId].discountedPrice * item.quantity %>
+                      <div class="price-display">
+                        <span class="original-price">₹<%=(item.productId.price * item.quantity).toFixed(2)%></span>
+                        <span class="discounted-price">₹<%=discountedTotal.toFixed(2)%></span>
+                      </div>
+                    <% } else { %>
+                      <span>₹<%=(item.price * item.quantity).toFixed(2)%></span>
+                    <% } %>
+                  </td>
+                  <td class="hiraola-product-remove">
+                    <a
+                      href="javascript:void(0);"
+                      onclick="removeFromCart('<%= item.productId._id %>')"
+                    >
+                      <i class="fa fa-trash" title="Remove"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% } else { %>
+                <!-- Debugging: Log invalid items -->
+                <script>
+                  console.log('Invalid cart item:', <%- JSON.stringify(item) %>);
+                </script>
+              <% } %>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row justify-content-end">
+        <div class="col-md-4">
+          <div class="cart-summary-card">
+            <h3>Order Summary</h3>
+            <% 
+              let originalSubtotal = 0;
+              let discountedSubtotal = 0;
+              cartDetails.cartItem.forEach(item => {
+                if (item && item.productId && item.productId._id && item.productId.price) {
+                  const prodId = item.productId._id.toString();
+                  originalSubtotal += item.productId.price * item.quantity;
+                  discountedSubtotal += appliedOffers && appliedOffers[prodId] ? 
+                    appliedOffers[prodId].discountedPrice * item.quantity : 
+                    item.productId.price * item.quantity;
+                }
+              });
+              const totalDiscount = originalSubtotal - discountedSubtotal;
+            %>
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>₹<%= originalSubtotal.toFixed(2) %></span>
+            </div>
+            <% if (totalDiscount > 0) { %>
+              <div class="summary-row">
+                <span>Discount</span>
+                <span class="text-success">-₹<%= totalDiscount.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span>₹<%= discountedSubtotal.toFixed(2) %></span>
+            </div>
+            <div class="mt-3">
+              <a href="javascript:void(0);" onclick="verifyCartBeforeCheckout()" class="btn btn-primary btn-block">Proceed to Checkout</a>
+              <a href="/shop" class="btn btn-secondary btn-block mt-2">Continue Shopping</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <h2>Your Cart is Empty</h2>
+        <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
+        <a href="/shop" class="btn btn-primary">Start Shopping</a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/user/footer') %>
+
+<script>
+  function removeFromCart(productId) {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to remove this product from the cart?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, remove it!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: `/remove/${productId}`,
+          method: "DELETE",
+          success: function (response) {
+            $(`.cart-item[data-product-id="${productId}"]`).remove();
+
+            const flashMessage = `
+              <div class="flash-message success-message" id="flash-message">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>${response.message}</span>
+              </div>
+            `;
+            $("body").append(flashMessage);
+            removeFlashMessage();
+
+            updateCartTotals();
+
+            if ($(".cart-item").length === 0) {
+              $(".table-content").html(`
+                <div class="text-center py-5">
+                  <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                  <h2>Your Cart is Empty</h2>
+                  <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
+                  <a href="/shop" class="btn btn-primary">Start Shopping</a>
+                </div>
+              `);
+              $(".cart-summary-card").remove();
+            }
+
+            const Toast = Swal.mixin({
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: true,
+            });
+            Toast.fire({
+              icon: "success",
+              title: response.message,
+            });
+          },
+          error: function (xhr) {
+            const errorData = xhr.responseJSON || {};
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: errorData.message || "Failed to remove product from cart",
+            });
+          },
+        });
+      }
+    });
+  }
+</script>
+
+<script>
+  $(document).ready(function () {
+    const MAX_QUANTITY = 7;
+
+    function showLoading(productId) {
+      $(`.cart-item[data-product-id="${productId}"] .item-total`).html('<i class="fa fa-spinner fa-spin"></i>');
+      $('.cart-summary-card .summary-row span:last').html('<i class="fa fa-spinner fa-spin"></i>');
+    }
+
+    $(".inc.qtybutton").off("click").on("click", function () {
+      const input = $(this).siblings(".cart-plus-minus-box");
+      let currentQuantity = parseInt(input.val()) || 0;
+      const productStock = parseInt(input.data("product-stock")) || 0;
+      const productId = input.data("product-id");
+
+      const maxAllowed = Math.min(MAX_QUANTITY, productStock);
+
+      if (currentQuantity >= maxAllowed) {
+        if (currentQuantity >= MAX_QUANTITY) {
+          Swal.fire({
+            icon: "error",
+            title: "Quantity Limit",
+            text: `Maximum quantity per product is ${MAX_QUANTITY}`,
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Stock Limit",
+            text: `Only ${productStock} items available in stock`,
+          });
+        }
+        return;
+      }
+
+      input.val(currentQuantity + 1);
+      updateCart(input);
+    });
+
+    $(".dec.qtybutton").off("click").on("click", function () {
+      const input = $(this).siblings(".cart-plus-minus-box");
+      let currentQuantity = parseInt(input.val()) || 0;
+      if (currentQuantity > 1) {
+        input.val(currentQuantity - 1);
+        updateCart(input);
+      }
+    });
+
+    $(".cart-plus-minus-box").on("change", function () {
+      const input = $(this);
+      let newQuantity = parseInt(input.val()) || 1;
+      const productStock = parseInt(input.data("product-stock")) || 0;
+
+      if (newQuantity < 1) newQuantity = 1;
+
+      const maxAllowed = Math.min(MAX_QUANTITY, productStock);
+      if (newQuantity > maxAllowed) {
+        newQuantity = maxAllowed;
+        if (maxAllowed === MAX_QUANTITY) {
+          Swal.fire({
+            icon: "info",
+            title: "Quantity Adjusted",
+            text: `Maximum quantity per product is ${MAX_QUANTITY}`,
+          });
+        } else {
+          Swal.fire({
+            icon: "info",
+            title: "Quantity Adjusted",
+            text: `Only ${productStock} items available in stock`,
+          });
+        }
+      }
+
+      input.val(newQuantity);
+      updateCart(input);
+    });
+
+    function updateCart(input) {
+      const productId = input.data("product-id");
+      const quantity = parseInt(input.val());
+      const originalPrice = parseFloat(input.data("product-price"));
+      const discountedPrice = parseFloat(input.data("discounted-price"));
+      const hasDiscount = input.data("has-discount") === "true";
+
+      showLoading(productId);
+
+      $.ajax({
+        url: "/update-cart",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ productId, quantity }),
+        success: function (response) {
+          const originalItemTotal = (quantity * originalPrice).toFixed(2);
+          const discountedItemTotal = (quantity * discountedPrice).toFixed(2);
+          
+          const itemTotalCell = $(`.cart-item[data-product-id="${productId}"] .item-total`);
+          
+          if (hasDiscount) {
+            itemTotalCell.html(`
+              <div class="price-display">
+                <span class="original-price">₹${originalItemTotal}</span>
+                <span class="discounted-price">₹${discountedItemTotal}</span>
+              </div>
+            `);
+          } else {
+            itemTotalCell.html(`<span>₹${originalItemTotal}</span>`);
+          }
+
+          updateCartTotals();
+          
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+          });
+          Toast.fire({
+            icon: "success",
+            title: "Cart updated successfully",
+          });
+        },
+        error: function (xhr) {
+          const errorData = xhr.responseJSON || {};
+          Swal.fire({
+            icon: "error",
+            title: "Update Failed",
+            text: errorData.message || "Error updating cart",
+          });
+          $.ajax({
+            url: "/get-cart-item",
+            method: "GET",
+            data: { productId },
+            success: function (data) {
+              input.val(data.quantity);
+              updateCartTotals();
+            },
+            error: function () {
+              location.reload();
+            },
+          });
+        },
+      });
+    }
+
+    function updateCartTotals() {
+      $.ajax({
+        url: "/get-cart-totals",
+        method: "GET",
+        success: function (data) {
+          let originalTotal = 0;
+          let discountedTotal = 0;
+          
+          $(".cart-item").each(function() {
+            const input = $(this).find(".cart-plus-minus-box");
+            const quantity = parseInt(input.val()) || 0;
+            const originalPrice = parseFloat(input.data("product-price")) || 0;
+            const discountedPrice = parseFloat(input.data("discounted-price")) || originalPrice;
+            
+            originalTotal += originalPrice * quantity;
+            discountedTotal += discountedPrice * quantity;
+            
+            const itemTotalCell = $(this).find(".item-total");
+            const hasDiscount = input.data("has-discount") === "true";
+            if (hasDiscount) {
+              itemTotalCell.html(`
+                <div class="price-display">
+                  <span class="original-price">₹${(originalPrice * quantity).toFixed(2)}</span>
+                  <span class="discounted-price">₹${(discountedPrice * quantity).toFixed(2)}</span>
+                </div>
+              `);
+            } else {
+              itemTotalCell.html(`<span>₹${(originalPrice * quantity).toFixed(2)}</span>`);
+            }
+          });
+          
+          const totalDiscount = originalTotal - discountedTotal;
+          
+          const summaryCard = $('.cart-summary-card');
+          if (summaryCard.length) {
+            summaryCard.find('.summary-row:eq(0) span:last').text(`₹${originalTotal.toFixed(2)}`);
+            summaryCard.find('.summary-row.total span:last').text(`₹${discountedTotal.toFixed(2)}`);
+            
+            const discountRow = summaryCard.find('.summary-row:contains("Discount")');
+            if (totalDiscount > 0) {
+              if (discountRow.length === 0) {
+                summaryCard.find('.summary-row:eq(0)').after(`
+                  <div class="summary-row">
+                    <span>Discount</span>
+                    <span class="text-success">-₹${totalDiscount.toFixed(2)}</span>
+                  </div>
+                `);
+              } else {
+                discountRow.find('span:last').text(`-₹${totalDiscount.toFixed(2)}`);
+              }
+            } else {
+              discountRow.remove();
+            }
+          }
+          
+          if (discountedTotal === 0 || $(".cart-item").length === 0) {
+            $(".table-content").html(`
+              <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                <h2>Your Cart is Empty</h2>
+                <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
+                <a href="/shop" class="btn btn-primary">Start Shopping</a>
+              </div>
+            `);
+            $('.cart-summary-card').remove();
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Could not update cart totals",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        },
+      });
+    }
+
+    function verifyCartBeforeCheckout() {
+      const checkoutButton = document.querySelector('a.btn-primary.btn-block');
+      const originalText = checkoutButton.textContent;
+      checkoutButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
+      checkoutButton.style.pointerEvents = 'none';
+      
+      $.ajax({
+        url: '/verify-cart-checkout',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+          if (response.valid) {
+            window.location.href = '/checkout';
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Unable to Proceed',
+              html: response.invalidProducts && response.invalidProducts.length > 0 ? 
+                `${response.message}<br><br>Products: ${response.invalidProducts.join(', ')}` : 
+                response.message,
+              confirmButtonText: 'Update Cart'
+            }).then(() => {
+              window.location.href = '/cart';
+            });
+          }
+        },
+        error: function() {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to verify cart. Please try again.'
+          });
+          checkoutButton.innerHTML = originalText;
+          checkoutButton.style.pointerEvents = 'auto';
+        },
+        complete: function() {
+          if (!window.location.pathname.includes('/checkout')) {
+            checkoutButton.innerHTML = originalText;
+            checkoutButton.style.pointerEvents = 'auto';
+          }
+        }
+      });
+    }
+  });
+
+  function removeFlashMessage() {
+    const flashMessage = document.getElementById("flash-message");
+    if (flashMessage) {
+      setTimeout(() => {
+        flashMessage.remove();
+      }, 3000);
+    }
+  }
+
+  window.onload = removeFlashMessage;
+</script>

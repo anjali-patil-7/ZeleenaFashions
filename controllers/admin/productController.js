@@ -184,36 +184,50 @@ exports.editProduct = async (req, res) => {
       errors.push("Invalid image data format");
     }
 
+    // Validate indexes
+    removedIndexes = removedIndexes
+      .map(idx => parseInt(idx))
+      .filter(idx => idx >= 0 && idx < product.productImage.length);
+    replacedIndexes = replacedIndexes
+      .map(idx => parseInt(idx))
+      .filter(idx => idx >= 0 && idx < product.productImage.length);
+
     // Initialize current images array
     let currentImages = [...product.productImage];
 
     // Handle removed images
     if (removedIndexes.length > 0) {
-      removedIndexes.sort((a, b) => b - a);
+      removedIndexes.sort((a, b) => b - a); // Sort descending to avoid index shifting
       for (let index of removedIndexes) {
-        if (index >= 0 && index < currentImages.length) {
-          currentImages.splice(index, 1);
-        }
+        currentImages.splice(index, 1);
       }
     }
 
     // Handle replaced images
-    const imageUrls = [];
     for (let index of replacedIndexes) {
       const replacementFile = files.find(f => f.fieldname === `replace_${index}`);
       if (replacementFile) {
         const imageUrl = await uploadImage([replacementFile]);
         if (index >= 0 && index < currentImages.length) {
           currentImages[index] = imageUrl[0];
+        } else {
+          errors.push(`Invalid replacement index ${index}`);
         }
+      } else {
+        errors.push(`No replacement file found for index ${index}`);
       }
     }
 
     // Handle new images
     const newFiles = files.filter(f => f.fieldname === 'images');
     if (newFiles.length > 0) {
-      const newImageUrls = await uploadImage(newFiles);
-      currentImages = [...currentImages, ...newImageUrls];
+      const remainingSlots = 3 - currentImages.length;
+      if (newFiles.length > remainingSlots) {
+        errors.push(`Cannot add ${newFiles.length} new images. Only ${remainingSlots} slots available.`);
+      } else {
+        const newImageUrls = await uploadImage(newFiles);
+        currentImages = [...currentImages, ...newImageUrls];
+      }
     }
 
     // Validate total images
@@ -234,6 +248,7 @@ exports.editProduct = async (req, res) => {
     });
 
     if (errors.length > 0) {
+      console.log('Validation errors:', errors);
       const categories = await Category.find();
       return res.render("admin/editproduct", {
         product,
@@ -244,15 +259,19 @@ exports.editProduct = async (req, res) => {
     }
 
     // Update product
-    const updatedProduct = await Product.findByIdAndUpdate(id, {
-      productName: name.trim(),
-      description: description.trim(),
-      price: parseFloat(price),
-      totalStock: parseInt(stock),
-      category,
-      productImage: currentImages,
-      status: status === "true",
-    }, { new: true });
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        productName: name.trim(),
+        description: description.trim(),
+        price: parseFloat(price),
+        totalStock: parseInt(stock),
+        category,
+        productImage: currentImages,
+        status: status === "true",
+      },
+      { new: true }
+    );
 
     req.flash("success", "Product updated successfully");
     res.redirect("/admin/product");

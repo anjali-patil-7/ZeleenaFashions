@@ -1,0 +1,490 @@
+<%- include('../partials/user/header') %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<div class="breadcrumb-area">
+  <div class="container">
+    <div class="breadcrumb-content">
+      <h2>My Orders</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/orders">My Account</a></li>
+        <li class="active">Orders</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<main class="page-content">
+  <div class="account-page-area">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-3">
+          <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link" id="account-dashboard-tab" href="/profile" aria-selected="false">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" id="account-orders-tab" href="/orders" aria-selected="true">Orders</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="account-address-tab" href="/address" aria-selected="false">Addresses</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="account-address-tab" href="/walletHistory" aria-selected="false">Wallet</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="account-details-tab" href="/changepassword" aria-selected="false">Change Password</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="account-logout-tab" href="#" onclick="logout()" role="tab" aria-selected="false">Logout</a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-9">
+          <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
+            <div class="tab-pane fade show active" id="account-orders" role="tabpanel">
+              <div class="myaccount-orders">
+                <h4 class="small-title">MY ORDERS</h4>
+                <% if (orders && orders.length > 0) { %>
+                <% orders.forEach(function(order) { %>
+                <div class="order-card">
+                  <div class="order-header">
+                    <div class="order-header-left">
+                      <div class="order-id">Order ID: <%= order.orderNumber %></div>
+                      <div class="order-date">
+                        Ordered on: <%= new Date(order.createdAt).toLocaleDateString() %>
+                      </div>
+                    </div>
+                    <div class="order-header-right">
+                      <div class="order-amount">Total: ₹<%= order.finalAmount.toFixed(2) %></div>
+                      <div class="payment-status <%= order.paymentStatus.toLowerCase() %>">
+                        Payment: <%= order.paymentStatus %>
+                      </div>
+                      <div class="order-status <%= order.orderStatus.toLowerCase() %>">
+                        Status: <%= order.orderStatus %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="order-footer">
+                    <div class="order-actions">
+                      <a href="/orderdetails/<%= order._id %>" class="btn-view-order">View Details</a>
+                      <% if (order.paymentStatus === "Failed") { %>
+                      <button onclick="retryPayment('<%= order._id %>')" class="btn-retry-payment">Retry Payment</button>
+                      <% } %>
+                    </div>
+                  </div>
+
+                  <% if (order.paymentStatus === "Failed") { %>
+                  <div class="payment-failed-notice">
+                    <i class="fas fa-credit-card text-danger"></i> <i class="fas fa-times-circle text-danger"></i>
+
+                    <p>Payment attempt failed. Please retry to complete your order.</p>
+                  </div>
+                  <% } %>
+                </div>
+                <% }); %>
+
+                <% if (pagination && pagination.totalPages > 1) { %>
+                <div class="pagination-wrapper">
+                  <div class="pagination">
+                    <% if (pagination.hasPrevPage) { %>
+                    <a href="/orders?page=<%= pagination.prevPage %>" class="pagination-btn prev">«</a>
+                    <% } %>
+                    <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                    <% if (i === pagination.page) { %>
+                    <a href="javascript:void(0)" class="pagination-btn active"><%= i %></a>
+                    <% } else { %>
+                    <a href="/orders?page=<%= i %>" class="pagination-btn"><%= i %></a>
+                    <% } %>
+                    <% } %>
+                    <% if (pagination.hasNextPage) { %>
+                    <a href="/orders?page=<%= pagination.nextPage %>" class="pagination-btn next">»</a>
+                    <% } %>
+                  </div>
+                </div>
+                <% } %>
+                <% } else { %>
+                <div class="no-orders">
+                  <p>No orders found</p>
+                  <a href="/shop" class="btn-shop">Start Shopping</a>
+                </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+  .order-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+  }
+
+  .order-header-left,
+  .order-header-right {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .order-id {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .order-date {
+    font-size: 0.9em;
+    color: #666;
+  }
+
+  .order-amount {
+    font-weight: 600;
+    color: #2e7d32;
+  }
+
+  .payment-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .payment-status.pending {
+    background-color: #fff3e0;
+    color: #e65100;
+  }
+
+  .payment-status.completed,
+  .payment-status.paid {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .payment-status.failed {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+
+  .order-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+  }
+
+  .order-actions {
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn-view-order {
+    display: inline-block;
+    padding: 10px 24px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+
+  .btn-retry-payment{
+    display: inline-block;
+    padding: 10px 24px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+
+  .btn-view-order:hover {
+    background-color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-retry’Connor
+
+-payment {
+    display: inline-block;
+    padding: 10px 24px;
+    background-color: #1d2951;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-weight: 500;
+    margin-left: 10px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-retry-payment:hover {
+    background-color: #1d2951;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .no-orders {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .btn-shop {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 15px;
+    transition: all 0.3s;
+  }
+
+  .btn-shop:hover {
+    background-color: #000;
+  }
+
+  .order-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    margin-top: 5px;
+  }
+
+  .order-status.pending {
+    background-color: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .order-status.shipped {
+    background-color: #e0f7fa;
+    color: #00838f;
+  }
+
+  .order-status.delivered {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .order-status.cancelled {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+
+  .payment-failed-notice {
+    padding: 20px;
+    text-align: center;
+    background-color: #ffebee;
+    border-top: 1px solid #ffcdd2;
+  }
+
+  .failed-illustration {
+    max-width: 150px;
+    margin-bottom: 15px;
+  }
+
+  .pagination-wrapper {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .pagination {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .pagination-btn {
+    display: inline-block;
+    padding: 8px 14px;
+    background-color: #f5f5f5;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-weight: 500;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .pagination-btn:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .pagination-btn.active {
+    background-color: #333;
+    color: #fff;
+  }
+
+  .pagination-btn.prev,
+  .pagination-btn.next {
+    background-color: #333;
+    color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .order-header {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pagination {
+      gap: 3px;
+    }
+
+    .pagination-btn {
+      padding: 6px 12px;
+      min-width: 35px;
+    }
+  }
+</style>
+
+<%- include('../partials/user/footer') %>
+
+<script>
+  function logout() {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to continue to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#000000",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Logout",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = "/logout";
+      }
+    });
+  }
+
+  function retryPayment(orderId) {
+  fetch("/retry-payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const options = {
+        key: data.key_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Raabta Collections",
+        description: "Retry Payment for Order",
+        order_id: data.orderId,
+        handler: function (response) {
+          verifyRetryPayment(response, data.originalOrderId);
+        },
+          prefill: {
+              name: "<%= user.name %>",
+              email: "<%= user.email %>",
+              contact: "<%= user.phone %>",
+            },
+          theme: {
+            color: "#1d2951",
+          },
+          modal: {
+            ondismiss: function() {
+              window.location.href = "/orders";
+            }
+          }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+        rzp.on("payment.failed", function (response) {
+          Swal.fire({
+            title: "Payment Failed",
+            text: response.error.description,
+            icon: "error",
+            confirmButtonColor: "#1d2951",
+          });
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: data.message || "Failed to initiate retry payment",
+          icon: "error",
+          confirmButtonColor: "#1d2951",
+        });
+      }
+    })
+    .catch(error => {
+      console.error("Retry payment error:", error);
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred while retrying payment",
+        icon: "error",
+        confirmButtonColor: "#1d2951",
+      });
+    });
+  }
+
+  function verifyRetryPayment(payment, orderId) {
+  fetch("/verify-payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      payment: {
+        razorpay_payment_id: payment.razorpay_payment_id,
+        razorpay_order_id: payment.razorpay_order_id,
+        razorpay_signature: payment.razorpay_signature
+      },
+      originalOrderId: orderId, // Pass the original order ID
+      order: { id: payment.razorpay_order_id }
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = "/orderconfirmation/" + data.orderId;
+    } else {
+      Swal.fire({
+        title: "Payment Failed",
+        text: data.message,
+        icon: "error",
+        confirmButtonColor: "#1d2951",
+      });
+    }
+  })
+  .catch(error => {
+    console.error("Verification error:", error);
+    Swal.fire({
+      title: "Error",
+      text: "Payment verification failed",
+      icon: "error",
+      confirmButtonColor: "#1d2951",
+    });
+  });
+}
+</script>
