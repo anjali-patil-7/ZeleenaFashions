@@ -88,17 +88,16 @@
               </thead>
               <tbody id="wishlist-items">
                 <% if (wishlistDetails.length > 0 && wishlistDetails[0].wishlistItems && wishlistDetails[0].wishlistItems.length > 0) { %>
-                  <% let index = 1; %>
-                  <% wishlistDetails[0].wishlistItems.forEach(item => { %>
+                  <% wishlistDetails[0].wishlistItems.forEach((item, index) => { %>
                     <tr class="wishlist-item" data-product-id="<%= item.productId._id %>">
                       <td class="hiraola-product-price">
-                        <span class="amount"><%= index++ %></span>
+                        <span class="amount"><%= index + 1 %></span>
                       </td>
                       <td class="hiraola-product-thumbnail">
                         <a href="/product/<%= item.productId._id %>">
                           <img
-                            src="/<%= item.productId.productImage[0] %>"
-                            alt="Product Image"
+                            src="<%= item.productId.productImage[0] %>"
+                            alt="<%= item.productId.productName %>"
                             style="width: 70px; height: 70px"
                           />
                         </a>
@@ -250,27 +249,6 @@
           contentType: "application/json",
           data: JSON.stringify({ productId }),
           success: function (response) {
-            // Remove the item from the wishlist
-            $(`.wishlist-item[data-product-id="${productId}"]`).fadeOut(300, function() {
-              $(this).remove();
-              
-              // Check if wishlist is now empty
-              if ($("#wishlist-items tr").length === 0) {
-                $("#wishlist-items").html(`
-                  <tr id="empty-wishlist-row">
-                    <td colspan="7">
-                      <div class="empty-wishlist">
-                        <i class="fa fa-heart-o"></i>
-                        <h3>Your Wishlist is Empty</h3>
-                        <p>Start adding items you love to your wishlist</p>
-                        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
-                      </div>
-                    </td>
-                  </tr>
-                `);
-              }
-            });
-            
             // Show success notification
             const Toast = Swal.mixin({
               toast: true,
@@ -283,6 +261,9 @@
             Toast.fire({
               icon: 'success',
               title: 'Product added to cart and removed from wishlist'
+            }).then(() => {
+              // Reload the page to update the wishlist
+              window.location.reload();
             });
           },
           error: function (xhr) {

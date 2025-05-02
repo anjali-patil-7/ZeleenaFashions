@@ -61,6 +61,16 @@
         right: 10px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
+    .stock-status {
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    .in-stock {
+        color: #28a745; 
+    }
+    .out-of-stock {
+        color: #dc3545; 
+    }
 </style>
 
 <% if (error_msg && error_msg.length > 0) { %>
@@ -180,6 +190,13 @@
                                                 <span class="new-price" style="font-size: 16px; color: #010705;">
                                                     ₹<%= product.price ? product.price.toFixed(2) : '0.00' %>
                                                 </span>
+                                            </div>
+                                            <div class="stock-status">
+                                                <% if (product.totalStock > 0) { %>
+                                                    <span class="in-stock">In Stock</span>
+                                                <% } else { %>
+                                                    <span class="out-of-stock">Out of Stock</span>
+                                                <% } %>
                                             </div>
                                             <div class="additional-add_action">
                                                 <ul style="list-style: none; padding: 0; display: flex; justify-content: center; margin: 5px 0;">

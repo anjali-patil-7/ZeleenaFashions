@@ -1,4 +1,16 @@
 <%- include('../partials/user/header') %>
+    <style>
+        .stock-status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .in-stock {
+             color: #28a745; /* Green for in stock */
+        }
+        .out-of-stock {
+            color: #dc3545; /* Red for out of stock */
+        }
+    </style>
 
         <!-- Begin Hiraola's Breadcrumb Area -->
         <div class="breadcrumb-area">
@@ -106,6 +118,13 @@
                                                         <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName %></a></h6>
                                                         <div class="price-box">
                                                             <span class="new-price"><%= product.price %></span>
+                                                        </div>
+                                                        <div class="stock-status">
+                                                            <% if (product.totalStock > 0) { %>
+                                                                <span class="in-stock">In Stock</span>
+                                                            <% } else { %>
+                                                                <span class="out-of-stock">Out of Stock</span>
+                                                            <% } %>
                                                         </div>
                                                         <div class="additional-add_action">
                                                             <ul>

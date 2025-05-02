@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
-
 const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
-// const Wishlist = require('../../models/wishlistSchema'); // Ensure Wishlist model is imported
+const Wishlist = require('../../models/wishlistSchema'); // Added Wishlist import
 
 // List Products in Cart
 exports.getCart = async (req, res) => {
@@ -18,7 +17,7 @@ exports.getCart = async (req, res) => {
       populate: { path: 'category' },
     });
 
-    console.log("cartDetails >>>>>", cartDetails)
+    console.log("cartDetails >>>>>", cartDetails);
 
     res.render('user/cart', {
       cartDetails: cartDetails || { cartItem: [], cartTotal: 0 },
@@ -35,120 +34,123 @@ exports.getCart = async (req, res) => {
 
 // Add to Cart
 exports.addToCart = async (req, res) => {
-    try {
-      const userId = req.user.id;
-      if (!userId) {
-        return res.status(401).json({ message: 'Please log in to add items to cart' });
-      }
-  
-      const { productId } = req.params;
-      const { quantity = 1 } = req.body;
-  
-      // Validate productId
-      if (!mongoose.Types.ObjectId.isValid(productId)) {
-        return res.status(400).json({ message: 'Invalid product ID' });
-      }
-  
-      const product = await Product.findById(productId).populate('category');
-      if (!product) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-  
-      // Log product and category details
-      console.log('Product details:', {
+  try {
+    const userId = req.user.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Please log in to add items to cart' });
+    }
+
+    const { productId } = req.params;
+    const { quantity = 1 } = req.body;
+
+    // Validate productId
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: 'Invalid product ID' });
+    }
+
+    const product = await Product.findById(productId).populate('category');
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Log product and category details
+    console.log('Product details:', {
+      productId,
+      productName: product.productName,
+      isListed: product.isListed,
+      totalStock: product.totalStock,
+      category: product.category ? {
+        id: product.category._id,
+        name: product.category.name,
+        isListed: product.category.isListed
+      } : 'No category'
+    });
+
+    // Check if category is populated
+    if (!product.category) {
+      console.error('Category not found for product:', productId);
+      return res.status(400).json({ message: 'Product category is missing' });
+    }
+
+    // Check if product or its category is blocked/unlisted
+    if (!product.isListed || !product.category.isListed) {
+      console.log('Availability check failed:', {
         productId,
-        status: product.status,
-        categoryId: product.category,
-        categoryStatus: product.category.status,
-        categoryPopulated: !!product.category,
+        productIsListed: product.isListed,
+        categoryId: product.category._id,
+        categoryIsListed: product.category.isListed,
       });
-  
-      // Check if category is populated
-      if (!product.category) {
-        console.error('Category not found for product:', productId);
-        return res.status(400).json({ message: 'Product category is missing' });
-      }
-  
-      // Check if product or its category is blocked/unlisted
-      if (!product.status || !product.category.status) {
-        console.log('Availability check failed:', {
-          productId,
-          productStatus: product.status,
-          categoryId: product.category,
-          categoryStatus: product.category.status,
-        });
-        return res.status(400).json({ message: 'This product is not available' });
-      }
-  
-      // Check stock availability
-      if (product.totalStock < quantity) {
+      return res.status(400).json({ message: 'This product is not available' });
+    }
+
+    // Check stock availability
+    if (product.totalStock < quantity) {
+      return res.status(400).json({ message: `Only ${product.totalStock} items available in stock` });
+    }
+
+    // Check max quantity limit
+    if (quantity > 7) {
+      return res.status(400).json({ message: 'Maximum quantity per product is 7' });
+    }
+
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+      cart = new Cart({
+        user: userId,
+        cartItem: [],
+        cartTotal: 0,
+      });
+    }
+
+    const existingItem = cart.cartItem.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (existingItem) {
+      const newQuantity = existingItem.quantity + parseInt(quantity);
+      if (newQuantity > product.totalStock) {
         return res.status(400).json({ message: `Only ${product.totalStock} items available in stock` });
       }
-  
-      // Check max quantity limit
-      if (quantity > 7) {
+      if (newQuantity > 7) {
         return res.status(400).json({ message: 'Maximum quantity per product is 7' });
       }
-  
-      let cart = await Cart.findOne({ user: userId });
-      if (!cart) {
-        cart = new Cart({
-          user: userId,
-          cartItem: [],
-          cartTotal: 0,
-        });
-      }
-  
-      const existingItem = cart.cartItem.find(
-        (item) => item.productId.toString() === productId
-      );
-  
-      if (existingItem) {
-        const newQuantity = existingItem.quantity + parseInt(quantity);
-        if (newQuantity > product.totalStock) {
-          return res.status(400).json({ message: `Only ${product.totalStock} items available in stock` });
-        }
-        if (newQuantity > 7) {
-          return res.status(400).json({ message: 'Maximum quantity per product is 7' });
-        }
-        existingItem.quantity = newQuantity;
-        existingItem.total = existingItem.quantity * product.price;
-      } else {
-        cart.cartItem.push({
-          productId,
-          quantity: parseInt(quantity),
-          price: product.price,
-          stock: product.totalStock,
-          total: product.price * quantity,
-        });
-      }
-  
-      cart.cartTotal = cart.cartItem.reduce((total, item) => total + item.total, 0);
-  
-      // Save cart and catch any validation errors
-      await cart.save();
-  
-      // Remove product from wishlist if it exists
-      try {
-        await Wishlist.updateOne(
-          { user: userId },
-          { $pull: { items: { productId } } }
-        );
-      } catch (wishlistError) {
-        console.error('Wishlist update failed, continuing without error:', wishlistError);
-        // Continue even if wishlist update fails
-      }
-  
-      return res.status(200).json({
-        success: true,
-        message: 'Product added to cart successfully',
-        cartCount: cart.cartItem.length,
+      existingItem.quantity = newQuantity;
+      existingItem.total = existingItem.quantity * product.price;
+    } else {
+      cart.cartItem.push({
+        productId,
+        quantity: parseInt(quantity),
+        price: product.price,
+        stock: product.totalStock,
+        total: product.price * quantity,
       });
-    } catch (error) {
-      console.error('Error in addToCart:', error);
-      return res.status(500).json({ message: 'Error adding product to cart', error: error.message });
     }
-  };
+
+    cart.cartTotal = cart.cartItem.reduce((total, item) => total + item.total, 0);
+
+    await cart.save();
+
+    // Remove product from wishlist if it exists
+    try {
+      await Wishlist.updateOne(
+        { userId },
+        { $pull: { wishlistItems: { productId } } }
+      );
+    } catch (wishlistError) {
+      console.error('Wishlist update failed, continuing without error:', wishlistError);
+      // Continue even if wishlist update fails
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Product added to cart successfully',
+      cartCount: cart.cartItem.length,
+    });
+  } catch (error) {
+    console.error('Error in addToCart:', error);
+    return res.status(500).json({ message: 'Error adding product to cart', error: error.message });
+  }
+};
 
 // Update Cart (Increment/Decrement Quantity)
 exports.updateCart = async (req, res) => {
@@ -193,7 +195,7 @@ exports.updateCart = async (req, res) => {
     await cart.save();
     res.json({ message: 'Cart updated successfully', cartTotal: cart.cartTotal });
   } catch (error) {
-    console.error(error);
+    console.error('Error in updateCart:', error);
     res.status(500).json({ message: 'Error updating cart' });
   }
 };
@@ -221,7 +223,7 @@ exports.removeFromCart = async (req, res) => {
     await cart.save();
     return res.status(200).json({ message: 'Product removed from cart' });
   } catch (error) {
-    console.error(error);
+    console.error('Error in removeFromCart:', error);
     return res.status(500).json({ message: 'Error removing product from cart' });
   }
 };
@@ -244,7 +246,7 @@ exports.getCartItem = async (req, res) => {
 
     res.json({ quantity: item.quantity });
   } catch (error) {
-    console.error(error);
+    console.error('Error in getCartItem:', error);
     res.status(500).json({ message: 'Error fetching cart item' });
   }
 };
@@ -264,9 +266,9 @@ exports.getCartTotals = async (req, res) => {
       0
     );
 
-    res.json({ originalTotal: total, discountedTotal: total }); // No discounts, so both are same
+    res.json({ originalTotal: total, discountedTotal: total });
   } catch (error) {
-    console.error(error);
+    console.error('Error in getCartTotals:', error);
     res.status(500).json({ message: 'Error fetching cart totals' });
   }
 };
@@ -277,7 +279,7 @@ exports.verifyCartCheckout = async (req, res) => {
     const userId = req.user.id;
     const cart = await Cart.findOne({ user: userId }).populate({
       path: 'cartItem.productId',
-      populate: { path: 'categoryId' },
+      populate: { path: 'category' },
     });
 
     if (!cart || cart.cartItem.length === 0) {
@@ -290,7 +292,7 @@ exports.verifyCartCheckout = async (req, res) => {
       if (
         !product ||
         !product.isListed ||
-        !product.categoryId.isListed ||
+        !product.category.isListed ||
         product.totalStock < item.quantity
       ) {
         invalidProducts.push(product?.productName || 'Unknown Product');
@@ -307,7 +309,7 @@ exports.verifyCartCheckout = async (req, res) => {
 
     res.json({ valid: true });
   } catch (error) {
-    console.error(error);
+    console.error('Error in verifyCartCheckout:', error);
     res.status(500).json({ valid: false, message: 'Error verifying cart' });
   }
 };

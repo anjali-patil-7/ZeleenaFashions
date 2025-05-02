@@ -5,6 +5,7 @@ const shopController = require('../controllers/user/shopController');
 const profileController = require('../controllers/user/profileController');
 const addressController = require('../controllers/user/addressController');
 const CartController = require('../controllers/user/CartController')
+const wishlistController = require('../controllers/user/wishlistController')
 const { verifyToken, ifLogged, logged } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -70,6 +71,15 @@ router.get('/get-cart-item',verifyToken, CartController.getCartItem);
 router.get('/get-cart-totals',verifyToken, CartController.getCartTotals);
 router.get('/verify-cart-checkout',verifyToken,CartController.verifyCartCheckout);
 
+
+router.get('/wishlist', verifyToken, wishlistController.getWishlist);
+router.post('/wishlist/add', verifyToken, wishlistController.addToWishlist);
+
+// Remove from wishlist
+router.post('/wishlist/remove', verifyToken, wishlistController.removeFromWishlist);
+
+// Add to cart from wishlist
+router.post('/wishlist/add-to-cart',verifyToken, wishlistController.addToCartFromWishlist);
 
 
 

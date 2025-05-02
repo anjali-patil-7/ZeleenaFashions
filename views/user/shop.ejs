@@ -31,6 +31,16 @@
   .clear-search-btn {
     margin-left: 5px;
   }
+  .stock-status {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .in-stock {
+    color: #28a745; /* Green for in stock */
+  }
+  .out-of-stock {
+    color: #dc3545; /* Red for out of stock */
+  }
 </style>
 
 <!-- Begin Hiraola's Breadcrumb Area -->
@@ -153,6 +163,13 @@
                           <span class="discount-label" style="color: #2e7d32; font-size: 0.9rem;">(<%= bestOffer.discount %>% OFF)</span>
                         <% } else { %>
                           <span class="new-price">₹<%= product.price %></span>
+                        <% } %>
+                      </div>
+                      <div class="stock-status">
+                        <% if (product.totalStock > 0) { %>
+                          <span class="in-stock">In Stock</span>
+                        <% } else { %>
+                          <span class="out-of-stock">Out of Stock</span>
                         <% } %>
                       </div>
                       <div class="additional-add_action">
