@@ -136,7 +136,7 @@ exports.addToCartFromWishlist = async (req, res) => {
     console.log('addToCartFromWishlist Product details:', {
       productId: product._id,
       productName: product.productName,
-      isListed: product.status,
+      status: product.status,
       totalStock: product.totalStock,
       category: product.category ? {
         id: product.category._id,

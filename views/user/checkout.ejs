@@ -40,17 +40,6 @@
     color: white;
   }
 
-  .voucher-section {
-    background: #f8f8f8;
-    padding: 1rem;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-  }
-
-  .voucher-section:hover {
-    background-color: #e0e0e0;
-  }
-
   .order-summary {
     background: #f8f8f8;
     padding: 1.5rem;
@@ -92,212 +81,41 @@
     color: #22C55E;
   }
 
-  .coupon-form {
-    display: flex;
+  .address-list {
     margin-top: 1rem;
   }
 
-  .coupon-input {
-    flex-grow: 1;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px 0 0 4px;
-    outline: none;
-  }
-
-  .coupon-btn {
-    background: #1d2951;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-  }
-
-  .coupon-btn:hover {
-    background-color: #141e3c;
-  }
-
-  .coupon-message {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-  }
-
-  .coupon-success {
-    color: #22C55E;
-  }
-
-  .coupon-error {
-    color: #EF4444;
-  }
-
-  .applied-coupon, .applied-offer {
-    background: #e8f5e9;
-    padding: 0.5rem;
-    border-radius: 4px;
-    margin-top: 0.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .remove-coupon, .remove-offer-btn {
-    color: #EF4444;
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-size: 0.9rem;
-  }
-
-  .discount-details {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: #777;
-  }
-
-  .discount-label {
-    font-weight: 500;
-  }
-
-  .discount-value {
-    font-weight: 600;
-    color: #1d2951;
-  }
-
-  .coupons-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .coupon-card {
-    background: #f8f8f8;
-    border-radius: 8px;
+  .address-item {
+    background-color: #f9f9f9;
     padding: 1rem;
+    border-radius: 6px;
     border: 1px solid #e0e0e0;
-    transition: box-shadow 0.3s ease;
+    transition: all 0.3s ease;
   }
 
-  .coupon-card:hover {
+  .address-item:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
-  .coupon-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
+  .address-item.selected {
+    border-color: #1d2951;
+    box-shadow: 0 0 0 1px #1d2951;
   }
 
-  .coupon-header h4 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1d2951;
+  .form-check-input:checked {
+    background-color: #1d2951;
+    border-color: #1d2951;
   }
 
-  .coupon-discount {
-    background: #1d2951;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: 500;
+  .address-divider {
+    margin: 1rem 0;
+    border-color: #e0e0e0;
   }
 
-  .coupon-description {
-    margin-bottom: 0.5rem;
-    color: #555;
-  }
-
-  .coupon-terms {
-    font-size: 0.9rem;
-    color: #777;
-  }
-
-  .coupon-terms p {
-    margin: 0.25rem 0;
-  }
-
-  .apply-coupon-btn, .apply-offer-btn {
-    background: #1d2951;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
+  .address-radio {
     margin-top: 0.5rem;
-    width: 100%;
-    transition: background-color 0.3s ease;
   }
-
-  .apply-coupon-btn:hover, .apply-offer-btn:hover {
-    background-color: #141e3c;
-  }
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 5px;
-    color: white;
-    z-index: 1000;
-  }
-
-  .toast-success {
-    background-color: #28a745;
-  }
-
-  .toast-error {
-    background-color: #dc3545;
-  }
-
-  .address-list {
-  margin-top: 1rem;
-}
-
-.address-item {
-  background-color: #f9f9f9;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-  transition: all 0.3s ease;
-}
-
-.address-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.address-item.selected {
-  border-color: #1d2951;
-  box-shadow: 0 0 0 1px #1d2951;
-}
-
-.form-check-input:checked {
-  background-color: #1d2951;
-  border-color: #1d2951;
-}
-
-.address-divider {
-  margin: 1rem 0;
-  border-color: #e0e0e0;
-}
-
-.address-radio {
-  margin-top: 0.5rem;
-}
-
-
 </style>
-
-<% if (couponMessage) { %>
-  <div class="toast <%= couponSuccess ? 'toast-success' : 'toast-error' %>">
-    <%= couponMessage %>
-  </div>
-<% } %>
 
 <div class="checkout-container">
   <div class="container">
@@ -313,30 +131,28 @@
           
           <% if (userAddresses && userAddresses.length > 0) { %>
             <div class="address-list">
-              <% userAddresses.forEach(addressDoc => { %>
-                <% addressDoc.address.forEach((address, index) => { %>
-                  <div class="address-item mt-2 mb-3">
-                    <div class="form-check">
-                      <input class="form-check-input address-radio" 
-                             type="radio" 
-                             name="deliveryAddress" 
-                             id="address<%= addressDoc._id %>" 
-                             value="<%= addressDoc._id %>"
-                             <%= selectedAddressId === addressDoc._id.toString() ? 'checked' : '' %>
-                             data-address-id="<%= addressDoc._id %>">
-                      <label class="form-check-label" for="address<%= addressDoc._id %>">
-                        <strong><%= address.name %></strong><br>
-                        <%= address.houseName %>, <%= address.street %><br>
-                        <%= address.city %>, <%= address.state %><br>
-                        <%= address.country %>, <%= address.pincode %><br>
-                        Mobile: <%= address.mobile %>
-                      </label>
-                    </div>
+              <% userAddresses.forEach((addressDoc, index) => { %>
+                <div class="address-item mt-2 mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input address-radio" 
+                           type="radio" 
+                           name="deliveryAddress" 
+                           id="address<%= addressDoc._id %>" 
+                           value="<%= addressDoc._id %>"
+                           <%= selectedAddressId === addressDoc._id.toString() ? 'checked' : '' %>
+                           data-address-id="<%= addressDoc._id %>">
+                    <label class="form-check-label" for="address<%= addressDoc._id %>">
+                      <strong><%= addressDoc.name %></strong><br>
+                      <%= addressDoc.houseName %>, <%= addressDoc.street %><br>
+                      <%= addressDoc.city %>, <%= addressDoc.state %> <br>
+                      <%= addressDoc.country %>, <%= addressDoc.pincode %><br>
+                      Mobile: <%= addressDoc.mobile %>
+                    </label>
                   </div>
-                  <% if (index < addressDoc.address.length - 1) { %>
-                    <hr class="address-divider">
-                  <% } %>
-                <% }); %>
+                </div>
+                <% if (index < userAddresses.length - 1) { %>
+                  <hr class="address-divider">
+                <% } %>
               <% }); %>
             </div>
           <% } else { %>
@@ -344,81 +160,6 @@
           <% } %>
         </div>
         <div id="addressRequired" data-address-required="<%= addressRequired %>"></div>
-
-        <!-- Gift Cards Section -->
-        <div class="checkout-card">
-          <h2 class="section-title">GIFTCARDS AND VOUCHERS</h2>
-          <p class="text-muted small">
-            Apply DigitGold, Encircle Points, NetCoins, GiftCards/E-Gift Cards, E-Vouchers, Discount Vouchers etc.
-          </p>
-          <div class="voucher-section mt-3">
-            <span>Coupons and Vouchers</span>
-
-            <% if (locals.appliedCoupon) { %>
-              <div class="applied-coupon">
-                <div>
-                  <strong><%= appliedCoupon.code %></strong>
-                  <span class="coupon-success"> - <%= appliedCoupon.discountType === 'percentage' ? appliedCoupon.discountValue + '%' : '₹' + appliedCoupon.discountValue %> off</span>
-                </div>
-                <form action="/remove-coupon" method="POST">
-                  <button type="submit" class="remove-coupon">Remove</button>
-                </form>
-              </div>
-            <% } else { %>
-              <form action="/apply-coupon" method="POST" class="coupon-form">
-                <input type="text" name="couponCode" class="coupon-input" placeholder="Enter coupon code" required>
-                <button type="submit" class="coupon-btn">Apply</button>
-              </form>
-              <% if (locals.couponMessage) { %>
-                <div class="coupon-message <%= locals.couponSuccess ? 'coupon-success' : 'coupon-error' %>">
-                  <%= couponMessage %>
-                </div>
-              <% } %>
-            <% } %>
-          </div>
-
-          <!-- Available Coupons Section -->
-          <div class="mt-3">
-            <h3 class="section-title">AVAILABLE COUPONS</h3>
-            <% if (availableCoupons && availableCoupons.length > 0) { %>
-              <div class="coupons-list">
-                <% availableCoupons.forEach(coupon => { 
-                   // Check if the coupon has not reached its maximum usage for this user
-                   const usageCount = coupon.usedBy.filter(
-                     use => use.userId.toString() === userId.toString() && use.orderId
-                   ).length;
-                   
-                   if (usageCount < coupon.maxRedeem) { %>
-                     <div class="coupon-card">
-                       <div class="coupon-header">
-                         <h4><%= coupon.couponCode %></h4>
-                         <span class="coupon-discount">
-                           <% if (coupon.type === "percentageDiscount") { %>
-                             <%= coupon.discount %>% off
-                           <% } else { %>
-                             ₹<%= coupon.discount %> off
-                           <% } %>
-                         </span>
-                       </div>
-                       <div class="coupon-description">
-                         <p><%= coupon.description || "No description available." %></p>
-                       </div>
-                       <div class="coupon-terms">
-                         <p><strong>Minimum Purchase:</strong> ₹<%= coupon.minimumPrice %></p>
-                         <p><strong>Expiry:</strong> <%= coupon.expiry.toLocaleDateString() %></p>
-                       </div>
-                       <button class="apply-coupon-btn" data-coupon-code="<%= coupon.couponCode %>">Apply</button>
-                     </div>
-                <% } %>
-                <% }); %>
-              </div>
-            <% } else { %>
-              <p class="text-muted">No coupons available at the moment.</p>
-            <% } %>
-          </div>
-
-          
-        </div>
       </div>
 
       <!-- Right Column - Order Summary -->
@@ -427,50 +168,21 @@
           <h2 class="section-title">ORDER SUMMARY</h2>
 
           <div class="order-summary">
-            <% 
-              // Calculate totals from cartItems (assuming cartItems is passed from backend)
-              let originalSubtotal = 0;
-              let discountedSubtotal = 0;
-              if (cartItems && cartItems.length > 0) {
-                cartItems.forEach(item => {
-                  const prodId = item.productId._id.toString();
-                  const originalPrice = item.productId.price;
-                  const quantity = item.quantity;
-                  originalSubtotal += originalPrice * quantity;
-                  discountedSubtotal += item.total; // Assuming item.total reflects discounts from cart
-                });
-              }
-              const totalDiscount = originalSubtotal - discountedSubtotal;
-            %>
-
             <div class="price-row">
               <span>Sub Total</span>
               <span>₹<%= originalSubtotal.toFixed(2) %></span>
             </div>
 
-            <% if (offerDiscountAmount > 0) { %>
+            <% if (discountAmount > 0) { %>
               <div class="price-row">
-                <span>Total Discount</span>
-                <span class="savings">-₹<%= offerDiscountAmount.toFixed(2) %></span>
-              </div>
-            <% } %>
-            
-            <!-- <% if (appliedOffer) { %>
-              <div class="discount-details">
-                <div class="discount-label"><%= appliedOffer.name %>:</div>
-                <div class="discount-value">-₹<%= appliedOffer.discountAmount.toFixed(2) %></div>
-              </div>
-            <% } %> -->
-            <% if (appliedCoupon) { %>
-              <div class="discount-details">
-                <div class="discount-label">Coupon (<%= appliedCoupon.code %>):</div>
-                <div class="discount-value">-₹<%= couponDiscountAmount.toFixed(2) %></div>
+                <span>Discount (20% off)</span>
+                <span class="savings">-₹<%= discountAmount.toFixed(2) %></span>
               </div>
             <% } %>
 
             <div class="price-row">
-              <span>Delivery Charge</span>
-              <span class="text-success">FREE</span>
+              <span>Shipping Charge</span>
+              <span>₹<%= shippingCharge.toFixed(2) %></span>
             </div>
 
             <div class="price-row total-row">
@@ -487,7 +199,7 @@
                     <h6 class="mb-0"><%= item.productId.productName %></h6>
                     <small class="text-muted">Qty: <%= item.quantity %></small>
                   </div>
-                  <span>₹<%= item.total.toFixed(2) %></span>
+                  <span>₹<%= (item.productId.price * item.quantity).toFixed(2) %></span>
                 </div>
               <% }) %>
             <% } else { %>
@@ -505,7 +217,6 @@
 <%- include('../partials/user/footer') %>
 
 <script>
-  // Existing JavaScript remains unchanged
   document.addEventListener("DOMContentLoaded", function () {
     const addressRequiredElement = document.getElementById("addressRequired");
     const addressRequired = addressRequiredElement.dataset.addressRequired === "true";
@@ -526,206 +237,67 @@
       });
     }
 
-    // Handle Apply Coupon Button Clicks
-    const applyButtons = document.querySelectorAll(".apply-coupon-btn");
-    applyButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        const couponCode = this.getAttribute("data-coupon-code");
-        fetch("/apply-coupon", {
-          method: "POST",
+    // Handle address selection
+    const addressRadios = document.querySelectorAll('.address-radio');
+    addressRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        const addressId = this.dataset.addressId;
+        console.log('Selected Address ID from frontend:', addressId);
+        
+        document.querySelectorAll('.address-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+        
+        this.closest('.address-item').classList.add('selected');
+        
+        fetch('/select-address', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ couponCode }),
+          body: JSON.stringify({ addressId }),
         })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                icon: "success",
-                title: "Coupon Applied",
-                text: "Your coupon has been applied successfully!",
-                confirmButtonColor: "#1d2951",
-              }).then(() => {
-                window.location.reload();
-              });
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: data.message || "Failed to apply coupon",
-                confirmButtonColor: "#1d2951",
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
+        .then(response => response.json())
+        .then(data => {
+          console.log('Response from select-address:', data);
+          if (data.success) {
+            console.log('Address updated successfully, new ID:', addressId);
+          } else {
             Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Something went wrong. Please try again.",
-              confirmButtonColor: "#1d2951",
+              icon: 'error',
+              title: 'Error',
+              text: data.message || 'Failed to update delivery address',
+              confirmButtonColor: '#1d2951',
             });
-          });
-      });
-    });
-
-    // Handle Apply Offer Button Clicks
-    const applyOfferButtons = document.querySelectorAll(".apply-offer-btn");
-    applyOfferButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        const offerId = this.getAttribute("data-offer-id");
-        fetch("/apply-offer", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ offerId }),
+          }
         })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                icon: "success",
-                title: "Offer Applied",
-                text: "Your referral offer has been applied successfully!",
-                confirmButtonColor: "#1d2951",
-              }).then(() => {
-                window.location.reload();
-              });
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: data.message || "Failed to apply offer",
-                confirmButtonColor: "#1d2951",
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Something went wrong. Please try again.",
-              confirmButtonColor: "#1d2951",
-            });
-          });
-      });
-    });
-
-    // Handle Remove Offer Button
-    const removeOfferButton = document.querySelector(".remove-offer-btn");
-    if (removeOfferButton) {
-      removeOfferButton.addEventListener("click", function () {
-        fetch("/remove-offer", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                icon: "success",
-                title: "Offer Removed",
-                text: "Referral offer has been removed successfully!",
-                confirmButtonColor: "#1d2951",
-              }).then(() => {
-                window.location.reload();
-              });
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: data.message || "Failed to remove offer",
-                confirmButtonColor: "#1d2951",
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Something went wrong. Please try again.",
-              confirmButtonColor: "#1d2951",
-            });
-          });
-      });
-    }
-
-    setTimeout(() => {
-      const toast = document.querySelector(".toast");
-      if (toast) {
-        toast.remove();
-      }
-    }, 5000);
-  });
-
-  // Handle address selection
-  const addressRadios = document.querySelectorAll('.address-radio');
-  addressRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      const addressId = this.dataset.addressId;
-      console.log('Selected Address ID from frontend:', addressId);
-      
-      document.querySelectorAll('.address-item').forEach(item => {
-        item.classList.remove('selected');
-      });
-      
-      this.closest('.address-item').classList.add('selected');
-      
-      fetch('/select-address', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ addressId }),
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Response from select-address:', data);
-        if (data.success) {
-          console.log('Address updated successfully, new ID:', addressId);
-        } else {
+        .catch(error => {
+          console.error('Error:', error);
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: data.message || 'Failed to update delivery address',
+            text: 'Something went wrong. Please try again.',
             confirmButtonColor: '#1d2951',
           });
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Something went wrong. Please try again.',
-          confirmButtonColor: '#1d2951',
         });
       });
     });
-  });
 
-  // Prevent proceeding without address
-  document.querySelector('.proceed-btn').addEventListener('click', function(e) {
-    const selectedAddress = document.querySelector('.address-radio:checked');
-    if (!selectedAddress) {
-      e.preventDefault();
-      Swal.fire({
-        icon: 'warning',
-        title: 'No Address Selected',
-        text: 'Please select a delivery address before proceeding.',
-        confirmButtonColor: '#1d2951',
-      });
-    }
-  });
+    // Prevent proceeding without address
+    document.querySelector('.proceed-btn').addEventListener('click', function(e) {
+      const selectedAddress = document.querySelector('.address-radio:checked');
+      if (!selectedAddress) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'warning',
+          title: 'No Address Selected',
+          text: 'Please select a delivery address before proceeding.',
+          confirmButtonColor: '#1d2951',
+        });
+      }
+    });
 
-  // Set selected class for initially checked address
-  document.addEventListener('DOMContentLoaded', function() {
+    // Set selected class for initially checked address
     const checkedRadio = document.querySelector('.address-radio:checked');
     if (checkedRadio) {
       checkedRadio.closest('.address-item').classList.add('selected');

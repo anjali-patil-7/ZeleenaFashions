@@ -33,15 +33,15 @@ const orderSchema = new Schema({
             type: Number,
             required: true,
         },
-        finalProductPrice: { // Price per unit after discount
+        finalProductPrice: { 
             type: Number,
             required: true
         },
-        totalProductPrice: { // Original total (productPrice * quantity)
+        totalProductPrice: { 
             type: Number,
             required: true
         },
-        finalTotalProductPrice: { // Final total after discount (finalProductPrice * quantity)
+        finalTotalProductPrice: { 
             type: Number,
             required: true
         },

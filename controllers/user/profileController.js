@@ -1,6 +1,8 @@
 const { body, validationResult } = require('express-validator');
 const User = require('../../models/userSchema');
+const Wallet = require('../../models/walletSchema');
 const OTP = require('../../models/otpSchema');
+
 const transporter = require('../../config/nodemailer');
 const bcrypt = require('bcryptjs');
 
@@ -271,5 +273,65 @@ exports.verifyEmailOtp = async (req, res) => {
             success_msg: '',
             session: res.locals.session,
         });
+    }
+};
+
+
+exports.getWalletHistory = async (req, res) => {
+    try {
+        const user = req.user.id; // Assuming user is stored in session or passport
+        if (!user) {
+            console.log('No user found, redirecting to login');
+            return res.redirect('/login');
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Number of transactions per page
+        const skip = (page - 1) * limit;
+
+        // Fetch wallet for the user
+        const wallet = await Wallet.findOne({ userId: req.user.id })
+            .populate('transaction.orderId');
+
+        console.log('Fetched wallet:', wallet); // Debug log
+
+        if (!wallet) {
+            console.log('No wallet found for user:', req.user.id);
+            return res.render('user/walletHistory', {
+                user: { userName: user.userName, walletCardNumber: '1234' },
+                wallet: { balance: 0, transaction: [] },
+                currentPage: 1,
+                totalPages: 1,
+                hasPrevPage: false,
+                hasNextPage: false
+            });
+        }
+
+        // Ensure transactions is an array
+        const transactions = Array.isArray(wallet.transaction) ? wallet.transaction : [];
+
+        // Sort transactions by date in descending order
+        transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Calculate pagination
+        const totalTransactions = transactions.length;
+        const totalPages = Math.ceil(totalTransactions / limit) || 1;
+        const paginatedTransactions = transactions.slice(skip, skip + limit);
+
+        // Render the wallet history page
+        res.render('user/walletHistory', {
+            user: { userName: user.userName, walletCardNumber: '1234' },
+            wallet: {
+                balance: wallet.balance,
+                transaction: paginatedTransactions
+            },
+            currentPage: page,
+            totalPages,
+            hasPrevPage: page > 1,
+            hasNextPage: page < totalPages
+        });
+    } catch (error) {
+        console.error('Error fetching wallet history:', error);
+        res.status(500).render('error', { message: 'Server Error' }); // Render error page
     }
 };

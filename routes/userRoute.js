@@ -6,6 +6,8 @@ const profileController = require('../controllers/user/profileController');
 const addressController = require('../controllers/user/addressController');
 const CartController = require('../controllers/user/CartController')
 const wishlistController = require('../controllers/user/wishlistController')
+const checkoutController = require('../controllers/user/checkoutController')
+const orderController = require ('../controllers/user/OrderController')
 const { verifyToken, ifLogged, logged } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -74,13 +76,31 @@ router.get('/verify-cart-checkout',verifyToken,CartController.verifyCartCheckout
 
 router.get('/wishlist', verifyToken, wishlistController.getWishlist);
 router.post('/wishlist/add', verifyToken, wishlistController.addToWishlist);
-
 // Remove from wishlist
 router.post('/wishlist/remove', verifyToken, wishlistController.removeFromWishlist);
 
 // Add to cart from wishlist
 router.post('/wishlist/add-to-cart',verifyToken, wishlistController.addToCartFromWishlist);
+router.get('/checkout',verifyToken,checkoutController.getCheckoutPage)
+router.post('/select-address',verifyToken,checkoutController.selectAddress)
+router.get('/placingorder',verifyToken,checkoutController.getPlacingOrder)
 
+
+router.get('/placingorder', verifyToken, checkoutController.getPlacingOrder);
+router.get('/place-order', verifyToken, checkoutController.placeOrder);
+router.get('/confirmorder/:orderId', verifyToken, checkoutController.getOrderConfirmation);
+router.get('/orders', verifyToken, orderController.getOrders);
+router.get('/orderdetails/:orderId', verifyToken, orderController.getOrderDetails);
+router.post('/:orderId/cancel', verifyToken, orderController.cancelOrder);
+router.get('/orders/:orderId/invoice',verifyToken, orderController.downloadInvoice);
+router.post('/orders/:orderId/return', verifyToken, orderController.requestReturn);
+// Cancel entire order
+router.post('/orders/:orderId/cancel', verifyToken, orderController.cancelOrder);
+
+// Cancel single product in an order
+router.post('/orders/:orderId/cancel-product/:productId', verifyToken, orderController.cancelSingleProduct);
+
+router.get('/walletHistory', verifyToken, profileController.getWalletHistory);
 
 
 module.exports = router;

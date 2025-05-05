@@ -899,6 +899,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.json())
       .then(data => {
         if (data.success) {
+          // Success case: Product added to wishlist
           const icon = button.querySelector('i');
           icon.classList.remove('ion-android-favorite-outline');
           icon.classList.add('ion-android-favorite');
@@ -906,7 +907,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
           Swal.fire({
             icon: 'success',
-            title: 'Success!',
+            title: 'Success',
             text: 'Product added to wishlist successfully!',
             toast: true,
             position: 'top-end',
@@ -914,15 +915,49 @@ document.addEventListener('DOMContentLoaded', function() {
             timer: 3000,
           });
         } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: data.message || 'Failed to add product to wishlist',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-          });
+          let icon = 'error';
+          let title = 'Error';
+          let text = data.message || 'Failed to add product to wishlist';
+
+          // Handle specific error cases
+          if (data.message.includes('login') || data.message.includes('authenticated')) {
+            icon = 'warning';
+            title = 'Please Login';
+            text = 'Please login to add items to your wishlist';
+            Swal.fire({
+              icon: icon,
+              title: title,
+              text: text,
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+            }).then(() => {
+              window.location.href = '/login';
+            });
+          } else if (data.message.includes('already in wishlist')) {
+            icon = 'info';
+            title = 'Already Added';
+            Swal.fire({
+              icon: icon,
+              title: title,
+              text: text,
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+            });
+          } else {
+            Swal.fire({
+              icon: icon,
+              title: title,
+              text: text,
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+            });
+          }
         }
       })
       .catch(error => {

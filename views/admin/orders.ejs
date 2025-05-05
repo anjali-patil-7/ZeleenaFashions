@@ -179,16 +179,16 @@
                     <td><%= ((currentPage - 1) * limit) + index + 1 %></td>
                     <td><%= order.orderNumber %></td>
                     <td><%= order.userName %></td>
-                    <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
+                    <td><%= order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A' %></td>
                     <td>₹<%= order.finalAmount ? order.finalAmount.toFixed(2) : '0.00' %></td>
                     <td>
-                        <span class="status-badge badge-<%= order.status === 'Delivered' ? 'success' : order.status === 'Cancelled' ? 'danger' : order.status === 'Returned' ? 'info' : 'warning' %>">
-                            <%= order.status %>
+                        <span class="status-badge badge-<%= order.orderStatus === 'Delivered' ? 'success' : order.orderStatus === 'Cancelled' ? 'danger' : order.orderStatus === 'Returned' ? 'info' : 'warning' %>">
+                            <%= order.orderStatus || 'Unknown' %>
                         </span>
                     </td>
                     <td>
-                        <span class="status-badge badge-<%= order.paymentStatus === 'Paid' ? 'success' : order.paymentStatus === 'failed' ? 'danger' : order.paymentStatus === 'refunded' || order.paymentStatus === 'partially-refunded' ? 'info' : 'warning' %>">
-                            <%= order.paymentStatus %>
+                        <span class="status-badge badge-<%= order.paymentStatus === 'Paid' ? 'success' : order.paymentStatus === 'Failed' ? 'danger' : order.paymentStatus === 'Refunded' || order.paymentStatus === 'Partially-Refunded' ? 'info' : 'warning' %>">
+                            <%= order.paymentStatus || 'Unknown' %>
                         </span>
                     </td>
                     <td>
@@ -204,7 +204,7 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="/admin/orders/<%= order.id %>" class="action-btn">View</a>
+                            <a href="/admin/orders/<%= order._id %>" class="action-btn">View</a>
                         </div>
                     </td>
                 </tr>

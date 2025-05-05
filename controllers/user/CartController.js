@@ -57,12 +57,12 @@ exports.addToCart = async (req, res) => {
     console.log('Product details:', {
       productId,
       productName: product.productName,
-      isListed: product.isListed,
+      status: product.status,
       totalStock: product.totalStock,
       category: product.category ? {
         id: product.category._id,
         name: product.category.name,
-        isListed: product.category.isListed
+        status: product.category.status
       } : 'No category'
     });
 
@@ -73,12 +73,12 @@ exports.addToCart = async (req, res) => {
     }
 
     // Check if product or its category is blocked/unlisted
-    if (!product.isListed || !product.category.isListed) {
+    if (!product.status || !product.category.status) {
       console.log('Availability check failed:', {
         productId,
-        productIsListed: product.isListed,
+        productstatus: product.status,
         categoryId: product.category._id,
-        categoryIsListed: product.category.isListed,
+        categorystatus: product.category.status,
       });
       return res.status(400).json({ message: 'This product is not available' });
     }
@@ -291,8 +291,8 @@ exports.verifyCartCheckout = async (req, res) => {
       const product = item.productId;
       if (
         !product ||
-        !product.isListed ||
-        !product.category.isListed ||
+        !product.status ||
+        !product.category.status ||
         product.totalStock < item.quantity
       ) {
         invalidProducts.push(product?.productName || 'Unknown Product');

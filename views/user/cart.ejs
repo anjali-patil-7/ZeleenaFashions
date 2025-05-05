@@ -327,6 +327,7 @@
 <%- include('../partials/user/footer') %>
 
 <script>
+  // Remove item from cart with confirmation
   function removeFromCart(productId) {
     Swal.fire({
       title: "Are you sure?",
@@ -395,17 +396,95 @@
       }
     });
   }
-</script>
 
-<script>
+  // Verify cart before proceeding to checkout
+  function verifyCartBeforeCheckout() {
+    const checkoutButton = document.querySelector('a.btn-primary.btn-block');
+    const originalText = checkoutButton.textContent;
+    checkoutButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
+    checkoutButton.style.pointerEvents = 'none';
+    
+    $.ajax({
+      url: '/verify-cart-checkout',
+      method: 'GET',
+      dataType: 'json',
+      success: function(response) {
+        if (response.valid) {
+          window.location.href = '/checkout';
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Unable to Proceed',
+            html: response.invalidProducts && response.invalidProducts.length > 0 ? 
+              `${response.message}<br><br>Invalid Products: ${response.invalidProducts.join(', ')}<br>Please remove these items from your cart or refresh the page to update your cart.` : 
+              response.message,
+            confirmButtonText: 'Update Cart'
+          }).then(() => {
+            // Refresh cart to reflect updated state
+            location.reload();
+          });
+        }
+      },
+      error: function(xhr) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to verify cart. Please try again.'
+        });
+        checkoutButton.innerHTML = originalText;
+        checkoutButton.style.pointerEvents = 'auto';
+      },
+      complete: function() {
+        if (!window.location.pathname.includes('/checkout')) {
+          checkoutButton.innerHTML = originalText;
+          checkoutButton.style.pointerEvents = 'auto';
+        }
+      }
+    });
+  }
+
+  // Remove flash messages after 3 seconds
+  function removeFlashMessage() {
+    const flashMessage = document.getElementById("flash-message");
+    if (flashMessage) {
+      setTimeout(() => {
+        flashMessage.remove();
+      }, 3000);
+    }
+  }
+
+  // Initialize page
   $(document).ready(function () {
+    // Validate cart on page load
+    $.ajax({
+      url: '/validate-cart',
+      method: 'GET',
+      success: function(response) {
+        if (response.invalidProducts && response.invalidProducts.length > 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Cart Updated',
+            html: `Some items were removed from your cart because they are unavailable or out of stock.<br><br>Removed Products: ${response.invalidProducts.join(', ')}`,
+            confirmButtonText: 'OK'
+          }).then(() => {
+            location.reload();
+          });
+        }
+      },
+      error: function(xhr) {
+        console.error('Failed to validate cart:', xhr.responseJSON?.message || 'Unknown error');
+      }
+    });
+
     const MAX_QUANTITY = 7;
 
+    // Show loading spinner during updates
     function showLoading(productId) {
       $(`.cart-item[data-product-id="${productId}"] .item-total`).html('<i class="fa fa-spinner fa-spin"></i>');
       $('.cart-summary-card .summary-row span:last').html('<i class="fa fa-spinner fa-spin"></i>');
     }
 
+    // Handle quantity increment
     $(".inc.qtybutton").off("click").on("click", function () {
       const input = $(this).siblings(".cart-plus-minus-box");
       let currentQuantity = parseInt(input.val()) || 0;
@@ -435,6 +514,7 @@
       updateCart(input);
     });
 
+    // Handle quantity decrement
     $(".dec.qtybutton").off("click").on("click", function () {
       const input = $(this).siblings(".cart-plus-minus-box");
       let currentQuantity = parseInt(input.val()) || 0;
@@ -444,6 +524,7 @@
       }
     });
 
+    // Handle manual quantity input
     $(".cart-plus-minus-box").on("change", function () {
       const input = $(this);
       let newQuantity = parseInt(input.val()) || 1;
@@ -473,6 +554,7 @@
       updateCart(input);
     });
 
+    // Update cart item quantity via AJAX
     function updateCart(input) {
       const productId = input.data("product-id");
       const quantity = parseInt(input.val());
@@ -541,6 +623,7 @@
       });
     }
 
+    // Update cart totals via AJAX
     function updateCartTotals() {
       $.ajax({
         url: "/get-cart-totals",
@@ -619,60 +702,8 @@
         },
       });
     }
-
-    function verifyCartBeforeCheckout() {
-      const checkoutButton = document.querySelector('a.btn-primary.btn-block');
-      const originalText = checkoutButton.textContent;
-      checkoutButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
-      checkoutButton.style.pointerEvents = 'none';
-      
-      $.ajax({
-        url: '/verify-cart-checkout',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-          if (response.valid) {
-            window.location.href = '/checkout';
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Unable to Proceed',
-              html: response.invalidProducts && response.invalidProducts.length > 0 ? 
-                `${response.message}<br><br>Products: ${response.invalidProducts.join(', ')}` : 
-                response.message,
-              confirmButtonText: 'Update Cart'
-            }).then(() => {
-              window.location.href = '/cart';
-            });
-          }
-        },
-        error: function() {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to verify cart. Please try again.'
-          });
-          checkoutButton.innerHTML = originalText;
-          checkoutButton.style.pointerEvents = 'auto';
-        },
-        complete: function() {
-          if (!window.location.pathname.includes('/checkout')) {
-            checkoutButton.innerHTML = originalText;
-            checkoutButton.style.pointerEvents = 'auto';
-          }
-        }
-      });
-    }
   });
 
-  function removeFlashMessage() {
-    const flashMessage = document.getElementById("flash-message");
-    if (flashMessage) {
-      setTimeout(() => {
-        flashMessage.remove();
-      }, 3000);
-    }
-  }
-
+  // Remove flash messages on page load
   window.onload = removeFlashMessage;
 </script>

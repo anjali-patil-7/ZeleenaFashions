@@ -1,0 +1,584 @@
+<%- include('../partials/admin/header') %>
+
+<style>
+  .discounted-price {
+    color: #28a745;
+    font-weight: 600;
+  }
+
+  .original-price {
+    text-decoration: line-through;
+    color: #777;
+    font-size: 0.9rem;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="row mb-3">
+    <div class="col-12">
+      <a href="/admin/orders" class="btn btn-secondary">← Back to Orders</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Order <%= order.orderNumber %></h4>
+          <span class="badge bg-<%= 
+            order.orderStatus === 'Delivered' ? 'success' : 
+            order.orderStatus === 'Cancelled' ? 'danger' : 
+            order.orderStatus === 'Returned' ? 'warning' : 
+            'secondary' 
+          %>">
+            <%= order.orderStatus %>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h5>Order Details</h5>
+              <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></p>
+              <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+              <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
+            </div>
+            <div class="col-md-6">
+              <h5>Customer Details</h5>
+              <p><strong>Name:</strong> <%= order.userId.userName || order.userId.name || 'N/A' %></p>
+              <p><strong>Email:</strong> <%= order.userId.email || 'N/A' %></p>
+              <p><strong>Phone:</strong> <%= order.userId.phone || 'N/A' %></p>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5>Shipping Address</h5>
+              <% if (address) { %>
+                <div class="address-card">
+                  <div class="address-name"><%= address.name || '' %></div>
+                  <p class="address-phone"><%= address.mobile || '' %></p>
+                  <p class="address-text">
+                    <%= [ 
+                      address.houseName, 
+                      address.street, 
+                      address.city, 
+                      address.state, 
+                      address.pincode, 
+                      address.country 
+                    ].filter(Boolean).join(', ') %>
+                  </p>
+                  <span class="address-type"><%= address.saveAs || '' %></span>
+                </div>
+              <% } else { %>
+                <p>No delivery address available</p>
+              <% } %>
+            </div>
+          </div>
+
+          <h5>Order Items</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th>Product</th>
+                  <th>Original Price</th>
+                  <th>Discounted Price</th>
+                  <th>Item Discount</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order.orderedItem.forEach(item => { %>
+                  <tr>
+                    <td><%= item.productId?.productName || item.productId?.name || 'Unknown Product' %></td>
+                   comercial                    <td>₹<%= (item.productPrice || 0).toFixed(2) %></td>
+                    <td>₹<%= item.quantity && item.finalTotalProductPrice ? (item.finalTotalProductPrice / item.quantity).toFixed(2) : (item.productPrice || 0).toFixed(2) %></td>
+                    <td>
+                      <span class="badge bg-warning">
+                        ₹<%= (item.itemDiscount || 0).toFixed(2) %>
+                      </span>
+                    </td>
+                    <td><%= item.quantity || 0 %></td>
+                    <td>
+                      <select class="form-select product-status-dropdown" data-order-id="<%= order._id %>" data-product-id="<%= item._id %>">
+                          <% 
+                          const isProductDelivered = item.productStatus === 'Delivered';
+                          const isProductCancelledOrReturned = item.productStatus === 'Cancelled' || item.productStatus === 'Returned';
+                          
+                          function isProductOptionDisabled(optionValue) {
+                              if (isProductDelivered && optionValue !== 'Returned') {
+                                  return true;
+                              }
+                              if (isProductCancelledOrReturned) {
+                                  return true;
+                              }
+                              return false;
+                          }
+                          %>
+                          <option value="Pending" <%= item.productStatus === 'Pending' ? 'selected' : '' %> <%= isProductOptionDisabled('Pending') ? 'disabled' : '' %>>Pending</option>
+                          <option value="Shipped" <%= item.productStatus === 'Shipped' ? 'selected' : '' %> <%= isProductOptionDisabled('Shipped') ? 'disabled' : '' %>>Shipped</option>
+                          <option value="Delivered" <%= item.productStatus === 'Delivered' ? 'selected' : '' %> <%= isProductOptionDisabled('Delivered') ? 'disabled' : '' %>>Delivered</option>
+                          <option value="Cancelled" <%= item.productStatus === 'Cancelled' ? 'selected' : '' %> <%= isProductOptionDisabled('Cancelled') ? 'disabled' : '' %>>Cancelled</option>
+                          <option value="Returned" <%= item.productStatus === 'Returned' ? 'selected' : '' %> <%= isProductOptionDisabled('Returned') ? 'disabled' : '' %>>Returned</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div>
+                        <span class="text-muted text-decoration-line-through">
+                          ₹<%= (item.totalProductPrice || 0).toFixed(2) %>
+                        </span>
+                        <br>
+                        <span class="text-success">
+                          ₹<%= (item.finalTotalProductPrice || 0).toFixed(2) %>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <% if (item.productStatus === 'Return Requested') { %>
+                          <div class="btn-group">
+                              <button class="btn btn-success btn-sm approve-return" data-product-id="<%= item._id %>">
+                                  Approve Return
+                              </button>
+                              <button class="btn btn-danger btn-sm reject-return" data-product-id="<%= item._id %>">
+                                  Reject
+                              </button>
+                          </div>
+                          <div class="mt-2 alert alert-warning">
+                              <strong>Return Reason:</strong> 
+                              <% if (item.returnReason && item.returnReason.trim()) { %>
+                                  <%= item.returnReason %>
+                              <% } else { %>
+                                  <em>No reason provided</em>
+                              <% } %>
+                          </div>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="6" class="text-end">Subtotal:</th>
+                  <th>₹<%= originalSubtotal.toFixed(2) %></th>
+                  <th></th>
+                </tr>
+                
+                <% if (appliedCoupon) { %>
+                <tr>
+                  <th colspan="6" class="text-end">Coupon (<%= appliedCoupon.couponCode %>):</th>
+                  <th>
+                    <% if (appliedCoupon.type === 'percentage') { %>
+                      -₹<%= (originalSubtotal * (appliedCoupon.discount / 100)).toFixed(2) %>
+                    <% } else { %>
+                      -₹<%= appliedCoupon.discount.toFixed(2) %>
+                    <% } %>
+                  </th>
+                  <th></th>
+                </tr>
+                <% } %>
+                
+                <% if (shippingCharge > 0) { %>
+                <tr>
+                  <th colspan="6" class="text-end">Shipping Charge:</th>
+                  <th>₹<%= shippingCharge.toFixed(2) %></th>
+                  <th></th>
+                </tr>
+                <% } %>
+                
+                <tr>
+                  <th colspan="6" class="text-end">Total Discount:</th>
+                  <th>-₹<%= totalDiscount.toFixed(2) %></th>
+                  <th></th>
+                </tr>
+                
+                <tr>
+                  <th colspan="6" class="text-end">Final Total:</th>
+                  <th>₹<%= finalPrice.toFixed(2) %></th>
+                  <th></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Update Order Status</h5>
+        </div>
+        <div class="card-body">
+          <form id="updateOrderForm">
+            <input type="hidden" name="orderId" value="<%= order._id %>">
+            <div class="mb-3">
+              <label for="orderStatus" class="form-label">Order Status</label>
+              <select class="form-select" id="orderStatus" name="orderStatus">
+                <% 
+                const isDelivered = order.orderStatus === 'Delivered';
+                const isCancelledOrReturned = order.orderStatus === 'Cancelled' || order.orderStatus === 'Returned';
+                
+                function isOptionDisabled(optionValue) {
+                  if (isDelivered && optionValue !== 'Returned') return true;
+                  if (isCancelledOrReturned) return true;
+                  return false;
+                }
+                %>
+                <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %> <%= isOptionDisabled('Pending') ? 'disabled' : '' %>>Pending</option>
+                <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %> <%= isOptionDisabled('Shipped') ? 'disabled' : '' %>>Shipped</option>
+                <option value="Out for Delivery" <%= order.orderStatus === 'Out for Delivery' ? 'selected' : '' %> <%= isOptionDisabled('Out for Delivery') ? 'disabled' : '' %>>Out for Delivery</option>
+                <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %> <%= isOptionDisabled('Delivered') ? 'disabled' : '' %>>Delivered</option>
+                <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %> <%= isOptionDisabled('Cancelled') ? 'disabled' : '' %>>Cancelled</option>
+                <option value="Returned" <%= order.orderStatus === 'Returned' ? 'selected' : '' %> <%= isOptionDisabled('Returned') ? 'disabled' : '' %>>Returned</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Update Order Status</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Update Payment Status</h5>
+        </div>
+        <div class="card-body">
+          <form id="updatePaymentForm">
+            <input type="hidden" name="orderId" value="<%= order._id %>">
+            <div class="mb-3">
+              <label for="paymentStatus" class="form-label">Payment Status</label>
+              <% 
+              const isOnlinePayment = ['Online', 'Wallet', 'Card', 'UPI'].includes(order.paymentMethod);
+              const isPending = order.paymentStatus === 'pending';
+              const isPaid = order.paymentStatus === 'Paid';
+              const isFailed = order.paymentStatus === 'failed';
+              const isRefunded = order.paymentStatus === 'refunded' || order.paymentStatus === 'partially-refunded';
+              
+              function isDisabled(optionValue) {
+                if (isOnlinePayment && !['Paid', 'refunded', 'partially-refunded'].includes(optionValue)) return true;
+                if (isPaid && (optionValue === 'pending' || optionValue === 'failed')) return true;
+                if (isFailed && optionValue !== 'failed') return true;
+                if (isRefunded && (optionValue !== 'refunded' && optionValue !== 'partially-refunded')) return true;
+                return false;
+              }
+              %>
+              <select class="form-select" id="paymentStatus" name="paymentStatus" <%= isOnlinePayment ? 'disabled' : '' %>>
+                <option value="pending" <%= order.paymentStatus === 'pending' ? 'selected' : '' %> <%= isDisabled('pending') ? 'disabled' : '' %>>Pending</option>
+                <option value="Paid" <%= order.paymentStatus === 'Paid' ? 'selected' : '' %> <%= isDisabled('Paid') ? 'disabled' : '' %>>Paid</option>
+                <option value="failed" <%= order.paymentStatus === 'failed' ? 'selected' : '' %> <%= isDisabled('failed') ? 'disabled' : '' %>>Failed</option>
+                <option value="refunded" <%= order.paymentStatus === 'refunded' ? 'selected' : '' %> <%= isDisabled('refunded') ? 'disabled' : '' %>>Refunded</option>
+                <option value="partially-refunded" <%= order.paymentStatus === 'partially-refunded' ? 'selected' : '' %> <%= isDisabled('partially-refunded') ? 'disabled' : '' %>>Partially Refunded</option>
+              </select>
+              <% if (isOnlinePayment) { %>
+                <div class="form-text text-info">Online payments are automatically marked as Paid and can only be set to refunded or partially-refunded.</div>
+              <% } %>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" <%= isOnlinePayment && !['refunded', 'partially-refunded'].includes(order.paymentStatus) ? 'disabled' : '' %>>Update Payment Status</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Order Timeline</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <strong>Order Placed</strong>
+                  <p class="mb-0">Status: Created</p>
+                </div>
+                <small><%= new Date(order.createdAt).toLocaleString() %></small>
+              </div>
+            </li>
+            <% if (order.updatedAt && order.updatedAt > order.createdAt) { %>
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <strong>Last Updated</strong>
+                    <p class="mb-0">Status: <%= order.orderStatus %></p>
+                  </div>
+                  <small><%= new Date(order.updatedAt).toLocaleString() %></small>
+                </div>
+              </li>
+            <% } %>
+            <% order.orderedItem.forEach(item => { %>
+              <% if (['Return Requested', 'Return Approved', 'Return Rejected'].includes(item.productStatus)) { %>
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between">
+                    <div>
+                      <strong>Return <%= item.productStatus === 'Return Requested' ? 'Requested' : item.productStatus === 'Return Approved' ? 'Approved' : 'Rejected' %></strong>
+                      <p class="mb-0">Product: <%= item.productId ? item.productId.productName : 'Product' %></p>
+                      <% if (item.returnReason) { %>
+                        <p class="mb-0 text-muted"><small>Reason: <%= item.returnReason %></small></p>
+                      <% } %>
+                    </div>
+                    <small><%= new Date(item.updatedAt || order.updatedAt).toLocaleString() %></small>
+                  </div>
+                </li>
+              <% } %>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle order status update
+  const updateOrderForm = document.getElementById('updateOrderForm');
+  updateOrderForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const updateData = {
+      orderId: formData.get('orderId'),
+      orderStatus: formData.get('orderStatus')
+    };
+
+    console.log('Updating order status:', updateData);
+
+    fetch('/admin/orders/update-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateData)
+    })
+    .then(response => {
+      console.log('Order status response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Order status response data:', data);
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Order status updated successfully',
+          confirmButtonText: 'OK'
+        }).then(() => window.location.reload());
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: 'Failed to update order status: ' + data.message,
+          confirmButtonText: 'OK'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Order status fetch error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while updating order status',
+        confirmButtonText: 'OK'
+      });
+    });
+  });
+
+  // Handle payment status update
+  const updatePaymentForm = document.getElementById('updatePaymentForm');
+  updatePaymentForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const updateData = {
+      orderId: formData.get('orderId'),
+      paymentStatus: formData.get('paymentStatus')
+    };
+
+    console.log('Updating payment status:', updateData);
+
+    fetch('/admin/orders/update-payment-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateData)
+    })
+    .then(response => {
+      console.log('Payment status response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Payment status response data:', data);
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Payment status updated successfully',
+          confirmButtonText: 'OK'
+        }).then(() => window.location.reload());
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: 'Failed to update payment status: ' + data.message,
+          confirmButtonText: 'OK'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Payment status fetch error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while updating payment status',
+        confirmButtonText: 'OK'
+      });
+    });
+  });
+
+  // Handle return approval
+  document.querySelectorAll('.approve-return').forEach(button => {
+    button.addEventListener('click', function() {
+      const productId = this.getAttribute('data-product-id');
+      const orderId = '<%= order._id %>';
+      
+      verifyReturn(orderId, productId, 'Return Approved');
+    });
+  });
+
+  // Handle return rejection
+  document.querySelectorAll('.reject-return').forEach(button => {
+    button.addEventListener('click', function() {
+      const productId = this.getAttribute('data-product-id');
+      const orderId = '<%= order._id %>';
+      
+      verifyReturn(orderId, productId, 'Return Rejected');
+    });
+  });
+
+  // Function to verify return request
+  function verifyReturn(orderId, productId, status) {
+    console.log('Verifying return:', { orderId, productId, status });
+    fetch('/admin/orders/verify-return', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        orderId: orderId,
+        productId: productId,
+        status: status
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: data.message,
+          confirmButtonText: 'OK'
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: 'Failed to process return: ' + data.message,
+          confirmButtonText: 'OK'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while processing the return request',
+        confirmButtonText: 'OK'
+      });
+    });
+  }
+
+  // Handle product status updates
+  document.querySelectorAll('.product-status-dropdown').forEach(dropdown => {
+    dropdown.addEventListener('change', function() {
+      const orderId = this.getAttribute('data-order-id');
+      const productId = this.getAttribute('data-product-id');
+      const productStatus = this.value;
+
+      console.log('Updating product status:', { orderId, productId, productStatus });
+
+      Swal.fire({
+        title: 'Update Product Status',
+        text: `Are you sure you want to change this product's status to ${productStatus}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch('/admin/orders/update-product-status', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              orderId: orderId,
+              productId: productId,
+              productStatus: productStatus
+            })
+          })
+          .then(response => {
+            console.log('Product status response status:', response.status);
+            return response.json();
+          })
+          .then(data => {
+            console.log('Product status response data:', data);
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Product status updated successfully',
+                confirmButtonText: 'OK'
+              });
+              
+              const productRow = this.closest('tr');
+              const allOptions = this.querySelectorAll('option');
+              const isDelivered = productStatus === 'Delivered';
+              const isCancelledOrReturned = productStatus === 'Cancelled' || productStatus === 'Returned';
+              
+              allOptions.forEach(option => {
+                if (isDelivered && option.value !== 'Returned') {
+                  option.disabled = true;
+                } else if (isCancelledOrReturned) {
+                  option.disabled = true;
+                }
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Failed',
+                text: 'Failed to update product status: ' + data.message,
+                confirmButtonText: 'OK'
+              });
+              this.value = this.getAttribute('data-original-status') || 'Pending';
+            }
+          })
+          .catch(error => {
+            console.error('Product status fetch error:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'An error occurred while updating product status',
+              confirmButtonText: 'OK'
+            });
+            this.value = this.getAttribute('data-original-status') || 'Pending';
+          });
+        } else {
+          this.value = this.getAttribute('data-original-status') || 'Pending';
+        }
+      });
+    });
+    
+    dropdown.setAttribute('data-original-status', dropdown.value);
+  });
+});
+</script>
+
+<%- include('../partials/admin/footer') %>

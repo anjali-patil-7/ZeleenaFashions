@@ -4,6 +4,7 @@ const authController = require('../controllers/admin/adminController');
 const categoryController = require('../controllers/admin/categoryController (6)');
 const productController = require('../controllers/admin/productController');
 const userController = require('../controllers/admin/userController');
+const orderController = require('../controllers/admin/orderControoler')
 const adminSession = require('../middlewares/admin');
 const { categoryUpload, productUpload } = require('../config/multer');
 const router = express.Router();
@@ -51,16 +52,13 @@ router.post('/api/blockproduct/:id',adminSession, productController.toggleProduc
 router.get('/users',adminSession, userController.getUsers);
 router.post('/api/block/:userId',adminSession, userController.toggleUserStatus);
 
-// Catch-all route for undefined admin routes
-// router.use((req, res) => {
-//   res.status(404).render('admin/404');
-// });
 
-// // Error handling middleware for admin routes
-// router.use((err, req, res, next) => {
-//   console.error('Admin route error:', err);
-//   req.flash('error_msg', 'Something went wrong');
-//   res.status(500).render('admin/404');
-// });
+//order Route
+router.get('/orders',adminSession,orderController.getOrders)
+router.get('/orders/:id', adminSession,orderController.getOrderDetails)
+router.post('/orders/update-status', orderController.updateOrderStatus);
+router.post('/orders/update-product-status', orderController.updateProductStatus);
+router.post('/orders/update-payment-status', orderController.updatePaymentStatus);
+router.post('/orders/verify-return', orderController.verifyReturn);
 
 module.exports = router;
