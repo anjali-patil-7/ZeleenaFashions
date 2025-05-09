@@ -86,7 +86,7 @@ router.get('/placingorder', verifyToken, checkoutController.getPlacingOrder);
 router.get('/confirmorder/:orderId', verifyToken, checkoutController.getOrderConfirmation);
 router.post('/apply-coupon', verifyToken, checkoutController.applyCoupon);
 router.post('/remove-coupon', verifyToken, checkoutController.removeCoupon);
-router.get('/validate-cart', verifyToken, checkoutController.validateCart);
+router.get('/validate-cart', verifyToken, checkoutController.verifyCartBeforeCheckout);
 router.get('/verify-cart-checkout', verifyToken, checkoutController.verifyCartBeforeCheckout);
 
 // Order routes
@@ -106,9 +106,6 @@ router.post('/create-razorpay-order', verifyToken, paymentController.createRazor
 router.post('/verify-payment', verifyToken, paymentController.verifyPayment);
 router.post('/place-order', verifyToken, paymentController.placeOrder);
 router.post('/retry-payment', verifyToken, paymentController.retryPayment);
-
-// Order success/failure pages
-router.get('/order-success/:orderId', verifyToken, orderController.renderSuccessPage);
-router.get('/order-failure/:orderId', verifyToken, orderController.renderFailurePage);
+router.post('/handle-payment-failure', verifyToken, paymentController.handlePaymentFailure);
 
 module.exports = router;

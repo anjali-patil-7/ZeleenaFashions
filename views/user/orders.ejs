@@ -362,6 +362,9 @@
 <%- include('../partials/user/footer') %>
 
 <script>
+  // Define base URL based on environment
+  const BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin;
+
   function logout() {
     Swal.fire({
       title: "Are you sure?",
@@ -380,18 +383,27 @@
   }
 
   function retryPayment(orderId, button) {
-    // Disable button and show loading state
     button.disabled = true;
     button.textContent = "Processing...";
 
-    fetch("/retry-payment", {
+    // Get JWT token from localStorage or cookies
+    const token = localStorage.getItem('token') || '';
+
+    fetch(`${BASE_URL}/retry-payment`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${token}` : ''
+      },
       body: JSON.stringify({ orderId }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then((data) => {
-        // Re-enable button
         button.disabled = false;
         button.textContent = "Retry Payment";
 
@@ -404,6 +416,7 @@
             description: "Retry Payment for Order",
             order_id: data.orderId,
             handler: function (response) {
+              console.log('Razorpay payment response:', response);
               verifyRetryPayment(response, data.originalOrderId);
             },
             prefill: {
@@ -418,11 +431,10 @@
               ondismiss: function () {
                 Swal.fire({
                   title: "Payment Cancelled",
-                  text: "You can retry the payment from the orders page. Contact support if you need assistance.",
+                  text: "You can retry the payment from the orders page.",
                   icon: "info",
                   confirmButtonColor: "#1d2951",
                 });
-                window.location.href = "/orders";
               },
             },
           };
@@ -431,32 +443,31 @@
           rzp.open();
 
           rzp.on("payment.failed", function (response) {
+            console.error('Razorpay payment failed:', response.error);
             Swal.fire({
               title: "Payment Failed",
               text: response.error.description || "Please try again or contact support.",
               icon: "error",
               confirmButtonColor: "#1d2951",
             });
-            window.location.href = "/orders";
           });
         } else {
+          console.error('Retry payment initiation failed:', data.message);
           Swal.fire({
             title: "Error",
-            text: data.message || "Failed to initiate retry payment. Please try again or contact support.",
+            text: data.message || "Failed to initiate retry payment.",
             icon: "error",
             confirmButtonColor: "#1d2951",
           });
         }
       })
       .catch((error) => {
-        // Re-enable button
         button.disabled = false;
         button.textContent = "Retry Payment";
-
-        console.error("Retry payment error:", error);
+        console.error('Retry payment error:', error);
         Swal.fire({
           title: "Error",
-          text: "An error occurred while retrying payment. Please try again or contact support.",
+          text: "An error occurred while initiating retry payment: " + error.message,
           icon: "error",
           confirmButtonColor: "#1d2951",
         });
@@ -464,18 +475,47 @@
   }
 
   function verifyRetryPayment(payment, orderId) {
-    fetch("/payment/verify-payment", {
+    console.log('Verifying payment for order:', orderId, 'with payment details:', payment);
+
+    // Validate payment object
+    if (!payment || !payment.razorpay_order_id || !payment.razorpay_payment_id || !payment.razorpay_signature) {
+      console.error('Invalid payment response:', payment);
+      Swal.fire({
+        title: "Error",
+        text: "Invalid payment response from Razorpay. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#1d2951",
+      });
+      return;
+    }
+
+    // Get JWT token from localStorage or cookies
+    const token = localStorage.getItem('token') || '';
+
+    fetch(`${BASE_URL}/verify-payment`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${token}` : ''
+      },
       body: JSON.stringify({
-        razorpay_order_id: payment.razorpay_order_id,
-        razorpay_payment_id: payment.razorpay_payment_id,
-        razorpay_signature: payment.razorpay_signature,
-        orderId,
+        razorpayOrderId: payment.razorpay_order_id,
+        razorpayPaymentId: payment.razorpay_payment_id,
+        razorpaySignature: payment.razorpay_signature,
+        orderId: orderId,
       }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        console.log('Verify payment response status:', response.status);
+        if (!response.ok) {
+          return response.text().then((text) => {
+            throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
+          });
+        }
+        return response.json();
+      })
       .then((data) => {
+        console.log('Verification response:', data);
         if (data.success) {
           Swal.fire({
             title: "Payment Successful",
@@ -486,24 +526,23 @@
             window.location.href = "/orderconfirmation/" + data.orderId;
           });
         } else {
+          console.error('Payment verification failed:', data.message);
           Swal.fire({
             title: "Payment Failed",
             text: data.message || "Payment verification failed. Please try again or contact support.",
             icon: "error",
             confirmButtonColor: "#1d2951",
           });
-          window.location.href = "/orders";
         }
       })
       .catch((error) => {
-        console.error("Verification error:", error);
+        console.error('Payment verification error:', error);
         Swal.fire({
           title: "Error",
-          text: "Payment verification failed. Please try again or contact support.",
+          text: "An error occurred during payment verification: " + error.message,
           icon: "error",
           confirmButtonColor: "#1d2951",
         });
-        window.location.href = "/orders";
       });
   }
 </script>
