@@ -41,7 +41,7 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">Payment Method:</span>
-              <span class="detail-value">Cash on Delivery</span>
+              <span class="detail-value status-badge <%= order.paymentMethod.toLowerCase() %>"><%= order.paymentMethod %></span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Payment Status:</span>

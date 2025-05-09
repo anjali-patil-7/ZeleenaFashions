@@ -5712,7 +5712,7 @@ button.li-btn:hover {
   background-color: #f7f7f7;
 }
 .hiraola-footer_area .footer-top_area {
-  padding: 80px 0 80px;
+  padding: 100px 0 80px;
 }
 @media (max-width: 767px) {
   .hiraola-footer_area .footer-top_area {
@@ -5733,7 +5733,7 @@ button.li-btn:hover {
 }
 .hiraola-footer_area .footer-top_area .footer-widgets_info .widgets-essential_stuff > ul > li > i {
   font-size: 21px;
-  padding-right: 10px;
+  padding-right: 0px;
   vertical-align: middle;
 }
 .hiraola-footer_area .footer-top_area .footer-widgets_title h6 {

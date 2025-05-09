@@ -2,6 +2,46 @@ const mongoose = require('mongoose');
 const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const User = require('../../models/userSchema');
+const Offer = require('../../models/offerSchema'); // Added Offer import
+
+// Helper function to get the best offer for a product
+const getBestOffer = async (product) => {
+  const currentDate = new Date();
+  // Fetch product-specific offers
+  const productOffers = await Offer.find({
+    offerType: 'product',
+    productId: product._id,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
+
+  // Fetch category-specific offers
+  const categoryOffers = await Offer.find({
+    offerType: 'category',
+    categoryId: product.category,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
+
+  // Combine and find the best offer
+  const allOffers = [...productOffers, ...categoryOffers];
+  if (allOffers.length === 0) return { discount: 0, finalPrice: product.price };
+
+  const bestOffer = allOffers.reduce((max, offer) => 
+    offer.discount > max.discount ? offer : max, { discount: 0 });
+
+  const discountAmount = (product.price * bestOffer.discount) / 100;
+  const finalPrice = product.price - discountAmount;
+
+  return {
+    discount: bestOffer.discount,
+    discountAmount,
+    finalPrice,
+    offerName: bestOffer.offerName,
+  };
+};
 
 exports.getSingleProduct = async (req, res) => {
   try {
@@ -28,7 +68,10 @@ exports.getSingleProduct = async (req, res) => {
       return res.redirect('/shop?error=Product+is+not+available');
     }
 
-    // Fetch related products
+    // Get best offer for the product
+    const productOffer = await getBestOffer(product);
+
+    // Fetch related products with their offers
     const relatedProducts = await Product.find({
       category: product.category,
       _id: { $ne: productId },
@@ -37,6 +80,12 @@ exports.getSingleProduct = async (req, res) => {
       .limit(4)
       .lean();
 
+    // Attach best offer to related products
+    for (let relatedProduct of relatedProducts) {
+      const offer = await getBestOffer(relatedProduct);
+      relatedProduct.offer = offer;
+    }
+
     // Log image paths for debugging
     console.log('Product:', product.toObject());
     console.log('Product Image Paths:', product.productImage);
@@ -44,7 +93,7 @@ exports.getSingleProduct = async (req, res) => {
 
     // Render the single product page
     res.render('user/singleproduct', {
-      product: product.toObject(),
+      product: { ...product.toObject(), offer: productOffer },
       relatedProduct: relatedProducts,
     });
   } catch (error) {
@@ -86,11 +135,12 @@ exports.getShopPage = async (req, res) => {
     let query = { status: true };
     
     // Add search functionality
-    if (search) {
-      query.productName = { $regex: search, $options: 'i' };
+    if (search && search.trim()) {
+      const firstLetter = search.trim().charAt(0);
+      query.productName = { $regex: `^${firstLetter}`, $options: 'i' };
     }
     
-    // Add price range filter
+    // Add price range filter (based on final price after offers)
     query.price = { $gte: minPrice, $lte: maxPrice };
 
     const totalProducts = await Product.countDocuments(query);
@@ -100,6 +150,12 @@ exports.getShopPage = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
+
+    // Attach best offer to each product
+    for (let product of products) {
+      const offer = await getBestOffer(product);
+      product.offer = offer;
+    }
 
     const totalPages = Math.ceil(totalProducts / limit);
 
@@ -112,8 +168,13 @@ exports.getShopPage = async (req, res) => {
       userWishlist = user.wishlist || [];
     }
 
-    // Placeholder for offers (replace with actual offer fetching logic if available)
-    const offers = []; // Replace with actual offers from your Offer model if needed
+    // Fetch active offers
+    const currentDate = new Date();
+    const offers = await Offer.find({
+      status: true,
+      startDate: { $lte: currentDate },
+      endDate: { $gte: currentDate },
+    }).lean();
 
     res.render('user/shop', {
       categories,
@@ -194,13 +255,24 @@ exports.getShopByFilter = async (req, res) => {
       .limit(limit)
       .lean();
 
+    // Attach best offer to each product
+    for (let product of products) {
+      const offer = await getBestOffer(product);
+      product.offer = offer;
+    }
+
     const totalPages = Math.ceil(totalProducts / limit);
 
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
 
-    // Placeholder for offers (replace with actual offer fetching logic if available)
-    const offers = []; // Replace with actual offers if needed
+    // Fetch active offers
+    const currentDate = new Date();
+    const offers = await Offer.find({
+      status: true,
+      startDate: { $lte: currentDate },
+      endDate: { $gte: currentDate },
+    }).lean();
 
     res.render('user/shopbyfilter', {
       categories,

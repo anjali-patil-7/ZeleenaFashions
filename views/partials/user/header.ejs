@@ -4,86 +4,253 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>zeleena fashions</title>
+    <title>Zeleena Fashions</title>
     <meta name="robots" content="noindex, follow" />
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="/user/assets/images/favicon.png">
 
-    <!-- CSS
-	============================================ -->
-    <link rel="stylesheet" href="/public/user/assets/images/">
-
-    <!-- Bootstrap CSS -->
+    <!-- CSS -->
     <link rel="stylesheet" href="/user/assets/css/bootstrap.min.css">
-    <!-- Fontawesome -->
     <link rel="stylesheet" href="/user/assets/css/font-awesome.min.css">
-    
-    <!-- Fontawesome Star -->
     <link rel="stylesheet" href="/user/assets/css/fontawesome-stars.css">
-    <!-- Ion Icon -->
     <link rel="stylesheet" href="/user/assets/css/ionicons.min.css">
-    <!-- Slick CSS -->
     <link rel="stylesheet" href="/user/assets/css/slick.min.css">
-    <!-- Animation -->
     <link rel="stylesheet" href="/user/assets/css/animate.min.css">
-    <!-- jQuery Ui -->
     <link rel="stylesheet" href="/user/assets/css/jquery-ui.min.css">
-    <!-- Nice Select -->
     <link rel="stylesheet" href="/user/assets/css/nice-select.min.css">
-    <!-- Timecircles -->
     <link rel="stylesheet" href="/user/assets/css/timecircles.min.css">
-
-    <!-- Main Style CSS -->
     <link rel="stylesheet" href="/user/assets/css/style.css">
-
-    <!-- Add this in your head tag -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/2.2.3/jquery.elevatezoom.min.css">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <!-- sweet alert -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<style>
-    .header-right_area i {
-        font-size: 24px;
-    }
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #1a1a1a;
+        }
 
-    .hm-searchbox {
-        position: relative;
-    }
+        /* Header Styles */
+        .header-main_area {
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
 
-    .search-cancel-icon {
-        position: absolute;
-        right: 50px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #999;
-        transition: color 0.3s;
-        z-index: 10;
-    }
+        .header-middle_area {
+            padding: 20px 0;
+        }
 
-    .search-cancel-icon:hover {
-        color: #333;
-    }
+        .header-logo img {
+            max-width: 100px;
+            transition: transform 0.3s ease;
+        }
 
-    /* For mobile search */
-    .offcanvas-inner_search .search-cancel-icon {
-        right: 45px;
-    }
-</style>
+        .header-logo img:hover {
+            transform: scale(1.05);
+        }
+
+        .hm-searchbox {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .hm-searchbox input {
+            border: 1px solid #e5e5e5;
+            border-radius: 25px;
+            padding: 12px 50px 12px 20px;
+            font-size: 16px;
+            width: 100%;
+            transition: border-color 0.3s ease;
+        }
+
+        .hm-searchbox input:focus {
+            border-color: #d4af37;
+            outline: none;
+        }
+
+        .hm-searchbox .li-btn {
+            background: #d4af37;
+            color: #ffffff;
+            border-radius: 0 25px 25px 0;
+            padding: 12px 20px;
+            position: absolute;
+            right: 0;
+            top: 0;
+            border: none;
+            transition: background 0.3s ease;
+        }
+
+        .hm-searchbox .li-btn:hover {
+            background: #b8972e;
+        }
+
+        .search-cancel-icon {
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #1a1a1a;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .search-cancel-icon:hover {
+            color: #d4af37;
+        }
+
+        .header-bottom_area {
+            background: #1a1a1a;
+            padding: 15px 0;
+        }
+
+        .main-menu_area nav ul {
+            display: flex;
+            gap: 30px;
+        }
+
+        .main-menu_area nav ul li a {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+        }
+
+        .main-menu_area nav ul li a:hover {
+            color: #d4af37;
+        }
+
+        .header-right_area nav ul {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+        }
+
+        .header-right_area nav ul li a {
+            color: #1a1a1a;
+            font-size: 24px;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .header-right_area nav ul li a:hover {
+            color: #d4af37;
+            transform: scale(1.2);
+        }
+
+        /* Offcanvas Menu */
+        .offcanvas-menu-inner {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .offcanvas-menu-inner .btn-close {
+            color: #1a1a1a;
+            font-size: 24px;
+        }
+
+        .offcanvas-inner_search .hm-searchbox input {
+            border-radius: 20px;
+            padding: 10px 40px 10px 15px;
+            font-size: 15px;
+        }
+
+        .offcanvas-inner_search .search-cancel-icon {
+            right: 45px;
+        }
+
+        .offcanvas-navigation ul li a {
+            color: #1a1a1a;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 0;
+            transition: color 0.3s ease;
+        }
+
+        .offcanvas-navigation ul li a:hover {
+            color: #d4af37;
+        }
+
+        /* Minicart */
+        .offcanvas-minicart_wrapper {
+            background: #ffffff;
+        }
+
+        .minicart-heading h4 {
+            color: #1a1a1a;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .minicart-product {
+            border-bottom: 1px solid #e5e5e5;
+            padding: 15px 0;
+        }
+
+        .minicart-product .product-item_title {
+            color: #1a1a1a;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .minicart-product .product-item_title:hover {
+            color: #d4af37;
+        }
+
+        .minicart-item_total {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .minicart-btn_area .hiraola-btn {
+            background: #d4af37;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .minicart-btn_area .hiraola-btn:hover {
+            background: #b8972e;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .header-right_area nav ul {
+                justify-content: center;
+            }
+
+            .header-logo img {
+                max-width: 80px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hm-searchbox input {
+                font-size: 14px;
+                padding: 10px 40px 10px 15px;
+            }
+
+            .hm-searchbox .li-btn {
+                padding: 10px 15px;
+            }
+        }
+    </style>
 </head>
 
 <body class="template-color-1">
-
     <div class="main-wrapper">
-
         <!-- Begin Hiraola's Header Main Area -->
         <header class="header-main_area">
             <div class="header-middle_area d-none d-lg-block">
@@ -92,16 +259,14 @@
                         <div class="col-lg-3">
                             <div class="header-logo">
                                 <a href="/">
-                                    <img src="/user/assets/images/menu/logo/Logo.png" alt="Hiraola's Header Logo" width="80" height="auto">
-
-
+                                    <img src="/user/assets/images/menu/logo/Logo.png" alt="Hiraola's Header Logo" width="100" height="auto">
                                 </a>
                             </div>
                         </div>
                         <div class="col-lg-9">
                             <div class="hm-form_area">
                                 <form action="/search" class="hm-searchbox">
-                                    <input type="text" id="desktop-search" placeholder="Enter your search key ..." name="query" value="<%= locals.searchQuery || "" %>">
+                                    <input type="text" id="desktop-search" placeholder="Enter your search key ..." name="query" value="<%= locals.searchQuery || '' %>">
                                     <span class="search-cancel-icon" style="display: none;"><i class="fa fa-times"></i></span>
                                     <button class="li-btn" type="submit"><i class="fa fa-search"></i></button>
                                 </form>
@@ -116,7 +281,7 @@
                         <div class="col-md-4 col-sm-4 d-lg-none d-block">
                             <div class="header-logo">
                                 <a href="/">
-                                    <img src="\user\assets\images\menu\logo\Logo.png.png" alt="Hiraola's Header Logo">
+                                    <img src="/user/assets/images/menu/logo/Logo.png" alt="Hiraola's Header Logo">
                                 </a>
                             </div>
                         </div>
@@ -126,14 +291,12 @@
                                     <ul>
                                         <li class="dropdown-holder"><a href="/">Home</a></li>
                                         <li class="megamenu-holder"><a href="/shop">Shop</a></li>
-                                        <li><a href="about">About Us</a></li>
-                                        <li><a href="contact">Contact</a></li>
+                                        <li><a href="/about">About Us</a></li>
+                                        <li><a href="/contact">Contact</a></li>
                                     </ul>
                                 </nav>
                             </div>
                         </div>
-
-
                         <div class="col-lg-3 col-md-8 col-sm-8">
                             <div class="header-right_area">
                                 <div class="main-menu_area">
@@ -170,8 +333,6 @@
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>
@@ -186,7 +347,7 @@
                             <li class="minicart-product">
                                 <a class="product-item_remove" href="javascript:void(0)"><i class="ion-android-close"></i></a>
                                 <div class="product-item_img">
-                                    <img src="/public/user/assets/images/product/small-size/2-1.jpg" alt="Hiraola's Product Image">
+                                    <img src="/user/assets/images/product/small-size/2-1.jpg" alt="Hiraola's Product Image">
                                 </div>
                                 <div class="product-item_content">
                                     <a class="product-item_title" href="/shop">Magni dolorum vel</a>
@@ -233,56 +394,24 @@
                         <a href="#" class="btn-close"><i class="ion-android-close"></i></a>
                         <div class="offcanvas-inner_search">
                             <form action="/search" class="hm-searchbox">
-                                <input type="text" id="mobile-search" placeholder="Search for item..." name="query" value="<%= locals.searchQuery || "" %>">
+                                <input type="text" id="mobile-search" placeholder="Search for item..." name="query" value="<%= locals.searchQuery || '' %>">
                                 <span class="search-cancel-icon" style="display: none;"><i class="fa fa-times"></i></span>
                                 <button class="search_btn" type="submit"><i class="ion-ios-search-strong"></i></button>
                             </form>
                         </div>
                         <nav class="offcanvas-navigation">
                             <ul class="mobile-menu">
-                                <li class="menu-item-has-children active"><a href="/"><span class="mm-text">Home</span></a>
-                                    <ul class="sub-menu">
-                                </li>
+                                <li class="menu-item-has-children active"><a href="/"><span class="mm-text">Home</span></a></li>
+                                <li class="menu-item-has-children"><a href="/shop"><span class="mm-text">Shop</span></a></li>
                                 <li class="menu-item-has-children">
-                                    <a href="/shop">
-                                        <span class="mm-text">Shop</span>
-                                    </a>
-                                </li>
-                                <li class="menu-item-has-children">
-                                    <a href="#">
-                                        <span class="mm-text">Pages</span>
-                                    </a>
+                                    <a href="#"><span class="mm-text">Pages</span></a>
                                     <ul class="sub-menu">
-                                        <li>
-                                            <a href="/useraccount">
-                                                <span class="mm-text">My Account</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/register">
-                                                <span class="mm-text">Register</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/login">
-                                                <span class="mm-text">Login</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/wishlist">
-                                                <span class="mm-text">Wishlist</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/cart">
-                                                <span class="mm-text">Cart</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/checkout">
-                                                <span class="mm-text">Checkout</span>
-                                            </a>
-                                        </li>
+                                        <li><a href="/useraccount"><span class="mm-text">My Account</span></a></li>
+                                        <li><a href="/register"><span class="mm-text">Register</span></a></li>
+                                        <li><a href="/login"><span class="mm-text">Login</span></a></li>
+                                        <li><a href="/wishlist"><span class="mm-text">Wishlist</span></a></li>
+                                        <li><a href="/cart"><span class="mm-text">Cart</span></a></li>
+                                        <li><a href="/checkout"><span class="mm-text">Checkout</span></a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -290,51 +419,20 @@
                         <nav class="offcanvas-navigation user-setting_area">
                             <ul class="mobile-menu">
                                 <li class="menu-item-has-children active">
-                                    <a href="#">
-                                        <span class="mm-text">User
-                                        Setting
-                                    </span>
-                                    </a>
+                                    <a href="#"><span class="mm-text">User Setting</span></a>
                                     <ul class="sub-menu">
-                                        <li>
-                                            <a href="/useraccount">
-                                                <span class="mm-text">My Account</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/login">
-                                                <span class="mm-text">Login</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/register">
-                                                <span class="mm-text">Register</span>
-                                            </a>
-                                        </li>
+                                        <li><a href="/useraccount"><span class="mm-text">My Account</span></a></li>
+                                        <li><a href="/login"><span class="mm-text">Login</span></a></li>
+                                        <li><a href="/register"><span class="mm-text">Register</span></a></li>
                                     </ul>
                                 </li>
-                                <li class="menu-item-has-children"><a href="#"><span class="mm-text">Language</span></a>
+                                <li class="menu-item-has-children">
+                                    <a href="#"><span class="mm-text">Language</span></a>
                                     <ul class="sub-menu">
-                                        <li>
-                                            <a href="javascript:void(0)">
-                                                <span class="mm-text">English</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0)">
-                                                <span class="mm-text">Français</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0)">
-                                                <span class="mm-text">Romanian</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0)">
-                                                <span class="mm-text">Japanese</span>
-                                            </a>
-                                        </li>
+                                        <li><a href="javascript:void(0)"><span class="mm-text">English</span></a></li>
+                                        <li><a href="javascript:void(0)"><span class="mm-text">Français</span></a></li>
+                                        <li><a href="javascript:void(0)"><span class="mm-text">Romanian</span></a></li>
+                                        <li><a href="javascript:void(0)"><span class="mm-text">Japanese</span></a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -344,51 +442,35 @@
             </div>
         </header>
         <!-- Hiraola's Header Main Area End Here -->
-        
+
         <!-- Script for search cancel functionality -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // For desktop search
                 const desktopInput = document.getElementById('desktop-search');
-                const desktopCancelIcon = desktopInput.parentElement.querySelector('.search-cancel-icon');
-                
-                // For mobile search
+                const desktopCancelIcon = desktopInput?.parentElement.querySelector('.search-cancel-icon');
                 const mobileInput = document.getElementById('mobile-search');
-                const mobileCancelIcon = mobileInput.parentElement.querySelector('.search-cancel-icon');
-                
-                // Function to setup search behavior
+                const mobileCancelIcon = mobileInput?.parentElement.querySelector('.search-cancel-icon');
+
                 function setupSearch(input, cancelIcon) {
-                    // Show cancel icon when text is entered or when there's an initial value
                     if (input.value) {
                         cancelIcon.style.display = 'block';
                     }
-                    
                     input.addEventListener('input', function() {
                         cancelIcon.style.display = this.value ? 'block' : 'none';
                     });
-                    
-                    // Clear search and redirect to shop page to display all products when cancel icon is clicked
                     cancelIcon.addEventListener('click', function(e) {
-                        // Prevent form submission
                         e.preventDefault();
-                        
-                        // Clear the input
                         input.value = '';
                         cancelIcon.style.display = 'none';
-                        
-                        // Redirect to shop page to display all products
                         window.location.href = '/shop';
                     });
                 }
-                
-                // Setup both search fields
+
                 if (desktopInput && desktopCancelIcon) {
                     setupSearch(desktopInput, desktopCancelIcon);
                 }
-                
                 if (mobileInput && mobileCancelIcon) {
                     setupSearch(mobileInput, mobileCancelIcon);
                 }
             });
         </script>
-        

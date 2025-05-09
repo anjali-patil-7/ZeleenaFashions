@@ -1,6 +1,46 @@
 const Category = require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
+const Offer = require('../../models/offerSchema'); // Added Offer import
+
+// Helper function to get the best offer for a product
+const getBestOffer = async (product) => {
+  const currentDate = new Date();
+  // Fetch product-specific offers
+  const productOffers = await Offer.find({
+    offerType: 'product',
+    productId: product._id,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
+
+  // Fetch category-specific offers
+  const categoryOffers = await Offer.find({
+    offerType: 'category',
+    categoryId: product.category,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
+
+  // Combine and find the best offer
+  const allOffers = [...productOffers, ...categoryOffers];
+  if (allOffers.length === 0) return { discount: 0, finalPrice: product.price };
+
+  const bestOffer = allOffers.reduce((max, offer) => 
+    offer.discount > max.discount ? offer : max, { discount: 0 });
+
+  const discountAmount = (product.price * bestOffer.discount) / 100;
+  const finalPrice = product.price - discountAmount;
+
+  return {
+    discount: bestOffer.discount,
+    discountAmount,
+    finalPrice,
+    offerName: bestOffer.offerName,
+  };
+};
 
 // Render the homepage
 exports.getHomePage = async (req, res) => {
@@ -16,9 +56,15 @@ exports.getHomePage = async (req, res) => {
             .populate('category')
             .limit(10)
             .lean();
-            console.log(products)
+        console.log(products);
         if (!products.length) {
             console.log('No active products found.');
+        }
+
+        // Attach best offer to each product
+        for (let product of products) {
+          const offer = await getBestOffer(product);
+          product.offer = offer;
         }
 
         // Initialize session data
@@ -32,20 +78,25 @@ exports.getHomePage = async (req, res) => {
         if (req.session.isAuth && req.user) {
             const user = await User.findById(req.user.id).lean();
             userWishlist = user.wishlist || [];
-
-            
         }
 
-
+        // Fetch active offers
+        const currentDate = new Date();
+        const offers = await Offer.find({
+          status: true,
+          startDate: { $lte: currentDate },
+          endDate: { $gte: currentDate },
+        }).lean();
 
         // Render the homepage with data
         res.render('user/home', {
             categories,
             products,
+            offers,
             error_msg: req.session.error_msg || '',
             success_msg: req.session.success_msg || '',
             session: res.locals.session,
-            userWishlist, // Pass wishlist to template
+            userWishlist,
         });
 
         // Clear flash messages
@@ -58,6 +109,7 @@ exports.getHomePage = async (req, res) => {
         res.render('user/home', {
             categories: [],
             products: [],
+            offers: [],
             error_msg: 'An unexpected error occurred.',
             success_msg: '',
             session: res.locals.session,

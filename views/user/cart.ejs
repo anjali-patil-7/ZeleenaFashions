@@ -204,18 +204,18 @@
                   <td>
                     <a href="/product/<%= item.productId._id %>"><%= item.productId.productName %></a>
                     <% const prodId = item.productId._id.toString(); %>
-                    <% if (appliedOffers && appliedOffers[prodId]) { %>
+                    <% if (appliedOffers && appliedOffers[prodId] && appliedOffers[prodId].discount > 0) { %>
                       <div class="offer-info mt-1">
-                        <span><%= appliedOffers[prodId].name %></span>
+                        <span><%= appliedOffers[prodId].offerName %></span>
                         <span class="discount-tag"><%= appliedOffers[prodId].discount %>% OFF</span>
                       </div>
                     <% } %>
                   </td>
                   <td>
                     <div class="price-display">
-                      <% if (appliedOffers && appliedOffers[prodId]) { %>
+                      <% if (appliedOffers && appliedOffers[prodId] && appliedOffers[prodId].discount > 0) { %>
                         <span class="original-price">₹<%= item.productId.price.toFixed(2) %></span>
-                        <span class="discounted-price">₹<%= appliedOffers[prodId].discountedPrice.toFixed(2) %></span>
+                        <span class="discounted-price">₹<%= appliedOffers[prodId].finalPrice.toFixed(2) %></span>
                       <% } else { %>
                         <span>₹<%= item.price.toFixed(2) %></span>
                       <% } %>
@@ -230,10 +230,10 @@
                         data-product-id="<%= item.productId._id %>"
                         data-product-stock="<%= item.productId.totalStock || item.stock %>"
                         data-product-price="<%= item.productId.price || item.price %>"
-                        data-discounted-price="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].discountedPrice : (item.productId.price || item.price) %>"
-                        data-has-discount="<%= appliedOffers && appliedOffers[prodId] ? 'true' : 'false' %>"
+                        data-final-price="<%= appliedOffers && appliedOffers[prodId] && appliedOffers[prodId].discount > 0 ? appliedOffers[prodId].finalPrice : (item.productId.price || item.price) %>"
+                        data-has-discount="<%= appliedOffers && appliedOffers[prodId] && appliedOffers[prodId].discount > 0 ? 'true' : 'false' %>"
                         data-discount-percentage="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].discount : 0 %>"
-                        data-discount-name="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].name : '' %>"
+                        data-offer-name="<%= appliedOffers && appliedOffers[prodId] ? appliedOffers[prodId].offerName : '' %>"
                       />
                       <div class="dec qtybutton">
                         <i class="fa fa-angle-down"></i>
@@ -244,8 +244,8 @@
                     </div>
                   </td>
                   <td class="item-total">
-                    <% if (appliedOffers && appliedOffers[prodId]) { %>
-                      <% const discountedTotal = appliedOffers[prodId].discountedPrice * item.quantity %>
+                    <% if (appliedOffers && appliedOffers[prodId] && appliedOffers[prodId].discount > 0) { %>
+                      <% const discountedTotal = appliedOffers[prodId].finalPrice * item.quantity %>
                       <div class="price-display">
                         <span class="original-price">₹<%=(item.productId.price * item.quantity).toFixed(2)%></span>
                         <span class="discounted-price">₹<%=discountedTotal.toFixed(2)%></span>
@@ -285,8 +285,8 @@
                 if (item && item.productId && item.productId._id && item.productId.price) {
                   const prodId = item.productId._id.toString();
                   originalSubtotal += item.productId.price * item.quantity;
-                  discountedSubtotal += appliedOffers && appliedOffers[prodId] ? 
-                    appliedOffers[prodId].discountedPrice * item.quantity : 
+                  discountedSubtotal += appliedOffers && appliedOffers[prodId] && appliedOffers[prodId].discount > 0 ? 
+                    appliedOffers[prodId].finalPrice * item.quantity : 
                     item.productId.price * item.quantity;
                 }
               });
@@ -426,10 +426,23 @@
         }
       },
       error: function(xhr) {
+        let errorMessage = 'Failed to verify cart: ';
+        if (xhr.status === 401) {
+          errorMessage += 'Please log in to proceed.';
+          window.location.href = '/login';
+        } else if (xhr.status === 400) {
+          errorMessage += xhr.responseJSON?.message || 'Invalid cart data.';
+        } else if (xhr.status === 404) {
+          errorMessage += 'Cart verification endpoint not found.';
+        } else if (xhr.status === 500) {
+          errorMessage += 'Server error. Please try again later.';
+        } else {
+          errorMessage += 'Unknown error.';
+        }
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Failed to verify cart. Please try again.'
+          text: errorMessage
         });
         checkoutButton.innerHTML = originalText;
         checkoutButton.style.pointerEvents = 'auto';
@@ -455,27 +468,6 @@
 
   // Initialize page
   $(document).ready(function () {
-    // Validate cart on page load
-    $.ajax({
-      url: '/validate-cart',
-      method: 'GET',
-      success: function(response) {
-        if (response.invalidProducts && response.invalidProducts.length > 0) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Cart Updated',
-            html: `Some items were removed from your cart because they are unavailable or out of stock.<br><br>Removed Products: ${response.invalidProducts.join(', ')}`,
-            confirmButtonText: 'OK'
-          }).then(() => {
-            location.reload();
-          });
-        }
-      },
-      error: function(xhr) {
-        console.error('Failed to validate cart:', xhr.responseJSON?.message || 'Unknown error');
-      }
-    });
-
     const MAX_QUANTITY = 7;
 
     // Show loading spinner during updates
@@ -559,7 +551,7 @@
       const productId = input.data("product-id");
       const quantity = parseInt(input.val());
       const originalPrice = parseFloat(input.data("product-price"));
-      const discountedPrice = parseFloat(input.data("discounted-price"));
+      const finalPrice = parseFloat(input.data("final-price"));
       const hasDiscount = input.data("has-discount") === "true";
 
       showLoading(productId);
@@ -571,7 +563,7 @@
         data: JSON.stringify({ productId, quantity }),
         success: function (response) {
           const originalItemTotal = (quantity * originalPrice).toFixed(2);
-          const discountedItemTotal = (quantity * discountedPrice).toFixed(2);
+          const discountedItemTotal = (quantity * finalPrice).toFixed(2);
           
           const itemTotalCell = $(`.cart-item[data-product-id="${productId}"] .item-total`);
           
@@ -636,10 +628,10 @@
             const input = $(this).find(".cart-plus-minus-box");
             const quantity = parseInt(input.val()) || 0;
             const originalPrice = parseFloat(input.data("product-price")) || 0;
-            const discountedPrice = parseFloat(input.data("discounted-price")) || originalPrice;
+            const finalPrice = parseFloat(input.data("final-price")) || originalPrice;
             
             originalTotal += originalPrice * quantity;
-            discountedTotal += discountedPrice * quantity;
+            discountedTotal += finalPrice * quantity;
             
             const itemTotalCell = $(this).find(".item-total");
             const hasDiscount = input.data("has-discount") === "true";
@@ -647,7 +639,7 @@
               itemTotalCell.html(`
                 <div class="price-display">
                   <span class="original-price">₹${(originalPrice * quantity).toFixed(2)}</span>
-                  <span class="discounted-price">₹${(discountedPrice * quantity).toFixed(2)}</span>
+                  <span class="discounted-price">₹${(finalPrice * quantity).toFixed(2)}</span>
                 </div>
               `);
             } else {

@@ -72,6 +72,10 @@
     display: flex;
     align-items: center;
     padding: 15px 20px;
+    cursor: pointer;
+  }
+
+  .payment-option.active {
     background-color: #fff;
     border-left: 3px solid #1d2951;
   }
@@ -219,23 +223,48 @@
   </div>
 
   <input type="hidden" id="selectedPaymentMethod" value="Cash on Delivery" />
+  <input type="hidden" id="orderId" value="<%= orderId %>" />
 
   <div class="checkout-container">
     <div class="payment-methods">
-      <div class="payment-option">
+      <div class="payment-option active" data-method="Cash on Delivery">
         <div class="payment-icon">
-          <svg><!-- Cash on Delivery Icon (Placeholder) --></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d2951" stroke-width="2">
+            <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+            <path d="M1 10h22" />
+          </svg>
         </div>
         <div class="payment-name">Cash on Delivery</div>
+      </div>
+      <div class="payment-option" data-method="Razorpay">
+        <div class="payment-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d2951" stroke-width="2">
+            <path d="M3 18v-6a9 9 0 0 0 18 0v6" />
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+          </svg>
+        </div>
+        <div class="payment-name">Razorpay</div>
+      </div>
+      <div class="payment-option" data-method="Wallet">
+        <div class="payment-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d2951" stroke-width="2">
+            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+            <circle cx="16" cy="12" r="2" />
+          </svg>
+        </div>
+        <div class="payment-name">Wallet</div>
       </div>
     </div>
 
     <div class="payment-details">
       <div class="payment-method-title">
         <div class="method-icon">
-          <svg><!-- Default Icon (Placeholder) --></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d2951" stroke-width="2">
+            <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+            <path d="M1 10h22" />
+          </svg>
         </div>
-        <div>Cash on Delivery</div>
+        <div id="paymentMethodName">Cash on Delivery</div>
         <div class="selected-indicator"></div>
       </div>
 
@@ -245,22 +274,157 @@
 
   <div class="secure-delivery">
     <span class="secure-icon">
-      <svg><!-- Secure Delivery Icon (Placeholder) --></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d2951" stroke-width="2">
+        <path d="M12 2a10 10 0 0 0-10 10v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6a10 10 0 0 0-10-10z" />
+        <path d="M12 16a4 4 0 0 0 4-4 4 4 0 0 0-4-4 4 4 0 0 0-4 4 4 4 0 0 0 4 4z" />
+        <path d="M12 12l2 2" />
+      </svg>
     </span>
-    <span>Secure Delivery with Cash on Delivery</span>
+    <span>Secure Payment Processing</span>
   </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const placeOrderBtn = document.getElementById("placeOrderBtn");
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    const paymentMethodInput = document.getElementById('selectedPaymentMethod');
+    const paymentMethodName = document.getElementById('paymentMethodName');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const orderId = document.getElementById('orderId').value;
 
-    placeOrderBtn.addEventListener("click", function () {
-      if (confirm("Are you sure you want to place this order with Cash on Delivery?")) {
-        window.location.href = "/place-order";
+    console.log('Order ID:', orderId, 'Final Price:', <%= finalPrice %>);
+
+    paymentOptions.forEach(option => {
+      option.addEventListener('click', function () {
+        paymentOptions.forEach(opt => opt.classList.remove('active'));
+        this.classList.add('active');
+        const method = this.dataset.method;
+        paymentMethodInput.value = method;
+        paymentMethodName.textContent = method;
+      });
+    });
+
+    placeOrderBtn.addEventListener('click', async function () {
+      const selectedMethod = paymentMethodInput.value;
+
+      if (selectedMethod === 'Cash on Delivery') {
+        if (confirm('Are you sure you want to place this order with Cash on Delivery?')) {
+          try {
+            const response = await fetch('/place-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId }),
+            });
+            const data = await response.json();
+            if (data.success) {
+              window.location.href = '/order-success/' + orderId;
+            } else {
+              window.location.href = '/orders';
+            }
+          } catch (error) {
+            console.error('Error placing COD order:', error);
+            window.location.href = '/orders';
+          }
+        }
+      } else if (selectedMethod === 'Razorpay') {
+        try {
+          console.log('Initiating Razorpay payment');
+          const response = await fetch('/payment/create-razorpay-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: <%= finalPrice %>,
+              orderId,
+            }),
+          });
+          const data = await response.json();
+          console.log('Razorpay order response:', data);
+
+          if (data.success) {
+            const options = {
+              key: data.key,
+              amount: data.order.amount,
+              currency: 'INR',
+              name: 'Your Store Name',
+              description: 'Order Payment',
+              order_id: data.order.id,
+              handler: async function (response) {
+                console.log('Razorpay payment response:', response);
+                try {
+                  const verifyResponse = await fetch('/payment/verify-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature,
+                      orderId,
+                    }),
+                  });
+                  const verifyData = await verifyResponse.json();
+                  if (verifyData.success) {
+                    window.location.href = '/order-success/' + orderId;
+                  } else {
+                    window.location.href = '/orders';
+                  }
+                } catch (verifyError) {
+                  console.error('Error verifying payment:', verifyError);
+                  window.location.href = '/orders';
+                }
+              },
+              prefill: {
+                name: '<%= user && user.name ? user.name : "" %>',
+                email: '<%= user && user.email ? user.email : "" %>',
+                contact: '<%= user && user.phone ? user.phone : "" %>',
+              },
+              theme: {
+                color: '#1d2951',
+              },
+              modal: {
+                ondismiss: function () {
+                  window.location.href = '/orders';
+                },
+              },
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+              console.error('Razorpay payment failed:', response.error);
+              window.location.href = '/orders';
+            });
+            rzp.open();
+          } else {
+            console.error('Failed to create Razorpay order:', data.message);
+            window.location.href = '/orders';
+          }
+        } catch (error) {
+          console.error('Error initiating Razorpay payment:', error);
+          window.location.href = '/orders';
+        }
+      } else if (selectedMethod === 'Wallet') {
+        if (confirm('Are you sure you want to place this order using Wallet?')) {
+          try {
+            const response = await fetch('/payment/wallet-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId,
+                userId: '<%= user && user._id ? user._id : "" %>',
+              }),
+            });
+            if (response.redirected) {
+              window.location.href = response.url;
+            } else {
+              window.location.href = '/orders';
+            }
+          } catch (error) {
+            console.error('Error processing wallet payment:', error);
+            window.location.href = '/orders';
+          }
+        }
       }
     });
   });
 </script>
-
 <%- include('../partials/user/footer') %>

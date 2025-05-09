@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -74,6 +75,14 @@ const orderSchema = new Schema({
         type: Number,
         default: 0
     },
+    couponDiscount: { // Coupon discount amount
+        type: Number,
+        default: 0
+    },
+    couponCode: { // Coupon code applied
+        type: String,
+        default: null
+    },
     finalAmount: { // Total after discount
         type: Number,
         required: true
@@ -98,17 +107,23 @@ const orderSchema = new Schema({
     },
     paymentStatus: {
         type: String,
+        enum: ["Pending", "Paid", "Failed", "Refunded", "Partially Refunded"],
+        default: "Pending",
         required: true
+    },
+    paymentId: { // For Razorpay payment ID
+        type: String,
+        default: null
     },
     orderStatus: {
         type: String,
-        enum: ["Pending", "Shipped", "Delivered", "Cancelled", "Returned"],
+        enum: ["Pending", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Returned"],
         default: "Pending"
     },
     razorpayOrderId: {
         type: String,
         default: null
-      }
+    }
 }, { timestamps: true });
 
 const Orders = mongoose.model("Orders", orderSchema);

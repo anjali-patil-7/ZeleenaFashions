@@ -1,5 +1,4 @@
 <%- include('../partials/user/header') %>
-
 <style>
   .new-tag {
     display: inline-block;
@@ -80,7 +79,7 @@
             <div id="price-slider" class="slider"></div>
             <div class="price-values">
               <span>Price: ₹</span>
-              <span id="min-price">0</span> - ₹<span id="max-price">10000</span>
+              <span id="min-price"><%= minPrice || 0 %></span> - ₹<span id="max-price"><%= maxPrice || 10000 %></span>
             </div>
             <div class="filter-controls">
               <button id="apply-price-filter" class="btn btn-primary">Apply Filter</button>
@@ -92,7 +91,7 @@
       <div class="col-lg-9 order-1 order-lg-2">
         <div class="shop-toolbar">
           <div class="search-form">
-            <form id="search-form" action="/shop" method="GET">
+            <form id="search-form" action="/shop" method="get">
               <div class="input-group">
                 <input type="text" name="search" class="form-control" placeholder="Search products..." value="<%= search || '' %>">
                 <div class="input-group-append">
@@ -152,17 +151,12 @@
                     <div class="product-desc_info">
                       <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName %></a></h6>
                       <div class="price-box">
-                        <% const productOffer = offers.find(offer => offer.offerType === 'product' && offer.productId.some(p => p._id.equals(product._id))); %>
-                        <% const categoryOffer = offers.find(offer => offer.offerType === 'category' && offer.categoryId.some(c => c._id.equals(product.category))); %>
-                        <% const bestOffer = (productOffer && categoryOffer) ? (productOffer.discount > categoryOffer.discount ? productOffer : categoryOffer) : (productOffer || categoryOffer); %>
-                        <% if (bestOffer) { %>
-                          <span class="old-price" style="color: #ff0000; text-decoration: line-through;">₹<%= product.price %></span>
-                          <span class="new-price" style="color: #000000;">
-                            ₹<%= (product.price - (product.price * bestOffer.discount / 100)).toFixed(2) %>
-                          </span>
-                          <span class="discount-label" style="color: #2e7d32; font-size: 0.9rem;">(<%= bestOffer.discount %>% OFF)</span>
+                        <% if (product.offer && product.offer.discount > 0) { %>
+                          <span class="old-price" style="color: #ff0000; text-decoration: line-through;">₹<%= product.price.toFixed(2) %></span>
+                          <span class="new-price" style="color: #000000;">₹<%= product.offer.finalPrice.toFixed(2) %></span>
+                          <span class="discount-label" style="color: #2e7d32; font-size: 0.9rem;">(<%= product.offer.discount %>% OFF)</span>
                         <% } else { %>
-                          <span class="new-price">₹<%= product.price %></span>
+                          <span class="new-price">₹<%= product.price.toFixed(2) %></span>
                         <% } %>
                       </div>
                       <div class="stock-status">
@@ -244,6 +238,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   function sortProducts() {
@@ -262,17 +257,28 @@
   }
 
   $(document).ready(function() {
+    // Initialize price slider with dynamic min/max values
+    const minPrice = <%= minPrice || 0 %>;
+    const maxPrice = <%= maxPrice || 10000 %>;
+    const maxSliderValue = 10000; // Maximum value for the slider
+
     $("#price-slider").slider({
       range: true,
       min: 0,
-      max: 10000,
-      values: [<%= minPrice || 0 %>, <%= maxPrice || 10000 %>],
+      max: maxSliderValue,
+      values: [minPrice, maxPrice],
       slide: function(event, ui) {
         $("#min-price").text(ui.values[0]);
         $("#max-price").text(ui.values[1]);
+      },
+      create: function(event, ui) {
+        // Ensure initial values are displayed correctly
+        $("#min-price").text(minPrice);
+        $("#max-price").text(maxPrice);
       }
     });
 
+    // Apply price filter
     $("#apply-price-filter").click(function() {
       const minPrice = $("#price-slider").slider("values", 0);
       const maxPrice = $("#price-slider").slider("values", 1);
@@ -285,6 +291,7 @@
       window.location.href = currentUrl.toString();
     });
 
+    // Clear all filters
     $("#clear-filters").click(function() {
       const currentUrl = new URL(window.location.href);
       
@@ -298,13 +305,14 @@
       // Reset UI elements
       $("#search-form input[name='search']").val('');
       $("#sortSelect").val('');
-      $("#price-slider").slider("values", [0, 10000]);
+      $("#price-slider").slider("values", [0, maxSliderValue]);
       $("#min-price").text('0');
-      $("#max-price").text('10000');
+      $("#max-price").text(maxSliderValue);
       
       window.location.href = currentUrl.toString();
     });
 
+    // Clear search input
     $(".clear-search-btn").click(function() {
       const currentUrl = new URL(window.location.href);
       
@@ -318,6 +326,23 @@
       window.location.href = currentUrl.toString();
     });
 
+    // Handle search form submission to ensure starts-with search
+    $("#search-form").submit(function(event) {
+      event.preventDefault();
+      const searchTerm = $("input[name='search']").val().trim();
+      const currentUrl = new URL(window.location.href);
+      
+      if (searchTerm) {
+        currentUrl.searchParams.set('search', searchTerm);
+      } else {
+        currentUrl.searchParams.delete('search');
+      }
+      currentUrl.searchParams.set('page', '1');
+      
+      window.location.href = currentUrl.toString();
+    });
+
+    // Wishlist functionality
     const wishlistButtons = document.querySelectorAll('.hiraola-add_compare');
 
     wishlistButtons.forEach((button) => {
@@ -337,54 +362,42 @@
             'Content-Type': 'application/json',
           },
           credentials: 'include',
-          body: JSON.stringify({ productId: productId }),
+          body: JSON.stringify({ productId })
         })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              if (action === 'add') {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Success!',
-                  text: 'Product added to wishlist successfully!',
-                  toast: true,
-                  position: 'top-end',
-                  showConfirmButton: false,
-                  timer: 3000,
-                });
-                icon.classList.remove('ion-android-favorite-outline');
-                icon.classList.add('ion-android-favorite');
-                button.setAttribute('title', 'Remove from Wishlist');
-              } else {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Success!',
-                  text: 'Product removed from wishlist successfully!',
-                  toast: true,
-                  position: 'top-end',
-                  showConfirmButton: false,
-                  timer: 3000,
-                });
-                icon.classList.remove('ion-android-favorite');
-                icon.classList.add('ion-android-favorite-outline');
-                button.setAttribute('title', 'Add To Wishlist');
-              }
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            if (action === 'add') {
+              icon.classList.remove('ion-android-favorite-outline');
+              icon.classList.add('ion-android-favorite');
+              button.setAttribute('title', 'Remove from Wishlist');
             } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: data.message || `Failed to ${action} product to/from wishlist`,
-              });
+              icon.classList.remove('ion-android-favorite');
+              icon.classList.add('ion-android-favorite-outline');
+              button.setAttribute('title', 'Add To Wishlist');
             }
-          })
-          .catch((error) => {
-            console.error('Error:', error);
+            Swal.fire({
+              icon: 'success',
+              title: data.message,
+              showConfirmButton: false,
+              timer: 1500
+            });
+          } else {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: `An error occurred while ${action === 'add' ? 'adding' : 'removing'} the product to/from the wishlist`,
+              text: data.message || 'Something went wrong!'
             });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update wishlist. Please try again.'
           });
+        });
       });
     });
   });

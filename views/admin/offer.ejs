@@ -1,0 +1,317 @@
+<%- include('../partials/admin/header') %>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title">Offer List</h2>
+            <p>Offer Management</p>
+        </div>
+        <button class="add-offer-btn" onclick="window.location.href='/admin/addoffer'">+ Add Offer</button>
+    </div>
+
+    <div class="search-container" style="margin-bottom: 20px;">
+        <form action="/admin/offer" method="GET">
+            <div style="display: flex; max-width: 500px;">
+                <input 
+                    type="text" 
+                    name="query" 
+                    placeholder="Search by offer name..." 
+                    style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px 0 0 5px;"
+                    value="<%= locals.searchQuery || '' %>"
+                >
+                <button 
+                    type="submit" 
+                    style="background-color: #000000; color: white; padding: 8px 15px; border: none; border-radius: 0 5px 5px 0; cursor: pointer;"
+                >
+                    Search
+                </button>
+                <% if (locals.searchQuery) { %>
+                    <a 
+                        href="/admin/offer" 
+                        style="background-color: #f8f8f8; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-left: none; text-decoration: none; display: flex; align-items: center;"
+                    >
+                        Clear
+                    </a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .add-offer-btn {
+            background-color: #000000;
+            color: white; 
+            font-size: 14px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #000000;
+            table-layout: fixed;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #000000;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .users-table th:nth-child(1),
+        .users-table td:nth-child(1) {
+            width: 40px;
+        }
+        
+        .users-table th:nth-child(4),
+        .users-table td:nth-child(4) {
+            width: 70px;
+        }
+        
+        .users-table th:nth-child(8),
+        .users-table td:nth-child(8) {
+            width: 70px;
+        }
+        
+        .users-table th:nth-child(9),
+        .users-table td:nth-child(9) {
+            width: 180px; /* Increased width to accommodate horizontal buttons */
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: row; /* Horizontal arrangement */
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* Space between buttons */
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            min-width: 60px; /* Minimum width for buttons */
+        }
+
+        .delete-btn {
+            background-color: #000000;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .page-link.active {
+            background-color: #000000;
+            color: white;
+            border-color: #000000;
+        }
+
+        .no-data {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-product {
+            background-color: #e6f7ff;
+            color: #0066cc;
+        }
+
+        .badge-category {
+            background-color: #fff0e6;
+            color: #ff6600;
+        }
+
+        .expired {
+            color: #ff0000;
+            font-weight: bold;
+        }
+    </style>
+
+    <% if (offers.length > 0) { %>
+        <table class="users-table" id="offers-table">
+            <thead>
+                <tr>
+                    <th>SL.No</th>
+                    <th>Offer Name</th>
+                    <th>Type</th>
+                    <th>Discount</th>
+                    <th>Target</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% offers.forEach((offer, index) => { 
+                    const isExpired = new Date(offer.endDate) < new Date();
+                %>
+                    <tr id="offer-row-<%= offer._id %>">
+                        <td><%= index + 1 %></td>
+                        <td><%= offer.offerName %></td>
+                        <td>
+                            <span class="badge <%= offer.offerType === 'product' ? 'badge-product' : 'badge-category' %>">
+                                <%= offer.offerType.charAt(0).toUpperCase() + offer.offerType.slice(1) %>
+                            </span>
+                        </td>
+                        <td><%= offer.discount %>%</td>
+                        <td>
+    <% if (offer.offerType === 'product' && offer.productId && offer.productId.length > 0) { %>
+        <%= offer.productId.length > 1 ? offer.productId.length + ' products' : offer.productId[0].name %>
+    <% } else if (offer.offerType === 'category' && offer.categoryId && offer.categoryId.length > 0) { %>
+        <%= offer.categoryId.length > 1 ? offer.categoryId.length + ' categories' : offer.categoryId[0].name %>
+    <% } else { %>
+        -
+    <% } %>
+</td>
+                        <td>
+                            <%= new Date(offer.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                        </td>
+                        <td class="<%= isExpired ? 'expired' : '' %>">
+                            <%= new Date(offer.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                        </td>
+                        <td id="status-<%= offer._id %>"><%= offer.status ? "Active" : "Inactive" %></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="confirmBlock('<%= offer._id %>', '<%= offer.status %>')" id="block-btn-<%= offer._id %>" class="action-btn delete-btn">
+                                    <%= offer.status ? "Block" : "Unblock" %>
+                                </button>
+                                <button onclick="window.location.href='/admin/editoffer/<%= offer._id %>'" class="action-btn delete-btn">Edit</button>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p class="no-data">No offers found</p>
+    <% } %>
+
+    <div class="pagination">
+        <% if (currentPage > 1) { %>
+            <a href="/admin/offers?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">←</a>
+        <% } %>
+
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/admin/offers?page=<%= i %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <a href="/admin/offers?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">→</a>
+        <% } %>
+    </div>
+</section>
+
+<%- include('../partials/admin/footer') %>
+
+<script>
+    function confirmBlock(offerId, currentStatus) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do you want to continue?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#000000",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updateOfferStatus(offerId, currentStatus);
+            }
+        });
+    }
+
+    function updateOfferStatus(offerId, currentStatus) {
+        const button = document.getElementById(`block-btn-${offerId}`);
+        const originalText = button.textContent;
+        button.innerHTML = '<div class="loading-spinner"></div>';
+        button.disabled = true;
+
+        fetch(`/admin/api/blockoffer/${offerId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const statusCell = document.getElementById(`status-${offerId}`);
+            statusCell.textContent = data.status ? "Active" : "Inactive";
+            button.textContent = data.status ? "Block" : "Unblock";
+            button.disabled = false;
+
+            Swal.fire({
+                title: "Success!",
+                text: `Offer ${data.status ? "activated" : "deactivated"} successfully`,
+                icon: "success",
+                confirmButtonColor: "#000000"
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            button.textContent = originalText;
+            button.disabled = false;
+
+            Swal.fire({
+                title: "Error!",
+                text: "Something went wrong. Please try again.",
+                icon: "error",
+                confirmButtonColor: "#000000"
+            });
+        });
+    }
+</script>

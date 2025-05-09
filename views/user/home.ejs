@@ -1,45 +1,61 @@
 <%- include('../partials/user/header') %>
 
 <style>
+    /* Reset and Base Styles */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f8f9fa;
+    }
+
+    /* Flash Message Styles */
     .flash-message {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        border-radius: 12px;
         font-weight: 500;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.3s ease-in-out;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        animation: fadeIn 0.4s ease-in-out;
         position: fixed;
-        top: 20px;
-        right: 20px;
-        max-width: 300px;
+        top: 30px;
+        right: 30px;
+        max-width: 350px;
         z-index: 1000;
+        transition: all 0.3s ease;
     }
 
     .flash-message svg {
-        width: 24px;
-        height: 24px;
-        margin-right: 12px;
+        width: 28px;
+        height: 28px;
+        margin-right: 14px;
         flex-shrink: 0;
     }
 
     .error-message {
-        background-color: #ffebee;
-        color: #d32f2f;
-        border-left: 4px solid #d32f2f;
+        background-color: #fff1f2;
+        color: #c62828;
+        border-left: 5px solid #c62828;
     }
 
     .success-message {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-        border-left: 4px solid #2e7d32;
+        background-color: #e6ffed;
+        color: #1b5e20;
+        border-left: 5px solid #1b5e20;
     }
 
     @keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(15px);
         }
         to {
             opacity: 1;
@@ -47,29 +63,351 @@
         }
     }
 
-    .new-tag {
-        display: inline-block;
-        background-color: #209e1c;
+    /* New Tag, Stock Status, and Offer Tag */
+    .new-tag, .offer-tag {
         color: white;
-        font-size: 14px;
-        font-weight: bold;
-        padding: 5px 10px;
-        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
         text-transform: uppercase;
         position: absolute;
-        top: 10px;
-        right: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        top: 12px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
     }
+
+    .new-tag {
+        background-color: #22c55e;
+        left: 12px;
+    }
+
+    .offer-tag {
+        background-color: #ef4444;
+        left: 70px;
+    }
+
+    .new-tag:hover, .offer-tag:hover {
+        transform: scale(1.05);
+    }
+
     .stock-status {
-        margin-top: 10px;
-        font-weight: bold;
+        margin-top: 12px;
+        font-size: 14px;
+        font-weight: 600;
     }
+
     .in-stock {
-        color: #28a745; 
+        color: #22c55e;
     }
+
     .out-of-stock {
-        color: #dc3545; 
+        color: #ef4444;
+    }
+
+    /* Slider/Banner Area */
+    .slider-with-category_menu {
+        padding: 0;
+        background: linear-gradient(135deg, #ffffff, #f1f5f9);
+    }
+
+    .hiraola-slider_area {
+        border-radius: 0;
+        overflow: hidden;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        margin: 0;
+    }
+
+    .main-slider {
+        width: 100%;
+    }
+
+    .single-slide {
+        background-size: cover;
+        background-position: center;
+        width: 100%;
+    }
+
+    .slider-content {
+        padding: 60px;
+        color: #fff;
+        text-align: center;
+    }
+
+    .slider-content h5 {
+        font-size: 20px;
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+    }
+
+    .slider-content h2 {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+
+    .slider-content h3 {
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+
+    .slider-content h4 {
+        font-size: 24px;
+        margin-bottom: 32px;
+    }
+
+    .hiraola-btn {
+        background: #2563eb;
+        color: #fff;
+        padding: 14px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s ease;
+    }
+
+    .hiraola-btn:hover {
+        background: #1d4ed8;
+    }
+
+    /* Product Area */
+    .hiraola-product_area {
+        padding: 80px 0;
+        background: #ffffff;
+    }
+
+    .hiraola-section_title h4 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 48px;
+        position: relative;
+        text-align: center;
+    }
+
+    .hiraola-section_title h4::after {
+        content: '';
+        width: 100px;
+        height: 4px;
+        background: #2563eb;
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 2px;
+    }
+
+    .hiraola-product_grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        place-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .slide-item {
+        display: contents; /* Ensures slide-item doesn't interfere with grid */
+    }
+
+    .single_product {
+        background: #ffffff;
+        border: none;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .single_product:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-img {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+    .product-img img {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-img:hover img {
+        transform: scale(1.05);
+    }
+
+    .add-actions {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        gap: 16px;
+    }
+
+    .add-actions li a {
+        color: #4b5563;
+        font-size: 22px;
+        transition: color 0.3s ease;
+    }
+
+    .add-actions li a:hover {
+        color: #2563eb;
+    }
+
+    .hiraola-product_content {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .product-desc_info h6 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 16px;
+        height: 54px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .product-desc_info h6 a {
+        color: #1f2937;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .product-desc_info h6 a:hover {
+        color: #2563eb;
+    }
+
+    .price-box {
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .price-box .new-price {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2563eb;
+    }
+
+    .price-box .old-price {
+        font-size: 16px;
+        color: #6b7280;
+        text-decoration: line-through;
+    }
+
+    .offer-info {
+        font-size: 14px;
+        color: #ef4444;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .additional-add_action ul {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin: 16px 0;
+    }
+
+    .hiraola-add_compare {
+        color: #4b5563;
+        font-size: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .hiraola-add_compare.wishlisted {
+        color: #ef4444;
+        animation: pulse 0.5s ease;
+    }
+
+    .hiraola-add_compare:hover {
+        color: #ef4444;
+        transform: scale(1.2);
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.3);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .rating-box ul {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 16px;
+    }
+
+    .rating-box ul li i {
+        font-size: 18px;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .hiraola-product_grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .slider-content {
+            padding: 40px;
+        }
+
+        .slider-content h2 {
+            font-size: 36px;
+        }
+
+        .slider-content h3 {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hiraola-product_grid {
+            grid-template-columns: 1fr;
+        }
+
+        .slider-content {
+            padding: 24px;
+        }
+
+        .slider-content h2 {
+            font-size: 28px;
+        }
+
+        .slider-content h3 {
+            font-size: 20px;
+        }
+
+        .single_product {
+            max-width: 300px;
+            margin: 0 auto;
+        }
     }
 </style>
 
@@ -95,23 +433,9 @@
 <% } %>
 
 <div class="slider-with-category_menu">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col grid-half order-md-2 order-lg-1">
-                <div class="category-menu">
-                    <div class="category-heading">
-                        <h2 class="categories-toggle"><span>Shop by categories</span></h2>
-                    </div>
-                    <div id="cate-toggle" class="category-menu-list">
-                        <ul>
-                            <% categories.forEach(category => { %>
-                                <li><a href="/shopbyfilter/<%= category._id %>"><%= category.name %></a></li>
-                            <% }) %>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col grid-full order-md-1 order-lg-2">
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <div class="col-12">
                 <div class="hiraola-slider_area">
                     <div class="main-slider">
                         <div class="single-slide animation-style-01 bg-1">
@@ -131,100 +455,101 @@
                     </div>
                 </div>
             </div>
-            <div class="col grid-half grid-md_half order-md-2 order-lg-3">
-                <div class="banner-item img-hover_effect">
-                    <a href="/shop">
-                        <img class="img-full" src="/user/assets/images/banner/1_1.jpg" alt="Hiraola's Banner">
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 </div>
-
-<!-- Begin Hiraola's Product Area -->
 
 <div class="hiraola-product_area">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <div class="hiraola-section_title" style="text-align: center;">
-                    <h4>New Arrivals</h4>
+                <div class="hiraola-section_title">
+                    <h4>Special Offers</h4>
                 </div>
             </div>
         </div>
-        <div class="row" style="margin-bottom: 90px;">
+        <div class="row">
             <div class="col-lg-12">
-                <div class="hiraola-product_grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; place-items: center;">
+                <div class="hiraola-product_grid">
                     <% if (products && products.length > 0) { %>
+                        <% let offerCount = 0; %>
                         <% products.forEach(product => { %>
-                            <div class="slide-item" style="width: 100%; max-width: 200px;">
-                                <div class="single_product" style="border: 1px solid #ddd; padding: 10px; background: #fff; text-align: center;">
-                                    <div class="product-img" style="position: relative;">
-                                        <a href="/singleproduct/<%= product._id %>">
-                                            <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>" style="width: 100%; height: 150px; object-fit: cover;">
-                                        </a>
-                                        <% if (product.createdAt) { 
-                                            const createdAtDate = new Date(product.createdAt);
-                                            const sevenDaysAgo = new Date();
-                                            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                                            if (createdAtDate >= sevenDaysAgo) { %>
-                                                <div class="new-tag" style="position: absolute; top: 10px; left: 10px; background: rgb(16, 160, 6); color: white; padding: 2px 8px; font-size: 12px;">New!</div>
-                                            <% } 
-                                        } %>
-                                        <div class="add-actions" style="position: absolute; bottom: 10px; right: 10px;">
-                                            <ul style="list-style: none; padding: 0; display: flex; gap: 5px;">
-                                                <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
-                                                <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
-                                            </ul>
+                            <% if (product.offer && product.offer.discount > 0 && offerCount < 9) { %>
+                                <div class="slide-item">
+                                    <div class="single_product">
+                                        <div class="product-img">
+                                            <a href="/singleproduct/<%= product._id %>">
+                                                <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>">
+                                            </a>
+                                            <% if (product.createdAt) { 
+                                                const createdAtDate = new Date(product.createdAt);
+                                                const sevenDaysAgo = new Date();
+                                                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                                                if (createdAtDate >= sevenDaysAgo) { %>
+                                                    <div class="new-tag">New!</div>
+                                                <% } 
+                                            } %>
+                                            <div class="offer-tag"><%= product.offer.discount %>% Off</div>
+                                            <div class="add-actions">
+                                                <ul>
+                                                    <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
+                                                    <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
+                                                </ul>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="hiraola-product_content" style="margin-top: 10px;">
-                                        <div class="product-desc_info">
-                                            <h6 style="margin: 5px 0; font-size: 14px; height: 40px; overflow: hidden;">
-                                                <a class="product-name" href="/singleproduct/<%= product._id %>">
-                                                    <%= product.productName || 'Unnamed Product' %>
-                                                </a>
-                                            </h6>
-                                            <div class="price-box">
-                                                <span class="new-price" style="font-size: 16px; color: #010705;">
-                                                    ₹<%= product.price ? product.price.toFixed(2) : '0.00' %>
-                                                </span>
-                                            </div>
-                                            <div class="stock-status">
-                                                <% if (product.totalStock >0) { %>
-                                                    <span class="in-stock">In Stock</span>
-                                                <% } else { %>
-                                                    <span class="out-of-stock">Out of Stock</span>
-                                                <% } %>
-                                            </div>
-                                            <div class="additional-add_action">
-                                                <ul style="list-style: none; padding: 0; display: flex; justify-content: center; margin: 5px 0;">
-                                                    <li>
-                                                        <a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" 
-                                                           title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
-                                                           data-product-id="<%= product._id %>">
-                                                            <i class="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div class="rating-box">
-                                                <ul style="list-style: none; padding: 0; display: flex; justify-content: center; gap: 2px;">
-                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
-                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
-                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
-                                                    <li><i class="fa fa-star-of-david" style="color: #f1c40f;"></i></li>
-                                                    <li class="silver-color"><i class="fa fa-star-of-david" style="color: #bdc3c7;"></i></li>
-                                                </ul>
+                                        <div class="hiraola-product_content">
+                                            <div class="product-desc_info">
+                                                <h6>
+                                                    <a class="product-name" href="/singleproduct/<%= product._id %>">
+                                                        <%= product.productName || 'Unnamed Product' %>
+                                                    </a>
+                                                </h6>
+                                                <div class="price-box">
+                                                    <span class="new-price">₹<%= product.offer.finalPrice.toFixed(2) %></span>
+                                                    <span class="old-price">₹<%= product.price.toFixed(2) %></span>
+                                                </div>
+                                                <div class="stock-status">
+                                                    <% if (product.totalStock > 0) { %>
+                                                        <span class="in-stock">In Stock</span>
+                                                    <% } else { %>
+                                                        <span class="out-of-stock">Out of Stock</span>
+                                                    <% } %>
+                                                </div>
+                                                <div class="additional-add_action">
+                                                    <ul>
+                                                        <li>
+                                                            <a class="hiraola-add_compare <%= userWishlist && userWishlist.includes(product._id.toString()) ? 'wishlisted' : '' %>" 
+                                                               href="#" 
+                                                               data-bs-toggle="tooltip" 
+                                                               data-placement="top" 
+                                                               title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
+                                                               data-product-id="<%= product._id %>">
+                                                                <i class="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="rating-box">
+                                                    <ul>
+                                                        <li><i class="fa fa-star-of-david"></i></li>
+                                                        <li><i class="fa fa-star-of-david"></i></li>
+                                                        <li><i of-david"></i></li>
+                                                        <li><i class="fa fa-star-of-david"></i></li>
+                                                        <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        <% }) %>
+                                <% offerCount++; %>
+                            <% } %>
+                        <% }); %>
+                        <% if (offerCount === 0) { %>
+                            <p style="text-align: center; grid-column: 1 / -1; font-size: 18px; color: #4b5563;">No products with offers found. Please check back later!</p>
+                        <% } %>
                     <% } else { %>
-                        <p style="text-align: center; grid-column: 1 / -1;">No products found. Please check back later!</p>
+                        <p style="text-align: center; grid-column: 1 / -1; font-size: 18px; color: #4b5563;">No products found. Please check back later!</p>
                     <% } %>
                 </div>
             </div>
@@ -232,7 +557,110 @@
     </div>
 </div>
 
-<!-- Hiraola's Product Area End Here -->
+<div class="hiraola-product_area">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="hiraola-section_title">
+                    <h4>New Arrivals</h4>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="hiraola-product_grid">
+                    <% if (products && products.length > 0) { %>
+                        <% let newArrivalCount = 0; %>
+                        <% products.forEach(product => { %>
+                            <% if (product.createdAt) { 
+                                const createdAtDate = new Date(product.createdAt);
+                                const sevenDaysAgo = new Date();
+                                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                                if (createdAtDate >= sevenDaysAgo && newArrivalCount < 9) { %>
+                                    <div class="slide-item">
+                                        <div class="single_product">
+                                            <div class="product-img">
+                                                <a href="/singleproduct/<%= product._id %>">
+                                                    <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName || 'Product Image' %>">
+                                                </a>
+                                                <div class="new-tag">New!</div>
+                                                <% if (product.offer && product.offer.discount > 0) { %>
+                                                    <div class="offer-tag"><%= product.offer.discount %>% Off</div>
+                                                <% } %>
+                                                <div class="add-actions">
+                                                    <ul>
+                                                        <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
+                                                        <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="hiraola-product_content">
+                                                <div class="product-desc_info">
+                                                    <h6>
+                                                        <a class="product-name" href="/singleproduct/<%= product._id %>">
+                                                            <%= product.productName || 'Unnamed Product' %>
+                                                        </a>
+                                                    </h6>
+                                                    <div class="price-box">
+                                                        <% if (product.offer && product.offer.discount > 0) { %>
+                                                            <span class="new-price">₹<%= product.offer.finalPrice.toFixed(2) %></span>
+                                                            <span class="old-price">₹<%= product.price.toFixed(2) %></span>
+                                                        <% } else { %>
+                                                            <span class="new-price">₹<%= product.price.toFixed(2) %></span>
+                                                        <% } %>
+                                                    </div>
+                                                    <% if (product.offer && product.offer.discount > 0) { %>
+                                                        <div class="offer-info"><%= product.offer.offerName %></div>
+                                                    <% } %>
+                                                    <div class="stock-status">
+                                                        <% if (product.totalStock > 0) { %>
+                                                            <span class="in-stock">In Stock</span>
+                                                        <% } else { %>
+                                                            <span class="out-of-stock">Out of Stock</span>
+                                                        <% } %>
+                                                    </div>
+                                                    <div class="additional-add_action">
+                                                        <ul>
+                                                            <li>
+                                                                <a class="hiraola-add_compare <%= userWishlist && userWishlist.includes(product._id.toString()) ? 'wishlisted' : '' %>" 
+                                                                   href="#" 
+                                                                   data-bs-toggle="tooltip" 
+                                                                   data-placement="top" 
+                                                                   title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
+                                                                   data-product-id="<%= product._id %>">
+                                                                    <i class="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="rating-box">
+                                                        <ul>
+                                                            <li><i class="fa fa-star-of-david"></i></li>
+                                                            <li><i class="fa fa-star-of-david"></i></li>
+                                                            <li><i class="fa fa-star-of-david"></i></li>
+                                                            <li><i class="fa fa-star-of-david"></i></li>
+                                                            <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% newArrivalCount++; %>
+                                <% } %>
+                            <% } %>
+                        <% }); %>
+                        <% if (newArrivalCount === 0) { %>
+                            <p style="text-align: center; grid-column: 1 / -1; font-size: 18px; color: #4b5563;">No new arrivals found. Please check back later!</p>
+                        <% } %>
+                    <% } else { %>
+                        <p style="text-align: center; grid-column: 1 / -1; font-size: 18px; color: #4b5563;">No products found. Please check back later!</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     function removeFlashMessage() {
@@ -285,6 +713,7 @@
                                 });
                                 icon.classList.remove('ion-android-favorite-outline');
                                 icon.classList.add('ion-android-favorite');
+                                button.classList.add('wishlisted');
                                 button.setAttribute('title', 'Remove from Wishlist');
                             } else {
                                 Swal.fire({
@@ -298,6 +727,7 @@
                                 });
                                 icon.classList.remove('ion-android-favorite');
                                 icon.classList.add('ion-android-favorite-outline');
+                                button.classList.remove('wishlisted');
                                 button.setAttribute('title', 'Add To Wishlist');
                             }
                         } else {

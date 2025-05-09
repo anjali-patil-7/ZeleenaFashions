@@ -580,3 +580,37 @@ exports.cancelOrder = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
+
+exports.renderSuccessPage = async (req, res) => {
+    try {
+      const orderId = req.params.orderId;
+      const order = await Orders.findById(orderId);
+      if (!order) {
+        return res.redirect('/orders');
+      }
+      res.render('user/confirmorder', { orderId, order });
+    } catch (error) {
+      console.error('Error rendering success page:', error);
+      res.redirect('/orders');
+    }
+  };
+  
+  exports.renderFailurePage = async (req, res) => {
+    try {
+      const orderId = req.params.orderId;
+      res.render('user/order-failure', { orderId });
+    } catch (error) {
+      console.error('Error rendering failure page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  };
+  
+  exports.renderOrdersPage = async (req, res) => {
+    try {
+      const orders = await Orders.find({ user: req.user._id });
+      res.render('user/orders', { orders });
+    } catch (error) {
+      console.error('Error rendering orders page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  };

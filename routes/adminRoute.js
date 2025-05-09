@@ -5,6 +5,8 @@ const categoryController = require('../controllers/admin/categoryController (6)'
 const productController = require('../controllers/admin/productController');
 const userController = require('../controllers/admin/userController');
 const orderController = require('../controllers/admin/orderControoler')
+const couponController = require('../controllers/admin/couponController')
+const offerController = require('../controllers/admin/offerController')
 const adminSession = require('../middlewares/admin');
 const { categoryUpload, productUpload } = require('../config/multer');
 const router = express.Router();
@@ -60,5 +62,25 @@ router.post('/orders/update-status', orderController.updateOrderStatus);
 router.post('/orders/update-product-status', orderController.updateProductStatus);
 router.post('/orders/update-payment-status', orderController.updatePaymentStatus);
 router.post('/orders/verify-return', orderController.verifyReturn);
+
+
+//Coupon routes
+router.get('/coupon',adminSession,couponController.getCoupons)
+router.get('/addcoupon',adminSession,couponController.getAddCoupon)
+router.post('/addcoupon',adminSession,couponController.postAddCoupon)
+router.get('/editcoupon/:id',adminSession,couponController.getEditCoupon)
+router.post('/editcoupon/:id',adminSession,couponController.postEditCoupon)
+router.put('/api/blockcoupon/:id',adminSession,couponController.blockCoupon)
+
+//offer route
+
+// Offer management routes
+router.get('/offer', adminSession, offerController.getOfferList);
+router.get('/addoffer',adminSession, offerController.getAddOffer);
+router.post('/addoffer',adminSession, offerController.postAddOffer);
+router.get('/editoffer/:id',adminSession, offerController.getEditOffer);
+router.post('/editoffer/:id',adminSession, offerController.postEditOffer);
+router.put('/api/blockoffer/:id',adminSession, offerController.blockOffer);
+
 
 module.exports = router;

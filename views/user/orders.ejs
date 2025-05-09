@@ -70,16 +70,16 @@
                     <div class="order-actions">
                       <a href="/orderdetails/<%= order._id %>" class="btn-view-order">View Details</a>
                       <% if (order.paymentStatus === "Failed") { %>
-                      <button onclick="retryPayment('<%= order._id %>')" class="btn-retry-payment">Retry Payment</button>
+                      <button onclick="retryPayment('<%= order._id %>', this)" class="btn-retry-payment">Retry Payment</button>
                       <% } %>
                     </div>
                   </div>
 
                   <% if (order.paymentStatus === "Failed") { %>
                   <div class="payment-failed-notice">
-                    <i class="fas fa-credit-card text-danger"></i> <i class="fas fa-times-circle text-danger"></i>
-
-                    <p>Payment attempt failed. Please retry to complete your order.</p>
+                    <i class="fas fa-credit-card text-danger"></i>
+                    <i class="fas fa-times-circle text-danger"></i>
+                    <p>Payment attempt failed. Please retry to complete your order. Contact support if the issue persists.</p>
                   </div>
                   <% } %>
                 </div>
@@ -205,26 +205,7 @@
     font-weight: 500;
   }
 
-  .btn-retry-payment{
-    display: inline-block;
-    padding: 10px 24px;
-    background-color: #333;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: all 0.3s;
-    font-weight: 500;
-  }
-
-  .btn-view-order:hover {
-    background-color: #000;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .btn-retry’Connor
-
--payment {
+  .btn-retry-payment {
     display: inline-block;
     padding: 10px 24px;
     background-color: #1d2951;
@@ -238,10 +219,23 @@
     cursor: pointer;
   }
 
-  .btn-retry-payment:hover {
-    background-color: #1d2951;
+  .btn-view-order:hover {
+    background-color: #000;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-retry-payment:hover {
+    background-color: #15203b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-retry-payment:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 
   .no-orders {
@@ -298,9 +292,9 @@
     border-top: 1px solid #ffcdd2;
   }
 
-  .failed-illustration {
-    max-width: 150px;
-    margin-bottom: 15px;
+  .payment-failed-notice p {
+    margin: 10px 0 0;
+    color: #c62828;
   }
 
   .pagination-wrapper {
@@ -385,106 +379,131 @@
     });
   }
 
-  function retryPayment(orderId) {
-  fetch("/retry-payment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      const options = {
-        key: data.key_id,
-        amount: data.amount,
-        currency: data.currency,
-        name: "Raabta Collections",
-        description: "Retry Payment for Order",
-        order_id: data.orderId,
-        handler: function (response) {
-          verifyRetryPayment(response, data.originalOrderId);
-        },
-          prefill: {
+  function retryPayment(orderId, button) {
+    // Disable button and show loading state
+    button.disabled = true;
+    button.textContent = "Processing...";
+
+    fetch("/retry-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Re-enable button
+        button.disabled = false;
+        button.textContent = "Retry Payment";
+
+        if (data.success) {
+          const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: data.currency,
+            name: "Raabta Collections",
+            description: "Retry Payment for Order",
+            order_id: data.orderId,
+            handler: function (response) {
+              verifyRetryPayment(response, data.originalOrderId);
+            },
+            prefill: {
               name: "<%= user.name %>",
               email: "<%= user.email %>",
               contact: "<%= user.phone %>",
             },
-          theme: {
-            color: "#1d2951",
-          },
-          modal: {
-            ondismiss: function() {
-              window.location.href = "/orders";
-            }
-          }
-        };
-        
-        const rzp = new Razorpay(options);
-        rzp.open();
+            theme: {
+              color: "#1d2951",
+            },
+            modal: {
+              ondismiss: function () {
+                Swal.fire({
+                  title: "Payment Cancelled",
+                  text: "You can retry the payment from the orders page. Contact support if you need assistance.",
+                  icon: "info",
+                  confirmButtonColor: "#1d2951",
+                });
+                window.location.href = "/orders";
+              },
+            },
+          };
 
-        rzp.on("payment.failed", function (response) {
+          const rzp = new Razorpay(options);
+          rzp.open();
+
+          rzp.on("payment.failed", function (response) {
+            Swal.fire({
+              title: "Payment Failed",
+              text: response.error.description || "Please try again or contact support.",
+              icon: "error",
+              confirmButtonColor: "#1d2951",
+            });
+            window.location.href = "/orders";
+          });
+        } else {
           Swal.fire({
-            title: "Payment Failed",
-            text: response.error.description,
+            title: "Error",
+            text: data.message || "Failed to initiate retry payment. Please try again or contact support.",
             icon: "error",
             confirmButtonColor: "#1d2951",
           });
-        });
-      } else {
+        }
+      })
+      .catch((error) => {
+        // Re-enable button
+        button.disabled = false;
+        button.textContent = "Retry Payment";
+
+        console.error("Retry payment error:", error);
         Swal.fire({
           title: "Error",
-          text: data.message || "Failed to initiate retry payment",
+          text: "An error occurred while retrying payment. Please try again or contact support.",
           icon: "error",
           confirmButtonColor: "#1d2951",
         });
-      }
-    })
-    .catch(error => {
-      console.error("Retry payment error:", error);
-      Swal.fire({
-        title: "Error",
-        text: "An error occurred while retrying payment",
-        icon: "error",
-        confirmButtonColor: "#1d2951",
       });
-    });
   }
 
   function verifyRetryPayment(payment, orderId) {
-  fetch("/verify-payment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      payment: {
-        razorpay_payment_id: payment.razorpay_payment_id,
+    fetch("/payment/verify-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         razorpay_order_id: payment.razorpay_order_id,
-        razorpay_signature: payment.razorpay_signature
-      },
-      originalOrderId: orderId, // Pass the original order ID
-      order: { id: payment.razorpay_order_id }
+        razorpay_payment_id: payment.razorpay_payment_id,
+        razorpay_signature: payment.razorpay_signature,
+        orderId,
+      }),
     })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      window.location.href = "/orderconfirmation/" + data.orderId;
-    } else {
-      Swal.fire({
-        title: "Payment Failed",
-        text: data.message,
-        icon: "error",
-        confirmButtonColor: "#1d2951",
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          Swal.fire({
+            title: "Payment Successful",
+            text: "Your order has been confirmed!",
+            icon: "success",
+            confirmButtonColor: "#1d2951",
+          }).then(() => {
+            window.location.href = "/orderconfirmation/" + data.orderId;
+          });
+        } else {
+          Swal.fire({
+            title: "Payment Failed",
+            text: data.message || "Payment verification failed. Please try again or contact support.",
+            icon: "error",
+            confirmButtonColor: "#1d2951",
+          });
+          window.location.href = "/orders";
+        }
+      })
+      .catch((error) => {
+        console.error("Verification error:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Payment verification failed. Please try again or contact support.",
+          icon: "error",
+          confirmButtonColor: "#1d2951",
+        });
+        window.location.href = "/orders";
       });
-    }
-  })
-  .catch(error => {
-    console.error("Verification error:", error);
-    Swal.fire({
-      title: "Error",
-      text: "Payment verification failed",
-      icon: "error",
-      confirmButtonColor: "#1d2951",
-    });
-  });
-}
+  }
 </script>
