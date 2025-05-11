@@ -1,34 +1,36 @@
 <%- include('../partials/admin/header') %>
 
-<section class="content-main">
+<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
     <div class="content-header">
         <div>
-            <h2 class="content-title">Orders List</h2>
-            <p>Orders Management</p>
+            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Orders List</h2>
+            <p style="color: #666;">Orders Management</p>
         </div>
     </div>
 
     <!-- Search Container -->
-    <div class="search-container" style="margin-bottom: 20px;">
+    <div class="search-container" style="margin-bottom: 30px;">
         <form action="/admin/orders" method="GET">
             <div style="display: flex; max-width: 500px;">
                 <input 
                     type="text" 
                     name="query" 
                     placeholder="Search by order ID, customer name or status..." 
-                    style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px 0 0 5px;"
+                    style="flex: 1; padding: 10px 15px; border: 1px solid #000000; border-radius: 4px 0 0 4px; font-family: 'Montserrat', sans-serif;"
                     value="<%= locals.searchQuery || '' %>"
                 >
                 <button 
                     type="submit" 
-                    style="background-color: #000000; color: white; padding: 8px 15px; border: none; border-radius: 0 5px 5px 0; cursor: pointer;"
+                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';"
                 >
                     Search
                 </button>
                 <% if (locals.searchQuery) { %>
                     <a 
                         href="/admin/orders" 
-                        style="background-color: #f8f8f8; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-left: none; text-decoration: none; display: flex; align-items: center;"
+                        style="background-color: #f8f8f8; color: #000000; padding: 10px 15px; border: 1px solid #000000; border-left: none; text-decoration: none; display: flex; align-items: center; font-family: 'Montserrat', sans-serif;"
                     >
                         Clear
                     </a>
@@ -38,99 +40,111 @@
     </div>
 
     <style>
-        .add-category-btn {
-            background-color: #000000;
-            color: white;
-            font-size: 14px;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .users-table {
+        .orders-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 25px 0;
             border: 1px solid #000000;
+            font-family: 'Montserrat', sans-serif;
         }
-
-        .users-table th {
+        
+        .orders-table th {
+            padding: 15px;
+            text-align: center;
+            background-color: #000000;
+            color: #FFD700;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .orders-table td {
             padding: 12px;
             text-align: center;
-            background-color: #f8f8f8;
-            font-weight: bold;
-            color: #000000;
-            border: 1px solid #000000;
+            border: 1px solid #e0e0e0;
+            color: #333;
         }
-
-        .users-table td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #000000;
-            vertical-align: middle;
+        
+        .orders-table tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            align-items: center;
+        
+        .orders-table tr:hover {
+            background-color: #f0f0f0;
         }
-
+        
         .action-btn {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            color: white;
+            margin-right: 5px;
+            color: #FFD700;
             text-decoration: none;
             display: inline-block;
-            min-width: 80px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
             background-color: #000000;
         }
-
+        
         .action-btn:hover {
-            opacity: 0.9;
+            background-color: #FFD700;
+            color: #000000;
         }
-
+        
         .pagination {
-            margin-top: 20px;
+            margin-top: 30px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
+            align-items: center;
         }
-
+        
         .page-link {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            padding: 8px 14px;
+            border: 1px solid #000000;
             text-decoration: none;
-            color: #333;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+            border-radius: 4px;
+            transition: all 0.3s;
         }
-
+        
+        .page-link:hover {
+            background-color: #000000;
+            color: #FFD700;
+        }
+        
         .page-link.active {
             background-color: #000000;
-            color: white;
-            border-color: #4a90e2;
+            color: #FFD700;
+            font-weight: 600;
         }
-
-        .page-link:hover {
-            background-color: #f5f5f5;
-        }
-
-        .active.page-link:hover {
-            background-color: #000000;
-        }
-
+        
         .no-data {
             text-align: center;
             font-weight: bold;
-            margin-top: 20px;
+            margin-top: 30px;
             font-size: 18px;
-            color: #555;
+            color: #666;
+            font-family: 'Montserrat', sans-serif;
         }
-
+        
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #FFD700;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         .status-badge {
             display: inline-block;
             padding: 5px 10px;
@@ -139,27 +153,27 @@
             font-weight: bold;
             color: white;
         }
-
+        
         .badge-success {
             background-color: #28a745;
         }
-
+        
         .badge-warning {
             background-color: #ffc107;
             color: #212529;
         }
-
+        
         .badge-danger {
             background-color: #dc3545;
         }
-
+        
         .badge-info {
             background-color: #17a2b8;
         }
     </style>
 
     <% if (orders && orders.length > 0) { %>
-        <table class="users-table">
+        <table class="orders-table">
             <thead>
                 <tr>
                     <th>SL.No</th>
@@ -193,17 +207,17 @@
                     </td>
                     <td>
                         <% if (order.hasReturnRequest) { %>
-                        <span class="status-badge badge-warning">Return Requested</span>
+                            <span class="status-badge badge-warning">Return Requested</span>
                         <% } else if (order.hasReturnApproved) { %>
-                        <span class="status-badge badge-success">Return Approved</span>
+                            <span class="status-badge badge-success">Return Approved</span>
                         <% } else if (order.hasReturnRejected) { %>
-                        <span class="status-badge badge-danger">Return Rejected</span>
+                            <span class="status-badge badge-danger">Return Rejected</span>
                         <% } else { %>
-                        <span class="text-muted">None</span>
+                            <span class="text-muted">None</span>
                         <% } %>
                     </td>
                     <td>
-                        <div class="action-buttons">
+                        <div class="action-buttons" style="display: flex; gap: 5px; justify-content: center;">
                             <a href="/admin/orders/<%= order._id %>" class="action-btn">View</a>
                         </div>
                     </td>
@@ -215,21 +229,46 @@
         <p class="no-data">No Orders found</p>
     <% } %>
 
-    <div class="pagination">
-        <% if (currentPage > 1) { %>
-            <a href="/admin/orders?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
-        <% } %>
+    <% if (orders.length > 0 && totalPages > 1) { %>
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/admin/orders?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
+            <% } %>
+            
+            <% 
+                const maxPagesToShow = 5;
+                const halfRange = Math.floor(maxPagesToShow / 2);
+                let startPage = Math.max(1, currentPage - halfRange);
+                let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+                if (endPage - startPage + 1 < maxPagesToShow) {
+                    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                }
+            %>
+            <% if (startPage > 1) { %>
+                <a href="/admin/orders?page=1<%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
+                <% if (startPage > 2) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+            <% } %>
 
-        <% for (let i = 1; i <= totalPages; i++) { %>
-            <a href="/admin/orders?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
-                <%= i %>
-            </a>
-        <% } %>
+            <% for (let i = startPage; i <= endPage; i++) { %>
+                <a href="/admin/orders?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                    <%= i %>
+                </a>
+            <% } %>
 
-        <% if (currentPage < totalPages) { %>
-            <a href="/admin/orders?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
-        <% } %>
-    </div>
+            <% if (endPage < totalPages) { %>
+                <% if (endPage < totalPages - 1) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+                <a href="/admin/orders?page=<%= totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+            <% } %>
+
+            <% if (currentPage < totalPages) { %>
+                <a href="/admin/orders?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+            <% } %>
+        </div>
+    <% } %>
 </section>
 
 <%- include('../partials/admin/footer') %>

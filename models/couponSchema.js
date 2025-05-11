@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {Schema} = mongoose
+const { Schema } = mongoose;
 
 const couponSchema = new mongoose.Schema({
     couponCode: {
@@ -57,7 +57,7 @@ const couponSchema = new mongoose.Schema({
     description: {
         type: String,
         default: "",
-      },
+    },
     usedBy: [{
         userId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -70,13 +70,12 @@ const couponSchema = new mongoose.Schema({
         orderId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Order",
-          },
+        },
     }]
-},{ timestamps : true })
+}, { timestamps: true });
 
-couponSchema.index({ expiry: 1 }, { expireAfterSeconds: 0 })
+couponSchema.index({ expiry: 1 }, { expireAfterSeconds: 0 });
 
-const Coupon = mongoose.model("Coupon",couponSchema);
-
+const Coupon = mongoose.model("Coupon", couponSchema);
 
 module.exports = Coupon;

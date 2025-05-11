@@ -1,35 +1,41 @@
 <%- include('../partials/admin/header') %>
 
-<section class="content-main">
+<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
     <div class="content-header">
         <div>
-            <h2 class="content-title">Coupon List</h2>
-            <p>Coupon Management</p>
+            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Coupon803 List</h2>
+            <p style="color: #666;">Coupon Management</p>
         </div>
-        <button class="add-coupon-btn" onclick="window.location.href='/admin/addcoupon'">+ Add Coupon</button>
+        <a href="/admin/addcoupon" class="add-coupon-btn" style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+            + Add Coupon
+        </a>
     </div>
 
     <!-- Search Container -->
-    <div class="search-container" style="margin-bottom: 20px;">
+    <div class="search-container" style="margin-bottom: 30px;">
         <form action="/admin/coupon" method="GET">
             <div style="display: flex; max-width: 500px;">
                 <input 
                     type="text" 
                     name="query" 
                     placeholder="Search by coupon code..." 
-                    style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px 0 0 5px;"
+                    style="flex: 1; padding: 10px 15px; border: 1px solid #000000; border-radius: 4px 0 0 4px; font-family: 'Montserrat', sans-serif;"
                     value="<%= locals.searchQuery || '' %>"
                 >
                 <button 
                     type="submit" 
-                    style="background-color: #000000; color: white; padding: 8px 15px; border: none; border-radius: 0 5px 5px 0; cursor: pointer;"
+                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';"
                 >
                     Search
                 </button>
                 <% if (locals.searchQuery) { %>
                     <a 
                         href="/admin/coupon" 
-                        style="background-color: #f8f8f8; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-left: none; text-decoration: none; display: flex; align-items: center;"
+                        style="background-color: #f8f8f8; color: #000000; padding: 10px 15px; border: 1px solid #000000; border-left: none; text-decoration: none; display: flex; align-items: center; font-family: 'Montserrat', sans-serif;"
                     >
                         Clear
                     </a>
@@ -39,96 +45,111 @@
     </div>
 
     <style>
-        .add-coupon-btn{
-            background-color: #000000;
-            color: white; 
-            font-size: 14px;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .users-table {
+        .coupons-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 25px 0;
             border: 1px solid #000000;
+            font-family: 'Montserrat', sans-serif;
         }
         
-        .users-table th,
-        .users-table td {
+        .coupons-table th {
+            padding: 15px;
+            text-align: center;
+            background-color: #000000;
+            color: #FFD700;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .coupons-table td {
             padding: 12px;
             text-align: center;
-            border: 1px solid #000000;
+            border: 1px solid #e0e0e0;
+            color: #333;
         }
         
-        .users-table th {
-            background-color: #f8f8f8;
-            font-weight: bold;
-            color: #000000;
-            border-bottom: 1px solid #000000;
+        .coupons-table tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-
+        
+        .coupons-table tr:hover {
+            background-color: #f0f0f0;
+        }
+        
         .action-btn {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             margin-right: 5px;
-            color: white;
+            color: #FFD700;
             text-decoration: none;
             display: inline-block;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
+            background-color: #000000;
         }
         
-        .delete-btn {
-            background-color: #000000;
+        .action-btn:hover {
+            background-color: #FFD700;
+            color: #000000;
         }
-
+        
         .pagination {
-            margin-top: 20px;
+            margin-top: 30px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
+            align-items: center;
         }
-
+        
         .page-link {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            padding: 8px 14px;
+            border: 1px solid #000000;
             text-decoration: none;
-            color: #333;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+            border-radius: 4px;
+            transition: all 0.3s;
         }
-
+        
+        .page-link:hover {
+            background-color: #000000;
+            color: #FFD700;
+        }
+        
         .page-link.active {
             background-color: #000000;
-            color: white;
-            border-color: #4a90e2;
+            color: #FFD700;
+            font-weight: 600;
         }
-
+        
         .no-data {
             text-align: center;
             font-weight: bold;
-            margin-top: 20px;
+            margin-top: 30px;
             font-size: 18px;
-            color: #555;
+            color: #666;
+            font-family: 'Montserrat', sans-serif;
         }
         
-        /* Loading spinner styles */
-        .loading-spinner {
+        .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: #FFD700;
             animation: spin 1s ease-in-out infinite;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
+        
         .badge {
             padding: 4px 8px;
             border-radius: 4px;
@@ -145,15 +166,15 @@
             background-color: #fff0e6;
             color: #ff6600;
         }
-
+        
         .expired {
-            color: #ff0000;
-            font-weight: bold;
+            color: #dc3545;
+            font-weight: 500;
         }
     </style>
 
     <% if (coupons.length > 0) { %>
-        <table class="users-table" id="coupons-table">
+        <table class="coupons-table" id="coupons-table">
             <thead>
                 <tr>
                     <th>SL.No</th>
@@ -185,14 +206,16 @@
                         <td class="<%= isExpired ? 'expired' : '' %>">
                             <%= new Date(coupon.expiry).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
                         </td>
-                        <td id="status-<%= coupon._id %>"><%= coupon.status ? "Active" : "Inactive" %></td>
+                        <td id="status-<%= coupon._id %>" style="font-weight: 500; color: <%= coupon.status ? '#28a745' : '#dc3545' %>;">
+                            <%= coupon.status ? "Active" : "Inactive" %>
+                        </td>
                         <td>
-                            <button onclick="confirmBlock('<%= coupon._id %>', '<%= coupon.status %>')" id="block-btn-<%= coupon._id %>" class="action-btn delete-btn">
-                                <%= coupon.status ? "Block" : "Unblock" %>
-                            </button>
-                            <a href="/admin/editcoupon/<%= coupon._id %>">
-                                <button class="action-btn delete-btn">Edit</button>
-                            </a>
+                            <div class="action-buttons" style="display: flex; gap: 5px; justify-content: center;">
+                                <button onclick="confirmBlock('<%= coupon._id %>', '<%= coupon.status %>')" id="block-btn-<%= coupon._id %>" class="action-btn">
+                                    <%= coupon.status ? "Block" : "Unblock" %>
+                                </button>
+                                <a href="/admin/editcoupon/<%= coupon._id %>" class="action-btn">Edit</a>
+                            </div>
                         </td>
                     </tr>
                 <% }) %>
@@ -202,20 +225,46 @@
         <p class="no-data">No coupons found</p>
     <% } %>
 
-    <div class="pagination">
-        <% if (currentPage > 1) { %>
-            <a href="/admin/coupon?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">←</a>
-        <% } %>
+    <% if (coupons.length > 0 && totalPages > 1) { %>
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/admin/coupon?page=<%= currentPage - 1 %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
+            <% } %>
+            
+            <% 
+                const maxPagesToShow = 5;
+                const halfRange = Math.floor(maxPagesToShow / 2);
+                let startPage = Math.max(1, currentPage - halfRange);
+                let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+                if (endPage - startPage + 1 < maxPagesToShow) {
+                    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                }
+            %>
+            <% if (startPage > 1) { %>
+                <a href="/admin/coupon?page=1<%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
+                <% if (startPage > 2) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+            <% } %>
 
-        <% for (let i = 1; i <= totalPages; i++) { %>
-            <a href="/admin/coupon?page=<%= i %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
-        <% } %>
+ خودش        <% for (let i = startPage; i <= endPage; i++) { %>
+                <a href="/admin/coupon?page=<%= i %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                    <%= i %>
+                </a>
+            <% } %>
 
-        <% if (currentPage < totalPages) { %>
-            <a href="/admin/coupon?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + searchQuery : '' %>" class="page-link">→</a>
-        <% } %>
-    </div>
+            <% if (endPage < totalPages) { %>
+                <% if (endPage < totalPages - 1) { %>
+                    <span class="page-link">...</span>
+                <% } %>
+                <a href="/admin/coupon?page=<%= totalPages %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+            <% } %>
 
+            <% if (currentPage < totalPages) { %>
+                <a href="/admin/coupon?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+            <% } %>
+        </div>
+    <% } %>
 </section>
 
 <%- include('../partials/admin/footer') %>
@@ -224,13 +273,17 @@
     function confirmBlock(couponId, currentStatus) {
         Swal.fire({
             title: "Are you sure?",
-            text: "Do you want to continue?",
+            text: `Do you want to ${currentStatus ? "block" : "unblock"} this coupon?`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#000000",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes",
-            cancelButtonText: "No"
+            confirmButtonColor: '#000000',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            customClass: {
+                popup: 'gold-swal',
+                confirmButton: 'gold-confirm-btn'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 updateCouponStatus(couponId, currentStatus);
@@ -239,17 +292,16 @@
     }
     
     function updateCouponStatus(couponId, currentStatus) {
-        // Change button to loading state
         const button = document.getElementById(`block-btn-${couponId}`);
-        const originalText = button.textContent;
-        button.innerHTML = '<div class="loading-spinner"></div>';
+        const statusCell = document.getElementById(`status-${couponId}`);
+        const originalText = button.innerHTML;
+        button.innerHTML = '<div class="spinner"></div>';
         button.disabled = true;
         
-        // Send AJAX request
         fetch(`/admin/api/blockcoupon/${couponId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/csv',
             }
         })
         .then(response => {
@@ -259,34 +311,47 @@
             return response.json();
         })
         .then(data => {
-            // Update the DOM with new status
-            const statusCell = document.getElementById(`status-${couponId}`);
-            statusCell.textContent = data.status ? "Active" : "Inactive";
-            
-            // Update button text
-            button.textContent = data.status ? "Block" : "Unblock";
+            button.innerHTML = data.status ? "Block" : "Unblock";
             button.disabled = false;
+            statusCell.textContent = data.status ? "Active" : "Inactive";
+            statusCell.style.color = data.status ? "#28a745" : "#dc3545";
             
-            // Show success notification
             Swal.fire({
                 title: "Success!",
                 text: `Coupon ${data.status ? "unblocked" : "blocked"} successfully`,
                 icon: "success",
-                confirmButtonColor: "#000000"
+                confirmButtonColor: "#000000",
+                customClass: {
+                    popup: 'gold-swal',
+                    confirmButton: 'gold-confirm-btn'
+                }
             });
         })
         .catch(error => {
             console.error('Error:', error);
-            button.textContent = originalText;
+            button.innerHTML = originalText;
             button.disabled = false;
             
-            // Show error notification
             Swal.fire({
                 title: "Error!",
                 text: "Something went wrong. Please try again.",
                 icon: "error",
-                confirmButtonColor: "#000000"
+                confirmButtonColor: "#000000",
+                customClass: {
+                    popup: 'gold-swal',
+                    confirmButton: 'gold-confirm-btn'
+                }
             });
         });
     }
 </script>
+
+<style>
+    .gold-swal {
+        border: 2px solid #FFD700 !important;
+    }
+    .gold-confirm-btn {
+        background-color: #000000 !important;
+        color: #FFD700 !important;
+    }
+</style>

@@ -1,0 +1,311 @@
+<%- include('../partials/admin/header') %>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Sales Report</h2>
+            <p>Detailed Sales Analytics</p>
+        </div>
+        <div class="btn-group" role="group" aria-label="Sales Report Controls">
+            <a href="/admin/sales/daily" class="btn btn-primary <%= page === 'daily' ? 'active' : '' %>">Daily</a>
+            <a href="/admin/sales/weekly" class="btn btn-secondary <%= page === 'weekly' ? 'active' : '' %>">Weekly</a>
+            <a href="/admin/sales/monthly" class="btn btn-success <%= page === 'monthly' ? 'active' : '' %>">Monthly</a>
+            <a href="/admin/sales/yearly" class="btn btn-danger <%= page === 'yearly' ? 'active' : '' %>">Yearly</a>
+            <div class="dropdown">
+                <button class="btn btn-info dropdown-toggle" type="button" id="salesReportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Custom Date
+                </button>
+                <div class="dropdown-menu p-3" aria-labelledby="salesReportDropdown">
+                    <form action="/admin/customdate" method="post">
+                        <div class="mb-2">
+                            <label class="form-label">From Date</label>
+                            <input type="date" id="fromDate" value="<%= fromDate %>" name="fromDate" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">To Date</label>
+                            <input type="date" id="toDate" name="toDate" value="<%= toDate %>" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="saleDateFilterBtn">
+                            <i class="fas fa-filter me-2"></i>Filter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-primary-light"><i class="text-primary material-icons md-monetization_on"></i></span>
+                    <div class="text">
+                        <h6 class="mb-1 card-title">Total Revenue</h6>
+                        <span><%= TotalAmount.toFixed(2) %></span>
+                        <span class="text-sm">Total sales amount</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-success-light"><i class="text-success material-icons md-local_shipping"></i></span>
+                    <div class="text">
+                        <h6 class="mb-1 card-title">Total Discount</h6>
+                        <span><%= TotalDiscountAmount.toFixed(2) %></span>
+                        <span class="text-sm">Discount offered</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body mb-4">
+                <article class="icontext">
+                    <span class="icon icon-sm rounded-circle bg-warning-light"><i class="text-warning material-icons md-qr_code"></i></span>
+                    <div class="text">
+                        <h6 class="mb-1 card-title">Sales Count</h6>
+                        <span><%= TotalSaleCount %></span>
+                        <span class="text-sm">Total orders</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <p id="errordate" class="text-danger text-center">
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <%= error %>
+                <% } %>
+            </p>
+        </div>
+    </div>
+
+    <!-- Sales Data Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <article class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Sales Details</h5>
+                        <div>
+                            <button id="downloadPdfBtn" class="btn btn-primary">
+                                <i class="fas fa-download me-2"></i>Download PDF
+                            </button>
+                            <button id="downloadExcelBtn" class="btn btn-success">
+                                <i class="fas fa-download me-2"></i>Download Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <% if(page === "daily" || page === "customDate") { %>
+                                <thead>
+                                    <tr>
+                                        <th>SI No</th>
+                                        <th>Date</th>
+                                        <th>Total Orders</th>
+                                        <th>Product Count</th>
+                                        <th>Total Discount</th>
+                                        <th>Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% reportData.forEach((data, i) => { %>
+                                        <tr>
+                                            <td><%= i+1 %></td>
+                                            <td><%= data.dateFormatted %></td>
+                                            <td><%= data.totalOrderCount %></td>
+                                            <td><%= data.totalProducts %></td>
+                                            <td><%= data.totalDiscount.toFixed(2) %></td>
+                                            <td><%= data.totalSales.toFixed(2) %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            <% } else if(page === "weekly") { %>
+                                <thead>
+                                    <tr>
+                                        <th>SI No</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Orders</th>
+                                        <th>Product Count</th>
+                                        <th>Total Discount</th>
+                                        <th>Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% reportData.forEach((data, i) => { %>
+                                        <tr>
+                                            <td><%= i+1 %></td>
+                                            <td><%= data.startOfWeek %></td>
+                                            <td><%= data.endOfWeek %></td>
+                                            <td><%= data.totalOrderCount %></td>
+                                            <td><%= data.totalProducts %></td>
+                                            <td><%= data.totalDiscount.toFixed(2) %></td>
+                                            <td><%= data.totalSales.toFixed(2) %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            <% } else if(page === "monthly") { %>
+                                <thead>
+                                    <tr>
+                                        <th>SI No</th>
+                                        <th>Month-Year</th>
+                                        <th>Orders</th>
+                                        <th>Product Count</th>
+                                        <th>Total Discount</th>
+                                        <th>Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% reportData.forEach((data, i) => { %>
+                                        <tr>
+                                            <td><%= i+1 %></td>
+                                            <td><%= data.monthYear %></td>
+                                            <td><%= data.totalOrderCount %></td>
+                                            <td><%= data.totalProducts %></td>
+                                            <td><%= data.totalDiscount.toFixed(2) %></td>
+                                            <td><%= data.totalSales.toFixed(2) %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            <% } else if(page === "yearly") { %>
+                                <thead>
+                                    <tr>
+                                        <th>SI No</th>
+                                        <th>Year</th>
+                                        <th>Orders</th>
+                                        <th>Product Count</th>
+                                        <th>Total Discount</th>
+                                        <th>Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% reportData.forEach((data, i) => { %>
+                                        <tr>
+                                            <td><%= i+1 %></td>
+                                            <td><%= data.year %></td>
+                                            <td><%= data.totalOrderCount %></td>
+                                            <td><%= data.totalProducts %></td>
+                                            <td><%= data.totalDiscount.toFixed(2) %></td>
+                                            <td><%= data.totalSales.toFixed(2) %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            <% } %>
+                        </table>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%- include('../partials/admin/footer') %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    const errorElement = document.getElementById('errordate');
+    const filterButton = document.getElementById('saleDateFilterBtn');
+
+    let fromDate = null;
+    let toDate = null;
+
+    function updateDates() {
+        fromDate = fromDateInput.value;
+        toDate = toDateInput.value;
+
+        if (fromDate && toDate) {
+            // Validate that toDate is not before fromDate
+            if (new Date(toDate) < new Date(fromDate)) {
+                errorElement.innerHTML = "To Date cannot be earlier than From Date.";
+                filterButton.disabled = true;
+            } else {
+                checkdata(fromDate, toDate);
+            }
+        } else {
+            errorElement.innerHTML = "Please select both From Date and To Date.";
+            filterButton.disabled = true;
+        }
+    }
+
+    fromDateInput.addEventListener('change', updateDates);
+    toDateInput.addEventListener('change', updateDates);
+
+    function checkdata(fromDate, toDate) {
+        fetch(`/admin/checkDataExist?fromDate=${fromDate}&toDate=${toDate}`, {
+            method: 'GET'
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    errorElement.innerHTML = data.message;
+                    filterButton.disabled = true;
+                } else {
+                    errorElement.innerHTML = "";
+                    filterButton.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.log('Error in checkDataExist:', err);
+                errorElement.innerHTML = "Error checking data availability. Please try again.";
+                filterButton.disabled = true;
+            });
+    }
+
+    function downloadReport(format) {
+        let reportType = '<%= page %>';
+        let fromDate = document.getElementById('fromDate').value;
+        let toDate = document.getElementById('toDate').value;
+
+        if (reportType === 'customDate') {
+            if (!fromDate || !toDate) {
+                alert('Please select both From Date and To Date.');
+                return;
+            }
+            fetch(`/admin/customdate?format=${format}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fromDate, toDate })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to download ${format.toUpperCase()}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `sales_report_${reportType}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Failed to download the ${format.toUpperCase()} report. Please try again.`);
+            });
+        } else {
+            window.location.href = `/admin/sales/${reportType}?format=${format}`;
+        }
+    }
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+        downloadReport('pdf');
+    });
+
+    document.getElementById('downloadExcelBtn').addEventListener('click', function () {
+        downloadReport('excel');
+    });
+});
+</script>

@@ -7,6 +7,7 @@ const userController = require('../controllers/admin/userController');
 const orderController = require('../controllers/admin/orderControoler')
 const couponController = require('../controllers/admin/couponController')
 const offerController = require('../controllers/admin/offerController')
+const saleController = require('../controllers/admin/saleController')
 const adminSession = require('../middlewares/admin');
 const { categoryUpload, productUpload } = require('../config/multer');
 const router = express.Router();
@@ -72,8 +73,6 @@ router.get('/editcoupon/:id',adminSession,couponController.getEditCoupon)
 router.post('/editcoupon/:id',adminSession,couponController.postEditCoupon)
 router.put('/api/blockcoupon/:id',adminSession,couponController.blockCoupon)
 
-//offer route
-
 // Offer management routes
 router.get('/offer', adminSession, offerController.getOfferList);
 router.get('/addoffer',adminSession, offerController.getAddOffer);
@@ -82,5 +81,9 @@ router.get('/editoffer/:id',adminSession, offerController.getEditOffer);
 router.post('/editoffer/:id',adminSession, offerController.postEditOffer);
 router.put('/api/blockoffer/:id',adminSession, offerController.blockOffer);
 
+//sales Report route
+router.get('/sales/:period', adminSession,saleController.getSalesReport);
+router.post('/customdate', adminSession,saleController.getCustomDateReport);
+router.get('/checkDataExist',adminSession, saleController.checkDataExist);
 
 module.exports = router;
