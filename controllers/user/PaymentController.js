@@ -100,7 +100,7 @@ exports.createRazorpayOrder = async (req, res) => {
     console.error('Error creating Razorpay order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create payment order: ' + error.message,
+      message: 'Failed to create payment order',
     });
   }
 };
@@ -109,139 +109,168 @@ exports.createRazorpayOrder = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
   try {
     const {
-      razorpayOrderId,
+      addressId,
+      paymentMethod,
+      couponCode,
       razorpayPaymentId,
+      razorpayOrderId,
       razorpaySignature,
       orderId,
     } = req.body;
 
-    console.log('Received request to verify payment:', {
-      orderId,
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
-    });
-
-    // Validate input
-    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !orderId) {
-      console.log('Missing required fields in request');
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required payment fields',
-        redirectUrl: '/orders',
-      });
-    }
-
-    // Fetch the order
-    const order = await Orders.findById(orderId);
-    if (!order) {
-      console.log('Order not found:', orderId);
-      return res.status(400).json({
-        success: false,
-        message: 'Order not found',
-        redirectUrl: '/orders',
-      });
-    }
-
-    console.log('Order from DB:', {
-      orderId: order._id,
-      razorpayOrderId: order.razorpayOrderId,
-      paymentStatus: order.paymentStatus,
-    });
-
-    // Validate Razorpay credentials
-    if (!process.env.RAZORPAY_KEY_SECRET) {
-      console.error('RAZORPAY_KEY_SECRET is not set');
-      return res.status(500).json({
-        success: false,
-        message: 'Server configuration error: Missing Razorpay secret',
-        redirectUrl: '/orders',
-      });
+    // If orderId is provided (retry payment), fetch order instead of cart
+    let cart, order;
+    if (orderId) {
+      order = await Orders.findById(orderId);
+      if (!order) {
+        console.log('Order not found:', orderId);
+        return res.status(400).json({
+          success: false,
+          message: 'Order not found',
+          redirectUrl: '/orders',
+        });
+      }
+    } else {
+      cart = await Cart.findOne({ user: req.user.id }).populate('cartItem.productId');
+      if (!cart || !cart.cartItem.length) {
+        console.log('Cart is empty or not found');
+        return res.status(400).json({
+          success: false,
+          message: 'Cart is empty',
+          redirectUrl: '/orders',
+        });
+      }
     }
 
     // Verify Razorpay signature
     const body = razorpayOrderId + '|' + razorpayPaymentId;
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(body)
+      .update(body.toString())
       .digest('hex');
 
-    console.log('Signature verification:', {
-      body,
-      expectedSignature,
-      receivedSignature: razorpaySignature,
-      isSignatureValid: expectedSignature === razorpaySignature,
-      isOrderIdValid: order.razorpayOrderId === razorpayOrderId,
-    });
-
-    // Check both signature and order ID
     if (expectedSignature !== razorpaySignature) {
-      console.log('Invalid signature detected');
-      order.paymentStatus = 'Failed';
-      order.paymentId = razorpayPaymentId || null;
-      await order.save();
+      console.log('Invalid Razorpay signature');
+      if (orderId) {
+        // Update existing order
+        order.paymentStatus = 'Failed';
+        order.paymentId = razorpayPaymentId;
+        order.razorpayOrderId = razorpayOrderId;
+        await order.save();
+      } else {
+        // Create new order with failed payment
+        const newOrder = await createOrder(req.user.id, addressId, paymentMethod, couponCode, {
+          paymentId: razorpayPaymentId,
+          razorpayOrderId,
+          paymentStatus: 'Failed',
+        });
+
+        // Clear cart
+        await Cart.findOneAndUpdate(
+          { user: req.user.id },
+          { $set: { cartItem: [], cartTotal: 0 } }
+        );
+
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid payment signature',
+          redirectUrl: '/orders',
+          orderId: newOrder._id,
+        });
+      }
 
       return res.status(400).json({
         success: false,
         message: 'Invalid payment signature',
         redirectUrl: '/orders',
-        orderId: order._id,
+        orderId,
       });
     }
 
-    if (order.razorpayOrderId !== razorpayOrderId) {
-      console.log('Razorpay order ID mismatch', {
-        dbRazorpayOrderId: order.razorpayOrderId,
-        receivedRazorpayOrderId: razorpayOrderId,
-      });
-      order.paymentStatus = 'Failed';
-      order.paymentId = razorpayPaymentId || null;
+    // Success: Update or create order
+    if (orderId) {
+      // Update existing order for retry payment
+      order.paymentStatus = 'Paid';
+      order.paymentId = razorpayPaymentId;
+      order.razorpayOrderId = razorpayOrderId;
+      order.orderStatus = 'Confirmed';
       await order.save();
 
-      return res.status(400).json({
-        success: false,
-        message: 'Razorpay order ID mismatch',
-        redirectUrl: '/orders',
+      return res.json({
+        success: true,
+        redirectUrl: `/confirmorder/${order._id}`,
         orderId: order._id,
       });
+    } else {
+      // Create new order for initial payment
+      const newOrder = await createOrder(req.user.id, addressId, paymentMethod, couponCode, {
+        paymentId: razorpayPaymentId,
+        razorpayOrderId,
+        paymentStatus: 'Paid',
+      });
+
+      // Clear cart
+      await Cart.findOneAndUpdate(
+        { user: req.user.id },
+        { $set: { cartItem: [], cartTotal: 0 } }
+      );
+
+      return res.json({
+        success: true,
+        redirectUrl: `/confirmorder/${newOrder._id}`,
+        orderId: newOrder._id,
+      });
     }
-
-    // Update order with successful payment
-    order.paymentStatus = 'Paid';
-    order.paymentId = razorpayPaymentId;
-    order.orderStatus = 'Pending'; // Reset to Pending for processing
-    await order.save();
-    console.log('Order updated:', order._id, 'Payment status:', order.paymentStatus);
-
-    // Clear cart
-    await Cart.findOneAndUpdate(
-      { user: req.user.id },
-      { $set: { cartItem: [], cartTotal: 0 } }
-    );
-
-    res.json({
-      success: true,
-      redirectUrl: `user/confirmorder/${order._id}`,
-      orderId: order._id,
-    });
   } catch (error) {
     console.error('Error verifying payment:', error);
 
-    // Handle error case by marking payment as failed
-    const order = await Orders.findById(req.body.orderId);
-    if (order) {
-      order.paymentStatus = 'Failed';
-      order.paymentId = req.body.razorpayPaymentId || null;
-      order.razorpayOrderId = req.body.razorpayOrderId || null;
-      await order.save();
-      console.log('Order updated to failed:', order._id);
+    const { addressId, paymentMethod, couponCode, razorpayPaymentId, razorpayOrderId, orderId } = req.body;
+
+    if (orderId) {
+      // Update existing order
+      const order = await Orders.findById(orderId);
+      if (order) {
+        order.paymentStatus = 'Failed';
+        order.paymentId = razorpayPaymentId || null;
+        order.razorpayOrderId = razorpayOrderId || null;
+        await order.save();
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify payment',
+        redirectUrl: '/orders',
+        orderId,
+      });
+    } else {
+      // Create new order with failed status
+      const cart = await Cart.findOne({ user: req.user.id }).populate('cartItem.productId');
+      if (cart && cart.cartItem.length) {
+        const newOrder = await createOrder(req.user.id, addressId, paymentMethod, couponCode, {
+          paymentId: razorpayPaymentId || null,
+          razorpayOrderId: razorpayOrderId || null,
+          paymentStatus: 'Failed',
+        });
+
+        // Clear cart
+        await Cart.findOneAndUpdate(
+          { user: req.user.id },
+          { $set: { cartItem: [], cartTotal: 0 } }
+        );
+
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to verify payment',
+          redirectUrl: '/orders',
+          orderId: newOrder._id,
+        });
+      }
     }
 
     res.status(500).json({
       success: false,
-      message: 'Failed to verify payment: ' + error.message,
+      message: 'Failed to verify payment',
       redirectUrl: '/orders',
-      orderId: order?._id,
     });
   }
 };
@@ -286,7 +315,7 @@ exports.handlePaymentFailure = async (req, res) => {
     console.error('Error handling payment failure:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to process payment failure: ' + error.message,
+      message: 'Failed to process payment failure',
       redirectUrl: '/orders',
     });
   }
@@ -360,7 +389,7 @@ exports.placeOrder = async (req, res) => {
     console.error('Error placing order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to place order: ' + error.message,
+      message: 'Failed to place order',
     });
   }
 };
@@ -371,15 +400,16 @@ exports.retryPayment = async (req, res) => {
     const { orderId } = req.body;
     console.log('Retrying payment for order:', orderId);
 
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      console.error('Razorpay credentials are missing');
+    if (!process.env.RAZORPAY_KEY_ID) {
+      console.error('RAZORPAY_KEY_ID is not set in environment variables');
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error: Missing Razorpay credentials',
+        message: 'Server configuration error: Missing Razorpay Key ID',
       });
     }
 
     const order = await Orders.findById(orderId);
+
     if (!order || order.paymentStatus !== 'Failed') {
       console.log('Invalid order or payment status:', order ? order.paymentStatus : 'Order not found');
       return res.status(400).json({
@@ -392,34 +422,24 @@ exports.retryPayment = async (req, res) => {
     const options = {
       amount: Math.round(order.finalAmount * 100),
       currency: 'INR',
-      receipt: `retry_${order.orderNumber}_${Date.now()}`,
+      receipt: `retry_${order.orderNumber}`,
     };
 
     const razorpayOrder = await razorpayInstance.orders.create(options);
-    console.log('Razorpay order created:', razorpayOrder.id);
-
-    // Update the original order with the new Razorpay order ID
-    order.razorpayOrderId = razorpayOrder.id;
-    order.paymentStatus = 'Pending'; // Reset to Pending for retry
-    await order.save();
-    console.log('Order updated with new Razorpay order ID:', {
-      orderId: order._id,
-      razorpayOrderId: razorpayOrder.id,
-    });
+    console.log('Razorpay order created:', razorpayOrder.id, 'Key ID:', process.env.RAZORPAY_KEY_ID);
 
     res.json({
       success: true,
-      key: process.env.RAZORPAY_KEY_ID,
-      orderId: razorpayOrder.id,
+      order_id: razorpayOrder.id,
       amount: options.amount,
       currency: options.currency,
-      originalOrderId: orderId,
+      key_id: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error('Error retrying payment:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retry payment: ' + error.message,
+      message: 'Failed to retry payment',
     });
   }
 };
@@ -468,7 +488,7 @@ async function createOrder(userId, addressId, paymentMethod, couponCode, payment
   let couponDiscount = 0;
 
   const orderedItems = cart.cartItem
-    .filter(item => item.productId)
+    .filter(item => item.productId) // Skip invalid products
     .map(item => {
       let productPrice = item.productId.price;
       let finalProductPrice = productPrice;
@@ -537,6 +557,5 @@ async function createOrder(userId, addressId, paymentMethod, couponCode, payment
   });
 
   await order.save();
-  console.log('Order created:', order._id);
   return order;
 }

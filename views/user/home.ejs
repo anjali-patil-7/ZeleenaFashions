@@ -337,6 +337,9 @@
 
     .hiraola-add_compare.wishlisted {
         color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 50%;
+        padding: 4px;
         animation: pulse 0.5s ease;
     }
 
@@ -533,7 +536,7 @@
                                                     <ul>
                                                         <li><i class="fa fa-star-of-david"></i></li>
                                                         <li><i class="fa fa-star-of-david"></i></li>
-                                                        <li><i of-david"></i></li>
+                                                        <li><i class="fa fa-star-of-david"></i></li>
                                                         <li><i class="fa fa-star-of-david"></i></li>
                                                         <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
                                                     </ul>
@@ -587,12 +590,12 @@
                                                 <% if (product.offer && product.offer.discount > 0) { %>
                                                     <div class="offer-tag"><%= product.offer.discount %>% Off</div>
                                                 <% } %>
-                                                <div class="add-actions">
-                                                    <ul>
-                                                        <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
-                                                        <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
-                                                    </ul>
-                                                </div>
+                                            </div>
+                                            <div class="add-actions">
+                                                <ul>
+                                                    <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
+                                                    <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
+                                                </ul>
                                             </div>
                                             <div class="hiraola-product_content">
                                                 <div class="product-desc_info">
@@ -685,7 +688,7 @@
 
                 const productId = button.getAttribute('data-product-id');
                 const icon = button.querySelector('i');
-                const isInWishlist = icon.classList.contains('ion-android-favorite');
+                const isInWishlist = button.classList.contains('wishlisted');
 
                 const url = isInWishlist ? '/wishlist/remove' : '/wishlist/add';
                 const action = isInWishlist ? 'remove' : 'add';
@@ -700,6 +703,7 @@
                 })
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(`Wishlist ${action} response:`, data); // Log the response for debugging
                         if (data.success) {
                             if (action === 'add') {
                                 Swal.fire({
@@ -714,7 +718,7 @@
                                 icon.classList.remove('ion-android-favorite-outline');
                                 icon.classList.add('ion-android-favorite');
                                 button.classList.add('wishlisted');
-                                button.setAttribute('title', 'Remove from Wishlist');
+                                button.setAttribute('data-bs-original-title', 'Remove from Wishlist');
                             } else {
                                 Swal.fire({
                                     icon: 'success',
@@ -728,7 +732,7 @@
                                 icon.classList.remove('ion-android-favorite');
                                 icon.classList.add('ion-android-favorite-outline');
                                 button.classList.remove('wishlisted');
-                                button.setAttribute('title', 'Add To Wishlist');
+                                button.setAttribute('data-bs-original-title', 'Add To Wishlist');
                             }
                         } else {
                             Swal.fire({
@@ -739,11 +743,64 @@
                         }
                     })
                     .catch((error) => {
-                        console.error('Error:', error);
+                        console.error(`Error during wishlist ${action}:`, error);
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
                             text: `An error occurred while ${action === 'add' ? 'adding' : 'removing'} the product to/from the wishlist`,
+                        });
+                    });
+            });
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cartButtons = document.querySelectorAll('.hiraola-add_cart');
+
+        cartButtons.forEach((button) => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                const productId = button.closest('.single_product').querySelector('.hiraola-add_compare').getAttribute('data-product-id');
+
+                fetch(`/addtocart/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ quantity: 1 }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log('Add to cart response:', data); // Log the response for debugging
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: data.message || 'Product added to cart successfully!',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                            });
+                            // Optionally update cart count in UI if displayed
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: data.message || 'Failed to add product to cart',
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error adding to cart:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while adding the product to the cart',
                         });
                     });
             });
