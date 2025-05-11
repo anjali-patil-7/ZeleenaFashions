@@ -383,6 +383,7 @@
   }
 
   function retryPayment(orderId, button) {
+    console.log('Initiating retry payment for order:', orderId);
     button.disabled = true;
     button.textContent = "Processing...";
 
@@ -404,20 +405,25 @@
         return response.json();
       })
       .then((data) => {
+        console.log('Retry payment response:', data);
         button.disabled = false;
         button.textContent = "Retry Payment";
 
         if (data.success) {
+          if (!data.key_id) {
+            throw new Error('Razorpay Key ID is missing in response');
+          }
+
           const options = {
-            key: data.key,
+            key: data.key_id,
             amount: data.amount,
             currency: data.currency,
             name: "Raabta Collections",
-            description: "Retry Payment for Order",
-            order_id: data.orderId,
+            description: `Retry Payment for Order ${orderId}`,
+            order_id: data.order_id,
             handler: function (response) {
               console.log('Razorpay payment response:', response);
-              verifyRetryPayment(response, data.originalOrderId);
+              verifyRetryPayment(response, orderId);
             },
             prefill: {
               name: "<%= user.name %>",
@@ -439,9 +445,8 @@
             },
           };
 
+          console.log('Razorpay options:', options);
           const rzp = new Razorpay(options);
-          rzp.open();
-
           rzp.on("payment.failed", function (response) {
             console.error('Razorpay payment failed:', response.error);
             Swal.fire({
@@ -451,6 +456,7 @@
               confirmButtonColor: "#1d2951",
             });
           });
+          rzp.open();
         } else {
           console.error('Retry payment initiation failed:', data.message);
           Swal.fire({
@@ -523,7 +529,7 @@
             icon: "success",
             confirmButtonColor: "#1d2951",
           }).then(() => {
-            window.location.href = "/orderconfirmation/" + data.orderId;
+            window.location.href = data.redirectUrl || "/orders";
           });
         } else {
           console.error('Payment verification failed:', data.message);
@@ -532,6 +538,8 @@
             text: data.message || "Payment verification failed. Please try again or contact support.",
             icon: "error",
             confirmButtonColor: "#1d2951",
+          }).then(() => {
+            window.location.href = data.redirectUrl || "/orders";
           });
         }
       })
@@ -542,6 +550,8 @@
           text: "An error occurred during payment verification: " + error.message,
           icon: "error",
           confirmButtonColor: "#1d2951",
+        }).then(() => {
+          window.location.href = "/orders";
         });
       });
   }
