@@ -82,7 +82,6 @@ router.post('/wishlist/add-to-cart', verifyToken, wishlistController.addToCartFr
 // Checkout routes
 router.get('/checkout', verifyToken, checkoutController.getCheckoutPage);
 router.post('/select-address', verifyToken, checkoutController.selectAddress);
-router.get('/placingorder', verifyToken, checkoutController.getPlacingOrder);
 router.get('/confirmorder/:orderId', verifyToken, checkoutController.getOrderConfirmation);
 router.post('/apply-coupon', verifyToken, checkoutController.applyCoupon);
 router.post('/remove-coupon', verifyToken, checkoutController.removeCoupon);

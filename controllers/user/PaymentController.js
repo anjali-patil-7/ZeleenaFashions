@@ -2,8 +2,10 @@ const Orders = require('../../models/orderSchema');
 const Cart = require('../../models/cartSchema');
 const Coupon = require('../../models/couponSchema');
 const Wallet = require('../../models/walletSchema');
+const Product = require('../../models/productSchema'); // Added for inventory management
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const mongoose = require('mongoose'); // Added for transactions
 
 // Initialize Razorpay instance
 const razorpayInstance = new Razorpay({
@@ -79,7 +81,9 @@ exports.placeOrder = async (req, res) => {
     console.error('Error placing order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to place order',
+      message: error.message.includes('Insufficient stock')
+        ? 'Some products are out of stock. Please check your cart.'
+        : 'Failed to place order',
     });
   }
 };
@@ -326,7 +330,7 @@ exports.verifyPayment = async (req, res) => {
       console.log('Initial payment successful for order:', newOrder._id);
       return res.json({
         success: true,
-        redirectUrl: `/orderconfirmation/${newOrder._id}`,
+        redirectUrl: `/confirmorder/${newOrder._id}`,
         orderId: newOrder._id,
       });
     }
@@ -488,7 +492,6 @@ exports.retryPayment = async (req, res) => {
   }
 };
 
-
 // Helper function to calculate final amount
 async function calculateFinalAmount(userId, couponCode) {
   const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
@@ -525,82 +528,124 @@ async function calculateFinalAmount(userId, couponCode) {
 
 // Helper function to create order
 async function createOrder(userId, addressId, paymentMethod, couponCode, paymentDetails) {
-  const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
+  const session = await mongoose.startSession(); // Start a MongoDB session for transaction
+  session.startTransaction(); // Begin transaction
 
-  // Calculate totals
-  let subtotal = 0;
-  let discountAmount = 0;
-  let couponDiscount = 0;
+  try {
+    const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId').session(session);
 
-  const orderedItems = cart.cartItem
-    .filter(item => item.productId) // Skip invalid products
-    .map(item => {
-      let productPrice = item.productId.price;
-      let finalProductPrice = productPrice;
+    // Calculate totals
+    let subtotal = 0;
+    let discountAmount = 0;
+    let couponDiscount = 0;
 
-      // Apply offer if available
-      let productDiscount = 0;
-      if (item.productId.offer && item.productId.offer.discount) {
-        productDiscount = (productPrice * item.productId.offer.discount) / 100;
-        finalProductPrice = productPrice * (1 - item.productId.offer.discount / 100);
-        discountAmount += productDiscount * item.quantity;
+    // Validate stock for all items before proceeding
+    for (const item of cart.cartItem) {
+      if (!item.productId) {
+        throw new Error(`Product not found for cart item ${item._id}`);
       }
-
-      subtotal += productPrice * item.quantity;
-
-      return {
-        productId: item.productId._id,
-        quantity: item.quantity,
-        productPrice,
-        finalProductPrice,
-        totalProductPrice: productPrice * item.quantity,
-        finalTotalProductPrice: finalProductPrice * item.quantity,
-        productStatus: 'Pending',
-      };
-    });
-
-  // Apply coupon
-  let couponId = null;
-  if (couponCode) {
-    const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-    if (coupon) {
-      couponId = coupon._id;
-      if (coupon.discountType === 'percentage') {
-        couponDiscount = (subtotal * coupon.discount) / 100;
-        if (coupon.maxDiscount && couponDiscount > coupon.maxDiscount) {
-          couponDiscount = coupon.maxDiscount;
-        }
-      } else {
-        couponDiscount = coupon.discount;
+      if (item.quantity > item.productId.totalStock) {
+        throw new Error(`Insufficient stock for product: ${item.productId.productName}`);
+      }
+      if (!item.productId.status) {
+        throw new Error(`Product is unavailable: ${item.productId.productName}`);
       }
     }
+
+    const orderedItems = cart.cartItem
+      .filter(item => item.productId) // Skip invalid products
+      .map(item => {
+        let productPrice = item.productId.price;
+        let finalProductPrice = productPrice;
+
+        // Apply offer if available
+        let productDiscount = 0;
+        if (item.productId.offer && item.productId.offer.discount) {
+          productDiscount = (productPrice * item.productId.offer.discount) / 100;
+          finalProductPrice = productPrice * (1 - item.productId.offer.discount / 100);
+          discountAmount += productDiscount * item.quantity;
+        }
+
+        subtotal += productPrice * item.quantity;
+
+        return {
+          productId: item.productId._id,
+          quantity: item.quantity,
+          productPrice,
+          finalProductPrice,
+          totalProductPrice: productPrice * item.quantity,
+          finalTotalProductPrice: finalProductPrice * item.quantity,
+          productStatus: 'Pending',
+        };
+      });
+
+    // Apply coupon
+    let couponId = null;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode, isActive: true }).session(session);
+      if (coupon) {
+        couponId = coupon._id;
+        if (coupon.discountType === 'percentage') {
+          couponDiscount = (subtotal * coupon.discount) / 100;
+          if (coupon.maxDiscount && couponDiscount > coupon.maxDiscount) {
+            couponDiscount = coupon.maxDiscount;
+          }
+        } else {
+          couponDiscount = coupon.discount;
+        }
+      }
+    }
+
+    const finalAmount = subtotal - discountAmount - couponDiscount;
+
+    // Generate unique order number
+    const orderNumber = `ORD_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    // Create order
+    const order = new Orders({
+      userId,
+      cartId: cart._id,
+      deliveryAddress: addressId,
+      orderNumber,
+      orderedItem: orderedItems,
+      orderAmount: subtotal,
+      discountAmount,
+      couponDiscount,
+      couponCode,
+      couponApplied: couponId,
+      finalAmount,
+      paymentMethod,
+      paymentStatus: paymentDetails.paymentStatus || 'Pending',
+      paymentId: paymentDetails.paymentId || null,
+      razorpayOrderId: paymentDetails.razorpayOrderId || null,
+      orderStatus: 'Pending',
+    });
+
+    // Update product stock
+    for (const item of orderedItems) {
+      const product = await Product.findById(item.productId).session(session);
+      if (!product) {
+        throw new Error(`Product not found: ${item.productId}`);
+      }
+      if (product.totalStock < item.quantity) {
+        throw new Error(`Insufficient stock for product: ${product.productName}`);
+      }
+      product.totalStock -= item.quantity;
+      await product.save({ session });
+    }
+
+    // Save order
+    await order.save({ session });
+
+    await session.commitTransaction();
+    console.log(`Order created and stock updated for order: ${order.orderNumber}`);
+
+    return order;
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Error creating order or updating stock:', error);
+    throw error; 
+  } finally {
+    session.endSession();
   }
-
-  const finalAmount = subtotal - discountAmount - couponDiscount;
-
-  // Generate unique order number
-  const orderNumber = `ORD_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-
-  // Create order
-  const order = new Orders({
-    userId,
-    cartId: cart._id,
-    deliveryAddress: addressId,
-    orderNumber,
-    orderedItem: orderedItems,
-    orderAmount: subtotal,
-    discountAmount,
-    couponDiscount,
-    couponCode,
-    couponApplied: couponId,
-    finalAmount,
-    paymentMethod,
-    paymentStatus: paymentDetails.paymentStatus || 'Pending',
-    paymentId: paymentDetails.paymentId || null,
-    razorpayOrderId: paymentDetails.razorpayOrderId || null,
-    orderStatus: 'Pending',
-  });
-
-  await order.save();
-  return order;
 }

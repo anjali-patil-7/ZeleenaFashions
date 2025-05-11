@@ -319,6 +319,23 @@ exports.applyCoupon = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Invalid or expired coupon' });
       }
 
+      // Check if user has already used this coupon
+      const hasUsedCoupon = coupon.usedBy.some(entry => entry.userId.toString() === userId.toString());
+      if (hasUsedCoupon) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already used this coupon.',
+        });
+      }
+
+      // Check if maxRedeem limit is reached
+      if (coupon.usedBy.length >= coupon.maxRedeem) {
+        return res.status(400).json({
+          success: false,
+          message: 'This coupon has reached its maximum redemption limit.',
+        });
+      }
+
       if (coupon.minPurchase && originalSubtotal < coupon.minPurchase) {
         return res.status(400).json({
           success: false,
@@ -377,13 +394,14 @@ exports.getOrderConfirmation = async (req, res) => {
     const order = await Orders.findById(orderId)
       .populate('orderedItem.productId deliveryAddress');
     if (!order) {
+      console.log(`Order not found: ${orderId}`);
       req.flash('error_msg', 'Order not found.');
       return res.redirect('/cart');
     }
     res.render('user/confirmorder', { order });
   } catch (error) {
     console.error('Error rendering order confirmation:', error);
-    req.flash('error_msg', 'An error occurred.');
+    req.flash('error_msg', 'An error occurred while loading the order confirmation page.');
     res.redirect('/cart');
   }
 };

@@ -268,7 +268,7 @@ exports.editProduct = async (req, res) => {
         totalStock: parseInt(stock),
         category,
         productImage: currentImages,
-        status: status === "true",
+        // status: status === "true",
       },
       { new: true }
     );
