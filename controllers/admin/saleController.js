@@ -22,7 +22,7 @@ const calculateSummary = async (query) => {
 exports.getSalesReport = async (req, res) => {
     try {
         const { period } = req.params; 
-        const { format, currentPage = 1 } = req.query; 
+        const { format, page: currentPage = 1 } = req.query; 
         const perPage = 10;
         let query = {};
 
@@ -121,8 +121,8 @@ exports.getSalesReport = async (req, res) => {
 // Custom Date Sales Report
 exports.getCustomDateReport = async (req, res) => {
     try {
-        const { fromDate, toDate } = req.body;
-        const { format, page: currentPage = 1 } = req.query;
+        // Use query parameters instead of body for pagination compatibility
+        const { fromDate, toDate, format, page: currentPage = 1 } = req.query;
         const perPage = 10;
 
         console.log(`Custom date report requested: fromDate=${fromDate}, toDate=${toDate}, page=${currentPage}`);
@@ -217,8 +217,8 @@ exports.getCustomDateReport = async (req, res) => {
             TotalDiscountAmount: 0,
             TotalSaleCount: 0,
             error: `An error occurred while fetching the custom date report: ${error.message}`,
-            fromDate: req.body.fromDate || '',
-            toDate: req.body.toDate || '',
+            fromDate: req.query.fromDate || '',
+            toDate: req.query.toDate || '',
             currentPage: 1,
             totalPages: 0,
             perPage: 10

@@ -205,15 +205,15 @@
                         <nav aria-label="Page navigation" style="margin-top: 20px;">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage - 1}&fromDate=${fromDate}&toDate=${toDate}` : `/admin/sales/${page}?page=${currentPage - 1}` %>" style="color: #000000; border: 1px solid #000000;">Previous</a>
+                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage - 1}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${currentPage - 1}` %>" style="color: #000000; border: 1px solid #000000;">Previous</a>
                                 </li>
                                 <% for (let i = 1; i <= totalPages; i++) { %>
                                     <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                        <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${i}&fromDate=${fromDate}&toDate=${toDate}` : `/admin/sales/${page}?page=${i}` %>" style="color: #000000; border: 1px solid #000000; <%= currentPage === i ? 'background-color: #FFD700; color: #000000;' : '' %>"><%= i %></a>
+                                        <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${i}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${i}` %>" style="color: #000000; border: 1px solid #000000; <%= currentPage === i ? 'background-color: #FFD700; color: #000000;' : '' %>"><%= i %></a>
                                     </li>
                                 <% } %>
                                 <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage + 1}&fromDate=${fromDate}&toDate=${toDate}` : `/admin/sales/${page}?page=${currentPage + 1}` %>" style="color: #000000; border: 1px solid #000000;">Next</a>
+                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage + 1}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${currentPage + 1}` %>" style="color: #000000; border: 1px solid #000000;">Next</a>
                                 </li>
                             </ul>
                         </nav>
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function checkdata(fromDate, toDate) {
         console.log(`Checking data for: fromDate=${fromDate}, toDate=${toDate}`);
-        fetch(`/admin/checkDataExist?fromDate=${fromDate}&toDate=${toDate}`, {
+        fetch(`/admin/checkDataExist?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`, {
             method: 'GET'
         })
             .then(res => res.json())
@@ -313,8 +313,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function downloadReport(format) {
         const reportType = '<%= page %>';
-        const fromDate = document.getElementById('fromDate').value;
-        const toDate = document.getElementById('toDate').value;
+        const fromDate = fromDateInput.value;
+        const toDate = toDateInput.value;
 
         console.log(`Downloading ${format} report for ${reportType}`);
 
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let url = reportType === 'customDate' 
-            ? `/admin/sales/customdate?format=${format}&page=<%= currentPage %>`
+            ? `/admin/sales/customdate?format=${format}&page=<%= currentPage %>&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`
             : `/admin/sales/${reportType}?format=${format}&page=<%= currentPage %>`;
 
         if (reportType === 'customDate') {
@@ -388,26 +388,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        fetch('/admin/sales/customdate?page=1', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fromDate, toDate })
-        })
-        .then(response => {
-            console.log(`Custom date form response status: ${response.status}`);
-            if (response.ok) {
-                window.location.href = `/admin/sales/customdate?page=1&fromDate=${fromDate}&toDate=${toDate}`;
-            } else {
-                return response.json().then(data => {
-                    throw new Error(data.error || 'Failed to load custom date report');
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error submitting custom date form:', error);
-            errorElement.innerHTML = error.message || 'Failed to load custom date report. Please try again.';
-            errorElement.style.display = 'block';
-        });
+        // Update URL with query parameters instead of POST to preserve pagination
+        window.location.href = `/admin/sales/customdate?page=1&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
     });
 });
 </script>
