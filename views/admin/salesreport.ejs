@@ -158,12 +158,6 @@
                                     onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
                                 <i class="fas fa-download me-2"></i>Download PDF
                             </button>
-                            <button id="downloadExcelBtn" 
-                                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                                <i class="fas fa-download me-2"></i>Download Excel
-                            </button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -362,10 +356,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('downloadPdfBtn').addEventListener('click', function () {
         downloadReport('pdf');
-    });
-
-    document.getElementById('downloadExcelBtn').addEventListener('click', function () {
-        downloadReport('excel');
     });
 
     // Handle custom date form submission

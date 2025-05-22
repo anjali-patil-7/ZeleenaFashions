@@ -121,7 +121,6 @@ exports.getSalesReport = async (req, res) => {
 // Custom Date Sales Report
 exports.getCustomDateReport = async (req, res) => {
     try {
-        // Use query parameters instead of body for pagination compatibility
         const { fromDate, toDate, format, page: currentPage = 1 } = req.query;
         const perPage = 10;
 
@@ -262,196 +261,164 @@ exports.checkDataExist = async (req, res) => {
 };
 
 // Generate PDF Report
-exports.generatePDF = (req, res, orders, summary, page, fromDate = null, toDate = null) => {
+exports.generatePDF = (req, res, orders, summary, period, fromDate = null, toDate = null) => {
     try {
-        const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=${page}_sales_report.pdf`);
+        const doc = new PDFDocument();
+        const filename = `Sales_Report_${period}_${Date.now()}.pdf`;
 
+        // Set response headers for PDF download
+        res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-type', 'application/pdf');
+
+        // Pipe the PDF document to the response
         doc.pipe(res);
 
-        // Branding and Header
-        doc.font('Helvetica-Bold').fontSize(24).fillColor('#2c3e50')
-           .text('Zeleena Fashions', 40, 40, { align: 'left' });
-        
-        doc.font('Helvetica').fontSize(10).fillColor('#7f8c8d')
-           .text('123 Fashion Avenue, Style City, SC 12345', 40, 70)
-           .text('Phone: +1 (555) 123-4567 | Email: contact@zeleenafashions.com', 40, 85)
-           .text('Website: www.zeleenafashions.com | GSTIN: 12ABCDE1234F1Z5', 40, 100);
-        
-        doc.font('Helvetica-Bold').fontSize(28).fillColor('#34495e')
-           .text('SALES REPORT', 0, 40, { align: 'right' });
-        
-        doc.moveTo(40, 130).lineTo(555, 130).lineWidth(1).fillAndStroke('#3498db');
-        doc.moveDown(2);
-
-        // Summary Section
-        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
-           .text('Summary', 40, doc.y, { underline: true });
-        doc.font('Helvetica').fontSize(10).fillColor('#34495e');
-        let yPosition = doc.y + 10;
-        
-        doc.text(`Generated on: ${moment().format('MMMM Do YYYY, h:mm:ss a')}`, 40, yPosition);
-        yPosition += 15;
-        if (page === 'customDate') {
-            doc.text(`Period: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 40, yPosition);
-        } else {
-            doc.text(`Period: ${page.charAt(0).toUpperCase() + page.slice(1)}`, 40, yPosition);
+        // Add content to the PDF
+        doc.fontSize(20).text('Sales Report', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Period: ${period.charAt(0).toUpperCase() + period.slice(1)}`);
+        if (fromDate && toDate) {
+            doc.text(`From: ${formatDate(fromDate)} To: ${formatDate(toDate)}`);
         }
-        yPosition += 15;
-        doc.text(`Total Orders: ${summary.TotalSaleCount}`, 40, yPosition);
-        yPosition += 15;
-        doc.text(`Total Revenue: ₹${summary.TotalAmount.toFixed(2)}`, 40, yPosition);
-        yPosition += 15;
-        doc.text(`Total Discount: ₹${summary.TotalDiscountAmount.toFixed(2)}`, 40, yPosition);
-        yPosition += 15;
-        doc.text(`Net Revenue: ₹${(summary.TotalAmount - summary.TotalDiscountAmount).toFixed(2)}`, 40, yPosition);
-        yPosition += 20;
+        doc.moveDown();
 
-        // Orders Table
-        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
-           .text('Order Details', 40, yPosition, { underline: true });
-        
-        yPosition += 15;
-        if (yPosition > 650) {
-            doc.addPage();
-            yPosition = 50;
-        }
+        // Summary
+        doc.text(`Total Sales: ${summary.TotalSaleCount}`);
+        doc.text(`Total Amount: $${summary.TotalAmount.toFixed(2)}`);
+        doc.text(`Total Discount: $${summary.TotalDiscountAmount.toFixed(2)}`);
+        doc.moveDown();
 
-        // Updated table header with Order Status
-        doc.rect(40, yPosition, 515, 25).fill('#f5f6fa');
-        doc.font('Helvetica-Bold').fontSize(10).fillColor('#2c3e50');
-        doc.text('SI No', 50, yPosition + 8, { width: 40 })
-           .text('Order Date', 90, yPosition + 8, { width: 80 })
-           .text('Customer Name', 170, yPosition + 8, { width: 120 })
-           .text('Order ID', 290, yPosition + 8, { width: 80 })
-           .text('Order Amount', 370, yPosition + 8, { width: 50, align: 'right' })
-           .text('Discount', 420, yPosition + 8, { width: 50, align: 'right' })
-           .text('Status', 470, yPosition + 8, { width: 80, align: 'left' });
+        // Table Header
+        doc.fontSize(10).text('Order ID', 50, 200);
+        doc.text('Customer', 150, 200);
+        doc.text('Date', 250, 200);
+        doc.text('Amount', 350, 200);
+        doc.text('Discount', 450, 200);
+        doc.moveDown();
 
-        yPosition += 30;
-        doc.font('Helvetica').fontSize(10).fillColor('#000000');
+        // Table Content
+        orders.forEach((order, index) => {
+            const y = 220 + (index * 20);
+            doc.text(order._id.toString(), 50, y);
+            doc.text(order.userId ? order.userId.name : 'N/A', 150, y);
+            doc.text(order.orderDate, 250, y);
+            doc.text(`$${order.finalAmount.toFixed(2)}`, 350, y);
+            doc.text(`$${order.couponDiscount ? order.couponDiscount.toFixed(2) : '0.00'}`, 450, y);
+        });
 
-        if (orders && orders.length > 0) {
-            orders.forEach((order, index) => {
-                if (yPosition > 700) {
-                    doc.addPage();
-                    yPosition = 50;
-                }
-
-                if (index % 2 === 0) {
-                    doc.rect(40, yPosition, 515, 20).fill('#f9fbfd');
-                }
-
-                const siNo = index + 1;
-                const orderDate = order.orderDate;
-                const customerName = order.userId?.name || 'N/A';
-                const orderId = order.orderNumber || order._id;
-                const orderAmount = (order.orderAmount || 0).toFixed(2);
-                const discount = (order.couponDiscount || 0).toFixed(2);
-                const orderStatus = order.orderStatus || 'N/A';
-
-                doc.text(`${siNo}`, 50, yPosition + 5, { width: 40 });
-                doc.text(orderDate, 90, yPosition + 5, { width: 80 });
-                doc.text(customerName, 170, yPosition + 5, { width: 120 });
-                doc.text(orderId, 290, yPosition + 5, { width: 80 });
-                doc.text(`₹${orderAmount}`, 370, yPosition + 5, { width: 50, align: 'right' });
-                doc.text(`₹${discount}`, 420, yPosition + 5, { width: 50, align: 'right' });
-                doc.text(orderStatus, 470, yPosition + 5, { width: 80, align: 'left' });
-
-                yPosition += 20;
-            });
-        } else {
-            doc.text('No orders available', 50, yPosition + 5, { width: 250 });
-            yPosition += 20;
-        }
-
-        doc.moveTo(40, yPosition).lineTo(555, yPosition).lineWidth(0.5).stroke('#3498db');
-        yPosition += 20;
-
-        // Footer
-        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#7f8c8d');
-        const footerPosition = doc.page.height - 60;
-        doc.text('Thank you for shopping with Zeleena Fashions!', 0, footerPosition, { align: 'center' })
-           .text(`Generated on ${moment().format('MMMM Do YYYY, h:mm:ss a')} | All rights reserved © 2025`, 0, footerPosition + 15, { align: 'center' });
-
+        // Finalize the PDF
         doc.end();
     } catch (error) {
         console.error('Error in generatePDF:', error);
-        res.status(500).send(`Failed to generate PDF report: ${error.message}`);
+        res.status(500).send('Error generating PDF report');
     }
 };
 
 // Generate Excel Report
-exports.generateExcel = async (req, res, orders, summary, page, fromDate = null, toDate = null) => {
+exports.generateExcel = async (req, res, orders, summary, period, fromDate = null, toDate = null) => {
     try {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Sales Report');
 
-        // Define columns
-        worksheet.columns = [
-            { header: 'SI No', key: 'siNo', width: 10 },
-            { header: 'Order Date', key: 'orderDate', width: 15 },
-            { header: 'Customer Name', key: 'customerName', width: 20 },
-            { header: 'Order ID', key: 'orderId', width: 20 },
-            { header: 'Order Amount', key: 'orderAmount', width: 15 },
-            { header: 'Discount', key: 'discount', width: 15 },
-            { header: 'Status', key: 'orderStatus', width: 15 }
-        ];
-
-        // Add summary
-        worksheet.addRow(['Summary']);
-        worksheet.addRow(['Total Orders', summary.TotalSaleCount]);
-        worksheet.addRow(['Total Revenue', `₹${summary.TotalAmount.toFixed(2)}`]);
-        worksheet.addRow(['Total Discount', `₹${summary.TotalDiscountAmount.toFixed(2)}`]);
-        worksheet.addRow(['Net Revenue', `₹${(summary.TotalAmount - summary.TotalDiscountAmount).toFixed(2)}`]);
-        worksheet.addRow([]);
-        if (page === 'customDate') {
-            worksheet.addRow(['Period', `${formatDate(fromDate)} to ${formatDate(toDate)}`]);
-        } else {
-            worksheet.addRow(['Period', page.charAt(0).toUpperCase() + page.slice(1)]);
+        // Add Summary
+        worksheet.addRow(['Sales Report']);
+        worksheet.addRow([`Period: ${period.charAt(0).toUpperCase() + period.slice(1)}`]);
+        if (fromDate && toDate) {
+            worksheet.addRow([`From: ${formatDate(fromDate)} To: ${formatDate(toDate)}`]);
         }
+        worksheet.addRow(['Total Sales', summary.TotalSaleCount]);
+        worksheet.addRow(['Total Amount', `$${summary.TotalAmount.toFixed(2)}`]);
+        worksheet.addRow(['Total Discount', `$${summary.TotalDiscountAmount.toFixed(2)}`]);
         worksheet.addRow([]);
 
-        // Add orders
-        orders.forEach((order, index) => {
-            worksheet.addRow({
-                siNo: index + 1,
-                orderDate: order.orderDate,
-                customerName: order.userId?.name || 'N/A',
-                orderId: order.orderNumber || order._id,
-                orderAmount: `₹${(order.orderAmount || 0).toFixed(2)}`,
-                discount: `₹${(order.couponDiscount || 0).toFixed(2)}`,
-                orderStatus: order.orderStatus || 'N/A'
-            });
+        // Add Table Headers
+        worksheet.addRow(['Order ID', 'Customer', 'Date', 'Amount', 'Discount']);
+
+        // Add Table Data
+        orders.forEach(order => {
+            worksheet.addRow([
+                order._id.toString(),
+                order.userId ? order.userId.name : 'N/A',
+                order.orderDate,
+                `$${order.finalAmount.toFixed(2)}`,
+                `$${order.couponDiscount ? order.couponDiscount.toFixed(2) : '0.00'}`
+            ]);
         });
 
-        // Styling
-        worksheet.getRow(1).font = { bold: true, size: 14 };
-        worksheet.getRow(7).font = { bold: true };
-        worksheet.getRow(8).font = { bold: true };
-        worksheet.eachRow((row, rowNumber) => {
-            if (rowNumber <= 8) {
-                row.font = { bold: true };
-            }
-            row.eachCell(cell => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                };
-            });
-        });
+        // Set response headers for Excel download
+        const filename = `Sales_Report_${period}_${Date.now()}.xlsx`;
+        res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
-        // Set headers
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename=${page}_sales_report.xlsx`);
-
+        // Write to response
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
         console.error('Error in generateExcel:', error);
-        res.status(500).send(`Failed to generate Excel report: ${error.message}`);
+        res.status(500).send('Error generating Excel report');
+    }
+};
+
+// Generate Sales Report
+exports.generateSalesReport = async (req, res) => {
+    try {
+        const { page = 'monthly', pageNumber = 1, fromDate, toDate } = req.query;
+        const limit = 10; // Orders per page
+        const skip = (pageNumber - 1) * limit;
+
+        // Define date range
+        let query = {};
+        if (page === 'monthly') {
+            query.createdAt = {
+                $gte: moment().startOf('month').toDate(),
+                $lte: moment().endOf('month').toDate()
+            };
+        } else if (page === 'customDate') {
+            if (!fromDate || !toDate) {
+                return res.status(400).json({ error: 'fromDate and toDate are required' });
+            }
+            query.createdAt = {
+                $gte: moment(fromDate).startOf('day').toDate(),
+                $lte: moment(toDate).endOf('day').toDate()
+            };
+        }
+
+        // Fetch total count
+        const totalOrders = await Order.countDocuments(query);
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        // Fetch orders for the current page
+        const orders = await Order.find(query)
+            .populate('userId', 'name')
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        console.log(`Processing sales report for period: ${page}, page: ${pageNumber}`);
+        console.log(`Query date range:`, query.createdAt);
+        console.log(`Total orders: ${totalOrders}, Total pages: ${totalPages}`);
+        console.log(`Orders for page ${pageNumber}:`, orders);
+
+        // Calculate summary
+        const allOrders = await Order.find(query).lean();
+        const summary = {
+            TotalSaleCount: totalOrders,
+            TotalAmount: allOrders.reduce((sum, order) => sum + (order.finalAmount || 0), 0),
+            TotalDiscountAmount: allOrders.reduce((sum, order) => sum + (order.couponDiscount || 0), 0)
+        };
+        console.log('Summary:', summary);
+
+        // Add formatted orderDate and orderStatus
+        const formattedOrders = orders.map(order => ({
+            ...order,
+            orderDate: formatDate(order.createdAt),
+            orderStatus: order.orderStatus || 'N/A'
+        }));
+
+        // Generate PDF
+        exports.generatePDF(req, res, formattedOrders, summary, page, query.createdAt.$gte, query.createdAt.$lte);
+    } catch (error) {
+        console.error('Error in generateSalesReport:', error);
+        res.status(500).json({ error: 'Failed to generate sales report' });
     }
 };
