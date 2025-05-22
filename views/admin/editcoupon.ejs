@@ -1,336 +1,310 @@
 <%- include('../partials/admin/header') %>
 
-<section class="content-main">
-    <div class="content-header">
-        <div>
-            <h2 class="content-title">Edit Coupon</h2>
-            <p>Update coupon details</p>
-        </div>
-        <div>
-            <button onclick="window.location.href='/admin/coupon'" class="back-btn">
-                Back to Coupons
-            </button>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <form action="/admin/editcoupon/<%= coupon._id %>" method="POST" id="couponForm">
-                        <div class="mb-4">
-                            <label for="couponCode" class="form-label">Coupon Code</label>
-                            <input 
-                                type="text" 
-                                name="couponCode" 
-                                id="couponCode" 
-                                class="form-control" 
-                                value="<%= coupon.couponCode %>" 
-                                required
-                            />
-                            <div id="couponCodeError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="type" class="form-label">Discount Type</label>
-                            <select name="type" id="type" class="form-control" required>
-                                <option value="percentageDiscount" <%= coupon.type === 'percentageDiscount' ? 'selected' : '' %>>Percentage Discount</option>
-                                <option value="flatDiscount" <%= coupon.type === 'flatDiscount' ? 'selected' : '' %>>Flat Discount</option>
-                            </select>
-                            <div id="typeError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="discount" class="form-label">Discount Value</label>
-                            <div class="input-group">
-                                <input 
-                                    type="number" 
-                                    name="discount" 
-                                    id="discount" 
-                                    class="form-control" 
-                                    value="<%= coupon.discount %>" 
-                                    min="1" 
-                                    <%= coupon.type === 'percentageDiscount' ? 'max="100"' : '' %>
-                                    required
-                                />
-                                <span class="input-group-text" id="discountSymbol"><%= coupon.type === 'percentageDiscount' ? '%' : '₹' %></span>
-                            </div>
-                            <small id="discountHelp" class="form-text">
-                                <%= coupon.type === 'percentageDiscount' ? 'For percentage discount, enter a value between 1-100' : 'For flat discount, enter the amount in rupees' %>
-                            </small>
-                            <div id="discountError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="minimumPrice" class="form-label">Minimum Purchase Amount (₹)</label>
-                            <input 
-                                type="number" 
-                                name="minimumPrice" 
-                                id="minimumPrice" 
-                                class="form-control" 
-                                value="<%= coupon.minimumPrice %>" 
-                                min="0" 
-                                required
-                            />
-                            <div id="minimumPriceError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="maxRedeem" class="form-label">Maximum Redemptions</label>
-                            <input 
-                                type="number" 
-                                name="maxRedeem" 
-                                id="maxRedeem" 
-                                class="form-control" 
-                                value="<%= coupon.maxRedeem %>" 
-                                min="1" 
-                                required
-                            />
-                            <div id="maxRedeemError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="expiry" class="form-label">Expiry Date</label>
-                            <input 
-                                type="date" 
-                                name="expiry" 
-                                id="expiry" 
-                                class="form-control" 
-                                value="<%= new Date(coupon.expiry).toISOString().split('T')[0] %>" 
-                                required
-                            />
-                            <div id="expiryError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="status" class="form-label">Status</label>
-                            <select name="status" id="status" class="form-control" required>
-                                <option value="true" <%= coupon.status ? 'selected' : '' %>>Active</option>
-                                <option value="false" <%= !coupon.status ? 'selected' : '' %>>Inactive</option>
-                            </select>
-                            <div id="statusError" class="text-danger"></div>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Update Coupon</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 <style>
-    .back-btn {
-        background-color: #000000;
-        color: white;
-        padding: 8px 15px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    
-    .form-control {
-        border: 1px solid #ddd;
-        padding: 8px 15px;
-        border-radius: 5px;
-        width: 100%;
-    }
-    
-    .form-control.error {
-        border-color: #dc3545;
-    }
-    
-    .form-label {
-        margin-bottom: 8px;
-        font-weight: bold;
-    }
-    
-    .mb-4 {
-        margin-bottom: 20px;
-    }
-    
-    .d-grid button {
-        background-color: #000000;
-        color: white;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    
-    .card {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .input-group {
-        display: flex;
-    }
-    
-    .input-group-text {
-        display: flex;
-        align-items: center;
-        padding: 0 15px;
-        background-color: #f8f8f8;
-        border: 1px solid #ddd;
-        border-left: none;
-        border-radius: 0 5px 5px 0;
-    }
-    
-    .form-text {
-        font-size: 12px;
-        color: #666;
-        margin-top: 5px;
-    }
-    
-    .text-danger {
-        font-size: 0.875em;
-        margin-top: 5px;
-    }
+  .form-control, .form-select {
+    background-color: #ffffff; /* White background */
+    border: 1px solid #000000; /* Black border */
+    color: #000000; /* Black text */
+    font-family: 'Montserrat', sans-serif;
+    border-radius: 4px;
+    padding: 8px 15px;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #FFD700; /* Gold border on focus */
+    box-shadow: none;
+  }
+  .form-control.error, .form-select.error {
+    border-color: #FFD700; /* Gold border for errors */
+  }
+  .text-danger {
+    font-size: 0.875em;
+    margin-top: 5px;
+    color: #000000; /* Black text */
+    font-family: 'Montserrat', sans-serif;
+  }
+  .input-group-text {
+    background-color: #ffffff; /* White background */
+    border: 1px solid #000000; /* Black border */
+    border-left: none;
+    color: #FFD700; /* Gold text */
+    font-family: 'Montserrat', sans-serif;
+    border-radius: 0 4px 4px 0;
+  }
+  .form-text {
+    font-size: 12px;
+    color: #000000; /* Black text */
+    font-family: 'Montserrat', sans-serif;
+    margin-top: 5px;
+  }
 </style>
 
-<%- include('../partials/admin/footer') %>
+<section class="content-main" style="background: #ffffff; padding: 60px; min-height: 90vh; max-width: 2000px; margin: 0 auto;">
+  <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+      <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Edit Coupon</h2>
+      <p style="font-family: 'Montserrat', sans-serif; color: #000000;">Update coupon details</p>
+    </div>
+    <div>
+      <button onclick="window.location.href='/admin/coupon'" 
+              class="back-btn"
+              style="background-color: #000000; color: #FFD700; padding: 8px 15px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: all 0.3s;"
+              onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+              onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        Back to Coupons
+      </button>
+    </div>
+  </div>
+
+  <div class="card" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+    <div class="card-body" style="padding: 20px;">
+      <div class="row">
+        <div class="col-md-12">
+          <form action="/admin/editcoupon/<%= coupon._id %>" method="POST" id="couponForm">
+            <div class="mb-4">
+              <label for="couponCode" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Coupon Code</label>
+              <input 
+                type="text" 
+                name="couponCode" 
+                id="couponCode" 
+                class="form-control" 
+                value="<%= coupon.couponCode %>" 
+                required
+              />
+              <div id="couponCodeError" class="text-danger"></div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="type" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Discount Type</label>
+              <select name="type" id="type" class="form-control" required>
+                <option value="percentageDiscount" <%= coupon.type === 'percentageDiscount' ? 'selected' : '' %>>Percentage Discount</option>
+                <option value="flatDiscount" <%= coupon.type === 'flatDiscount' ? 'selected' : '' %>>Flat Discount</option>
+              </select>
+              <div id="typeError" class="text-danger"></div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="discount" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Discount Value</label>
+              <div class="input-group">
+                <input 
+                  type="number" 
+                  name="discount" 
+                  id="discount" 
+                  class="form-control" 
+                  value="<%= coupon.discount %>" 
+                  min="1" 
+                  <%= coupon.type === 'percentageDiscount' ? 'max="100"' : '' %>
+                  required
+                />
+                <span class="input-group-text" id="discountSymbol"><%= coupon.type === 'percentageDiscount' ? '%' : '₹' %></span>
+              </div>
+              <small id="discountHelp" class="form-text">
+                <%= coupon.type === 'percentageDiscount' ? 'For percentage discount, enter a value between 1-100' : 'For flat discount, enter the amount in rupees' %>
+              </small>
+              <div id="discountError" class="text-danger"></div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="minimumPrice" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Minimum Purchase Amount (₹)</label>
+              <input 
+                type="number" 
+                name="minimumPrice" 
+                id="minimumPrice" 
+                class="form-control" 
+                value="<%= coupon.minimumPrice %>" 
+                min="0" 
+                required
+              />
+              <div id="minimumPriceError" class="text-danger"></div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="maxRedeem" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Maximum Redemptions</label>
+              <input 
+                type="number" 
+                name="maxRedeem" 
+                id="maxRedeem" 
+                class="form-control" 
+                value="<%= coupon.maxRedeem %>" 
+                min="1" 
+                required
+              />
+              <div id="maxRedeemError" class="text-danger"></div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="expiry" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Expiry Date</label>
+              <input 
+                type="date" 
+                name="expiry" 
+                id="expiry" 
+                class="form-control" 
+                value="<%= new Date(coupon.expiry).toISOString().split('T')[0] %>" 
+                required
+              />
+              <div id="expiryError" class="text-danger"></div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="status" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Status</label>
+              <select name="status" id="status" class="form-control" required>
+                <option value="true" <%= coupon.status ? 'selected' : '' %>>Active</option>
+                <option value="false" <%= !coupon.status ? 'selected' : '' %>>Inactive</option>
+              </select>
+              <div id="statusError" class="text-danger"></div>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" 
+                      class="btn"
+                      style="background-color: #000000; color: #FFD700; padding: 10px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                      onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                      onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                Update Coupon
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('couponForm');
-        const typeSelect = document.getElementById('type');
-        const discountSymbol = document.getElementById('discountSymbol');
-        const discountHelp = document.getElementById('discountHelp');
-        const discountInput = document.getElementById('discount');
-        const expiryInput = document.getElementById('expiry');
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('couponForm');
+  const typeSelect = document.getElementById('type');
+  const discountSymbol = document.getElementById('discountSymbol');
+  const discountHelp = document.getElementById('discountHelp');
+  const discountInput = document.getElementById('discount');
+  const expiryInput = document.getElementById('expiry');
 
-        // Set minimum date for expiry to today
-        const today = new Date().toISOString().split('T')[0];
-        expiryInput.setAttribute('min', today);
+  // Set minimum date for expiry to today
+  const today = new Date().toISOString().split('T')[0];
+  expiryInput.setAttribute('min', today);
 
-        // Update discount symbol based on discount type
-        typeSelect.addEventListener('change', function() {
-            if (this.value === 'percentageDiscount') {
-                discountSymbol.textContent = '%';
-                discountHelp.textContent = 'For percentage discount, enter a value between 1-100';
-                discountInput.setAttribute('max', '100');
-            } else if (this.value === 'flatDiscount') {
-                discountSymbol.textContent = '₹';
-                discountHelp.textContent = 'For flat discount, enter the amount in rupees';
-                discountInput.removeAttribute('max');
-            }
-        });
+  // Update discount symbol based on discount type
+  typeSelect.addEventListener('change', function() {
+    if (this.value === 'percentageDiscount') {
+      discountSymbol.textContent = '%';
+      discountHelp.textContent = 'For percentage discount, enter a value between 1-100';
+      discountInput.setAttribute('max', '100');
+    } else if (this.value === 'flatDiscount') {
+      discountSymbol.textContent = '₹';
+      discountHelp.textContent = 'For flat discount, enter the amount in rupees';
+      discountInput.removeAttribute('max');
+    }
+  });
 
-        // Form submission handler
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            if (validateForm()) {
-                this.submit();
-            }
-        });
+  // Form submission handler
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    if (validateForm()) {
+      this.submit();
+    }
+  });
 
-        // Real-time validation
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            input.addEventListener('input', function() {
-                validateField(this);
-            });
-        });
-
-        function validateField(field) {
-            const errorElement = document.getElementById(field.id + 'Error');
-            errorElement.innerHTML = '';
-            field.classList.remove('error');
-
-            switch(field.id) {
-                case 'couponCode':
-                    const code = field.value.trim();
-                    if (!code) {
-                        showError(field, errorElement, 'Coupon code is required');
-                    } else if (!/^[A-Z0-9]{6,15}$/.test(code)) {
-                        showError(field, errorElement, 'Code must be 6-15 uppercase letters/numbers');
-                    }
-                    break;
-
-                case 'type':
-                    if (!field.value) {
-                        showError(field, errorElement, 'Please select a discount type');
-                    }
-                    break;
-
-                case 'discount':
-                    const discount = parseFloat(field.value);
-                    const discountType = document.getElementById('type').value;
-                    if (!discount || isNaN(discount)) {
-                        showError(field, errorElement, 'Discount value is required');
-                    } else if (discountType === 'percentageDiscount' && (discount <= 0 || discount > 100)) {
-                        showError(field, errorElement, 'Percentage must be between 1-100');
-                    } else if (discountType === 'flatDiscount' && discount <= 0) {
-                        showError(field, errorElement, 'Flat discount must be greater than 0');
-                    } else if (discountType === 'flatDiscount' && discount > 10000) {
-                        showError(field, errorElement, 'Flat discount cannot exceed ₹10,000');
-                    }
-                    break;
-
-                case 'minimumPrice':
-                    const minPrice = parseFloat(field.value);
-                    if (isNaN(minPrice) || minPrice < 0) {
-                        showError(field, errorElement, 'Minimum amount must be 0 or greater');
-                    } else if (minPrice > 100000) {
-                        showError(field, errorElement, 'Minimum amount cannot exceed ₹100,000');
-                    }
-                    break;
-
-                case 'maxRedeem':
-                    const maxRedeem = parseInt(field.value);
-                    if (!maxRedeem || isNaN(maxRedeem) || maxRedeem < 1) {
-                        showError(field, errorElement, 'Maximum redemptions must be 1 or greater');
-                    } else if (maxRedeem > 10000) {
-                        showError(field, errorElement, 'Maximum redemptions cannot exceed 10,000');
-                    }
-                    break;
-
-                case 'expiry':
-                    const expiry = field.value;
-                    if (!expiry) {
-                        showError(field, errorElement, 'Expiry date is required');
-                    } else {
-                        const expiryDate = new Date(expiry);
-                        const todayDate = new Date(today);
-                        if (expiryDate < todayDate) {
-                            showError(field, errorElement, 'Expiry date cannot be in the past');
-                        }
-                    }
-                    break;
-
-                case 'status':
-                    if (!field.value) {
-                        showError(field, errorElement, 'Please select a status');
-                    }
-                    break;
-            }
-        }
-
-        function validateForm() {
-            let isValid = true;
-            const fields = ['couponCode', 'type', 'discount', 'minimumPrice', 'maxRedeem', 'expiry', 'status'];
-            
-            fields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                validateField(field);
-                if (field.classList.contains('error')) {
-                    isValid = false;
-                }
-            });
-
-            return isValid;
-        }
-
-        function showError(field, errorElement, message) {
-            errorElement.innerHTML = message;
-            field.classList.add('error');
-        }
+  // Real-time validation
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.addEventListener('input', function() {
+      validateField(this);
     });
+  });
+
+  function validateField(field) {
+    const errorElement = document.getElementById(field.id + 'Error');
+    errorElement.innerHTML = '';
+    field.classList.remove('error');
+
+    switch(field.id) {
+      case 'couponCode':
+        const code = field.value.trim();
+        if (!code) {
+          showError(field, errorElement, 'Coupon code is required');
+        } else if (!/^[A-Z0-9]{6,15}$/.test(code)) {
+          showError(field, errorElement, 'Code must be 6-15 uppercase letters/numbers');
+        }
+        break;
+
+      case 'type':
+        if (!field.value) {
+          showError(field, errorElement, 'Please select a discount type');
+        }
+        break;
+
+      case 'discount':
+        const discount = parseFloat(field.value);
+        const discountType = document.getElementById('type').value;
+        if (!discount || isNaN(discount)) {
+          showError(field, errorElement, 'Discount value is required');
+        } else if (discountType === 'percentageDiscount' && (discount <= 0 || discount > 100)) {
+          showError(field, errorElement, 'Percentage must be between 1-100');
+        } else if (discountType === 'flatDiscount' && discount <= 0) {
+          showError(field, errorElement, 'Flat discount must be greater than 0');
+        } else if (discountType === 'flatDiscount' && discount > 10000) {
+          showError(field, errorElement, 'Flat discount cannot exceed ₹10,000');
+        }
+        break;
+
+      case 'minimumPrice':
+        const minPrice = parseFloat(field.value);
+        if (isNaN(minPrice) || minPrice < 0) {
+          showError(field, errorElement, 'Minimum amount must be 0 or greater');
+        } else if (minPrice > 100000) {
+          showError(field, errorElement, 'Minimum amount cannot exceed ₹100,000');
+        }
+        break;
+
+      case 'maxRedeem':
+        const maxRedeem = parseInt(field.value);
+        if (!maxRedeem || isNaN(maxRedeem) || maxRedeem < 1) {
+          showError(field, errorElement, 'Maximum redemptions must be 1 or greater');
+        } else if (maxRedeem > 10000) {
+          showError(field, errorElement, 'Maximum redemptions cannot exceed 10,000');
+        }
+        break;
+
+      case 'expiry':
+        const expiry = field.value;
+        if (!expiry) {
+          showError(field, errorElement, 'Expiry date is required');
+        } else {
+          const expiryDate = new Date(expiry);
+          const todayDate = new Date(today);
+          if (expiryDate < todayDate) {
+            showError(field, errorElement, 'Expiry date cannot be in the past');
+          }
+        }
+        break;
+
+      case 'status':
+        if (!field.value) {
+          showError(field, errorElement, 'Please select a status');
+        }
+        break;
+    }
+  }
+
+  function validateForm() {
+    let isValid = true;
+    const fields = ['couponCode', 'type', 'discount', 'minimumPrice', 'maxRedeem', 'expiry', 'status'];
+    
+    fields.forEach(fieldId => {
+      const field = document.getElementById(fieldId);
+      validateField(field);
+      if (field.classList.contains('error')) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
+  function showError(field, errorElement, message) {
+    errorElement.innerHTML = message;
+    field.classList.add('error');
+  }
+});
 </script>
+
+<%- include('../partials/admin/footer') %>

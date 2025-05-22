@@ -3,7 +3,7 @@
 <section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
     <div class="content-header">
         <div>
-            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Coupon803 List</h2>
+            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Coupon List</h2>
             <p style="color: #666;">Coupon Management</p>
         </div>
         <a href="/admin/addcoupon" class="add-coupon-btn" style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
@@ -194,7 +194,7 @@
                 %>
                     <tr id="coupon-row-<%= coupon._id %>">
                         <td><%= index + 1 %></td>
-                        <td><%= coupon.couponCode %></td>
+                        <td><%= coupon.code %></td>
                         <td>
                             <span class="badge <%= coupon.type === 'percentageDiscount' ? 'badge-percent' : 'badge-flat' %>">
                                 <%= coupon.type === 'percentageDiscount' ? 'Percentage' : 'Flat' %>
@@ -247,7 +247,7 @@
                 <% } %>
             <% } %>
 
- خودش        <% for (let i = startPage; i <= endPage; i++) { %>
+       <% for (let i = startPage; i <= endPage; i++) { %>
                 <a href="/admin/coupon?page=<%= i %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                     <%= i %>
                 </a>

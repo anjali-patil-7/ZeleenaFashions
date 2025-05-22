@@ -1,60 +1,116 @@
 <%- include('../partials/admin/header') %>
 
 <style>
-  .discounted-price {
-    color: #28a745;
-    font-weight: 600;
+  .alert {
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    border: 1px solid #FFD700; /* Gold border */
+    background-color: #ffffff; /* White background */
+    color: #000000; /* Black text */
   }
-
+  .alert ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  .badge {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    background-color: #FFD700; /* Gold background */
+    color: #000000; /* Black text */
+  }
+  .form-select, .form-control {
+    background-color: #ffffff; /* White background */
+    border: 1px solid #000000; /* Black border */
+    color: #000000; /* Black text */
+    font-family: 'Montserrat', sans-serif;
+    border-radius: 4px;
+  }
+  .form-select:focus, .form-control:focus {
+    border-color: #FFD700; /* Gold border on focus */
+    box-shadow: none;
+  }
+  .table {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #ffffff; /* White background */
+  }
+  .table th {
+    background-color: #000000; /* Black background */
+    color: #FFD700; /* Gold text */
+    font-weight: 500;
+  }
+  .table td {
+    border: 1px solid #000000; /* Black border */
+    color: #000000; /* Black text */
+  }
+  .table tfoot th {
+    background-color: #ffffff; /* White background */
+    color: #000000; /* Black text */
+  }
+  .list-group-item {
+    background-color: #ffffff; /* White background */
+    border: 1px solid #000000; /* Black border */
+    font-family: 'Montserrat', sans-serif;
+    color: #000000; /* Black text */
+  }
+  .discounted-price {
+    color: #FFD700; /* Gold text */
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+  }
   .original-price {
     text-decoration: line-through;
-    color: #777;
+    color: #666; /* Gray text */
     font-size: 0.9rem;
+    font-family: 'Montserrat', sans-serif;
   }
 </style>
 
-<div class="container mt-4">
+<div class="container-fluid mt-10" style="background: #ffffff; padding: 80px; min-height: 80vh;">
   <div class="row mb-3">
     <div class="col-12">
-      <a href="/admin/orders" class="btn btn-secondary">← Back to Orders</a>
+      <a href="/admin/orders" 
+         class="btn" 
+         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+         onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        ← Back to Orders
+      </a>
     </div>
   </div>
 
   <div class="row">
     <div class="col-md-8">
-      <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Order <%= order.orderNumber %></h4>
-          <span class="badge bg-<%= 
-            order.orderStatus === 'Delivered' ? 'success' : 
-            order.orderStatus === 'Cancelled' ? 'danger' : 
-            order.orderStatus === 'Returned' ? 'warning' : 
-            'secondary' 
-          %>">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #ffffff; border-bottom: 1px solid #000000;">
+          <h4 class="mb-0" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Order <%= order.orderNumber %></h4>
+          <span class="badge">
             <%= order.orderStatus %>
           </span>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 20px;">
           <div class="row mb-3">
             <div class="col-md-6">
-              <h5>Order Details</h5>
-              <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></p>
-              <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
-              <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
+              <h5 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Order Details</h5>
+              <p style="font-family: 'Montserrat', sans-serif; color: #000000;"><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></p>
+              <p style="font-family: 'Montserrat', sans-serif; color: #000000;"><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+              <p style="font-family: 'Montserrat', sans-serif; color: #000000;"><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
             </div>
             <div class="col-md-6">
-              <h5>Customer Details</h5>
-              <p><strong>Name:</strong> <%= order.userId.userName || order.userId.name || 'N/A' %></p>
-              <p><strong>Email:</strong> <%= order.userId.email || 'N/A' %></p>
-              <p><strong>Phone:</strong> <%= order.userId.phone || 'N/A' %></p>
+              <h5 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Customer Details</h5>
+              <p style="font-family: 'Montserrat', sans-serif; color: #000000;"><strong>Name:</strong> <%= order.userId.userName || order.userId.name || 'N/A' %></p>
+              <p style="font-family: 'Montserrat', sans-serif; color: #000000;"><strong>Email:</strong> <%= order.userId.email || 'N/A' %></p>
+              <p style="font-family: 'Montserrat', sans-serif; color: #000000;"><strong>Phone:</strong> <%= order.userId.phone || 'N/A' %></p>
             </div>
           </div>
 
           <div class="row mb-4">
             <div class="col-12">
-              <h5>Shipping Address</h5>
+              <h5 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Shipping Address</h5>
               <% if (address) { %>
-                <div class="address-card">
+                <div class="address-card" style="font-family: 'Montserrat', sans-serif; color: #000000;">
                   <div class="address-name"><%= address.name || '' %></div>
                   <p class="address-phone"><%= address.mobile || '' %></p>
                   <p class="address-text">
@@ -70,15 +126,15 @@
                   <span class="address-type"><%= address.saveAs || '' %></span>
                 </div>
               <% } else { %>
-                <p>No delivery address available</p>
+                <p style="font-family: 'Montserrat', sans-serif; color: #000000;">No delivery address available</p>
               <% } %>
             </div>
           </div>
 
-          <h5>Order Items</h5>
+          <h5 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Order Items</h5>
           <div class="table-responsive">
             <table class="table table-bordered table-hover">
-              <thead class="thead-light">
+              <thead>
                 <tr>
                   <th>Product</th>
                   <th>Original Price</th>
@@ -94,66 +150,74 @@
                 <% order.orderedItem.forEach(item => { %>
                   <tr>
                     <td><%= item.productId?.productName || item.productId?.name || 'Unknown Product' %></td>
-                   comercial                    <td>₹<%= (item.productPrice || 0).toFixed(2) %></td>
-                    <td>₹<%= item.quantity && item.finalTotalProductPrice ? (item.finalTotalProductPrice / item.quantity).toFixed(2) : (item.productPrice || 0).toFixed(2) %></td>
+                    <td>₹<%= (item.productPrice || 0).toFixed(2) %></td>
+                    <td class="discounted-price">₹<%= item.quantity && item.finalTotalProductPrice ? (item.finalTotalProductPrice / item.quantity).toFixed(2) : (item.productPrice || 0).toFixed(2) %></td>
                     <td>
-                      <span class="badge bg-warning">
+                      <span class="badge">
                         ₹<%= (item.itemDiscount || 0).toFixed(2) %>
                       </span>
                     </td>
                     <td><%= item.quantity || 0 %></td>
                     <td>
                       <select class="form-select product-status-dropdown" data-order-id="<%= order._id %>" data-product-id="<%= item._id %>">
-                          <% 
-                          const isProductDelivered = item.productStatus === 'Delivered';
-                          const isProductCancelledOrReturned = item.productStatus === 'Cancelled' || item.productStatus === 'Returned';
-                          
-                          function isProductOptionDisabled(optionValue) {
-                              if (isProductDelivered && optionValue !== 'Returned') {
-                                  return true;
-                              }
-                              if (isProductCancelledOrReturned) {
-                                  return true;
-                              }
-                              return false;
+                        <% 
+                        const isProductDelivered = item.productStatus === 'Delivered';
+                        const isProductCancelledOrReturned = item.productStatus === 'Cancelled' || item.productStatus === 'Returned';
+                        
+                        function isProductOptionDisabled(optionValue) {
+                          if (isProductDelivered && optionValue !== 'Returned') {
+                            return true;
                           }
-                          %>
-                          <option value="Pending" <%= item.productStatus === 'Pending' ? 'selected' : '' %> <%= isProductOptionDisabled('Pending') ? 'disabled' : '' %>>Pending</option>
-                          <option value="Shipped" <%= item.productStatus === 'Shipped' ? 'selected' : '' %> <%= isProductOptionDisabled('Shipped') ? 'disabled' : '' %>>Shipped</option>
-                          <option value="Delivered" <%= item.productStatus === 'Delivered' ? 'selected' : '' %> <%= isProductOptionDisabled('Delivered') ? 'disabled' : '' %>>Delivered</option>
-                          <option value="Cancelled" <%= item.productStatus === 'Cancelled' ? 'selected' : '' %> <%= isProductOptionDisabled('Cancelled') ? 'disabled' : '' %>>Cancelled</option>
-                          <option value="Returned" <%= item.productStatus === 'Returned' ? 'selected' : '' %> <%= isProductOptionDisabled('Returned') ? 'disabled' : '' %>>Returned</option>
+                          if (isProductCancelledOrReturned) {
+                            return true;
+                          }
+                          return false;
+                        }
+                        %>
+                        <option value="Pending" <%= item.productStatus === 'Pending' ? 'selected' : '' %> <%= isProductOptionDisabled('Pending') ? 'disabled' : '' %>>Pending</option>
+                        <option value="Shipped" <%= item.productStatus === 'Shipped' ? 'selected' : '' %> <%= isProductOptionDisabled('Shipped') ? 'disabled' : '' %>>Shipped</option>
+                        <option value="Delivered" <%= item.productStatus === 'Delivered' ? 'selected' : '' %> <%= isProductOptionDisabled('Delivered') ? 'disabled' : '' %>>Delivered</option>
+                        <option value="Cancelled" <%= item.productStatus === 'Cancelled' ? 'selected' : '' %> <%= isProductOptionDisabled('Cancelled') ? 'disabled' : '' %>>Cancelled</option>
+                        <option value="Returned" <%= item.productStatus === 'Returned' ? 'selected' : '' %> <%= isProductOptionDisabled('Returned') ? 'disabled' : '' %>>Returned</option>
                       </select>
                     </td>
                     <td>
                       <div>
-                        <span class="text-muted text-decoration-line-through">
+                        <span class="original-price">
                           ₹<%= (item.totalProductPrice || 0).toFixed(2) %>
                         </span>
                         <br>
-                        <span class="text-success">
+                        <span class="discounted-price">
                           ₹<%= (item.finalTotalProductPrice || 0).toFixed(2) %>
                         </span>
                       </div>
                     </td>
                     <td>
                       <% if (item.productStatus === 'Return Requested') { %>
-                          <div class="btn-group">
-                              <button class="btn btn-success btn-sm approve-return" data-product-id="<%= item._id %>">
-                                  Approve Return
-                              </button>
-                              <button class="btn btn-danger btn-sm reject-return" data-product-id="<%= item._id %>">
-                                  Reject
-                              </button>
-                          </div>
-                          <div class="mt-2 alert alert-warning">
-                              <strong>Return Reason:</strong> 
-                              <% if (item.returnReason && item.returnReason.trim()) { %>
-                                  <%= item.returnReason %>
-                              <% } else { %>
-                                  <em>No reason provided</em>
-                              <% } %>
-                          </div>
+                        <div class="btn-group">
+                          <button class="btn btn-sm approve-return" 
+                                  data-product-id="<%= item._id %>"
+                                  style="background-color: #000000; color: #FFD700; padding: 5px 10px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                                  onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                                  onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                            Approve Return
+                          </button>
+                          <button class="btn btn-sm reject-return" 
+                                  data-product-id="<%= item._id %>"
+                                  style="background-color: #000000; color: #FFD700; padding: 5px 10px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                                  onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                                  onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                            Reject
+                          </button>
+                        </div>
+                        <div class="mt-2 alert">
+                          <strong>Return Reason:</strong> 
+                          <% if (item.returnReason && item.returnReason.trim()) { %>
+                            <%= item.returnReason %>
+                          <% } else { %>
+                            <em>No reason provided</em>
+                          <% } %>
+                        </div>
                       <% } %>
                     </td>
                   </tr>
@@ -165,7 +229,6 @@
                   <th>₹<%= originalSubtotal.toFixed(2) %></th>
                   <th></th>
                 </tr>
-                
                 <% if (appliedCoupon) { %>
                 <tr>
                   <th colspan="6" class="text-end">Coupon (<%= appliedCoupon.couponCode %>):</th>
@@ -179,7 +242,6 @@
                   <th></th>
                 </tr>
                 <% } %>
-                
                 <% if (shippingCharge > 0) { %>
                 <tr>
                   <th colspan="6" class="text-end">Shipping Charge:</th>
@@ -187,13 +249,11 @@
                   <th></th>
                 </tr>
                 <% } %>
-                
                 <tr>
                   <th colspan="6" class="text-end">Total Discount:</th>
                   <th>-₹<%= totalDiscount.toFixed(2) %></th>
                   <th></th>
                 </tr>
-                
                 <tr>
                   <th colspan="6" class="text-end">Final Total:</th>
                   <th>₹<%= finalPrice.toFixed(2) %></th>
@@ -207,15 +267,15 @@
     </div>
 
     <div class="col-md-4">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Update Order Status</h5>
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <div class="card-header" style="background-color: #ffffff; border-bottom: 1px solid #000000;">
+          <h5 class="mb-0" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Update Order Status</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 20px;">
           <form id="updateOrderForm">
             <input type="hidden" name="orderId" value="<%= order._id %>">
             <div class="mb-3">
-              <label for="orderStatus" class="form-label">Order Status</label>
+              <label for="orderStatus" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Order Status</label>
               <select class="form-select" id="orderStatus" name="orderStatus">
                 <% 
                 const isDelivered = order.orderStatus === 'Delivered';
@@ -235,32 +295,38 @@
                 <option value="Returned" <%= order.orderStatus === 'Returned' ? 'selected' : '' %> <%= isOptionDisabled('Returned') ? 'disabled' : '' %>>Returned</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Update Order Status</button>
+            <button type="submit" 
+                    class="btn w-100"
+                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+              Update Order Status
+            </button>
           </form>
         </div>
       </div>
 
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Update Payment Status</h5>
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <div class="card-header" style="background-color: #ffffff; border-bottom: 1px solid #000000;">
+          <h5 class="mb-0" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Update Payment Status</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 20px;">
           <form id="updatePaymentForm">
             <input type="hidden" name="orderId" value="<%= order._id %>">
             <div class="mb-3">
-              <label for="paymentStatus" class="form-label">Payment Status</label>
+              <label for="paymentStatus" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Payment Status</label>
               <% 
               const isOnlinePayment = ['Online', 'Wallet', 'Card', 'UPI'].includes(order.paymentMethod);
               const isPending = order.paymentStatus === 'pending';
               const isPaid = order.paymentStatus === 'Paid';
               const isFailed = order.paymentStatus === 'failed';
-              const isRefunded = order.paymentStatus === 'refunded' || order.paymentStatus === 'partially-refunded';
+              const isRefunded = order.paymentStatus === 'refunded' || order.paymentStatus === 'Partially Refunded';
               
               function isDisabled(optionValue) {
                 if (isOnlinePayment && !['Paid', 'refunded', 'partially-refunded'].includes(optionValue)) return true;
                 if (isPaid && (optionValue === 'pending' || optionValue === 'failed')) return true;
                 if (isFailed && optionValue !== 'failed') return true;
-                if (isRefunded && (optionValue !== 'refunded' && optionValue !== 'partially-refunded')) return true;
+                if (isRefunded && (optionValue !== 'refunded' && optionValue !== 'Partially Refunded')) return true;
                 return false;
               }
               %>
@@ -269,40 +335,47 @@
                 <option value="Paid" <%= order.paymentStatus === 'Paid' ? 'selected' : '' %> <%= isDisabled('Paid') ? 'disabled' : '' %>>Paid</option>
                 <option value="failed" <%= order.paymentStatus === 'failed' ? 'selected' : '' %> <%= isDisabled('failed') ? 'disabled' : '' %>>Failed</option>
                 <option value="refunded" <%= order.paymentStatus === 'refunded' ? 'selected' : '' %> <%= isDisabled('refunded') ? 'disabled' : '' %>>Refunded</option>
-                <option value="partially-refunded" <%= order.paymentStatus === 'partially-refunded' ? 'selected' : '' %> <%= isDisabled('partially-refunded') ? 'disabled' : '' %>>Partially Refunded</option>
+                <option value="Partially Refunded" <%= order.paymentStatus === 'Partially Refunded' ? 'selected' : '' %> <%= isDisabled('Partially Refunded') ? 'disabled' : '' %>>Partially Refunded</option>
               </select>
               <% if (isOnlinePayment) { %>
-                <div class="form-text text-info">Online payments are automatically marked as Paid and can only be set to refunded or partially-refunded.</div>
+                <div class="form-text" style="color: #000000; font-family: 'Montserrat', sans-serif;">Online payments are automatically marked as Paid and can only be set to refunded or Partially Refunded.</div>
               <% } %>
             </div>
-            <button type="submit" class="btn btn-primary w-100" <%= isOnlinePayment && !['refunded', 'partially-refunded'].includes(order.paymentStatus) ? 'disabled' : '' %>>Update Payment Status</button>
+            <button type="submit" 
+                    class="btn w-100"
+                    <%= isOnlinePayment && !['refunded', 'partially-refunded'].includes(order.paymentStatus) ? 'disabled' : '' %>
+                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+              Update Payment Status
+            </button>
           </form>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">Order Timeline</h5>
+      <div class="card" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <div class="card-header" style="background-color: #ffffff; border-bottom: 1px solid #000000;">
+          <h5 class="mb-0" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Order Timeline</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 20px;">
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <div class="d-flex justify-content-between">
                 <div>
-                  <strong>Order Placed</strong>
-                  <p class="mb-0">Status: Created</p>
+                  <strong style="font-family: 'Montserrat', sans-serif; color: #000000;">Order Placed</strong>
+                  <p class="mb-0" style="font-family: 'Montserrat', sans-serif; color: #000000;">Status: Created</p>
                 </div>
-                <small><%= new Date(order.createdAt).toLocaleString() %></small>
+                <small style="font-family: 'Montserrat', sans-serif; color: #000000;"><%= new Date(order.createdAt).toLocaleString() %></small>
               </div>
             </li>
             <% if (order.updatedAt && order.updatedAt > order.createdAt) { %>
               <li class="list-group-item">
                 <div class="d-flex justify-content-between">
                   <div>
-                    <strong>Last Updated</strong>
-                    <p class="mb-0">Status: <%= order.orderStatus %></p>
+                    <strong style="font-family: 'Montserrat', sans-serif; color: #000000;">Last Updated</strong>
+                    <p class="mb-0" style="font-family: 'Montserrat', sans-serif; color: #000000;">Status: <%= order.orderStatus %></p>
                   </div>
-                  <small><%= new Date(order.updatedAt).toLocaleString() %></small>
+                  <small style="font-family: 'Montserrat', sans-serif; color: #000000;"><%= new Date(order.updatedAt).toLocaleString() %></small>
                 </div>
               </li>
             <% } %>
@@ -311,13 +384,13 @@
                 <li class="list-group-item">
                   <div class="d-flex justify-content-between">
                     <div>
-                      <strong>Return <%= item.productStatus === 'Return Requested' ? 'Requested' : item.productStatus === 'Return Approved' ? 'Approved' : 'Rejected' %></strong>
-                      <p class="mb-0">Product: <%= item.productId ? item.productId.productName : 'Product' %></p>
+                      <strong style="font-family: 'Montserrat', sans-serif; color: #000000;">Return <%= item.productStatus === 'Return Requested' ? 'Requested' : item.productStatus === 'Return Approved' ? 'Approved' : 'Rejected' %></strong>
+                      <p class="mb-0" style="font-family: 'Montserrat', sans-serif; color: #000000;">Product: <%= item.productId ? item.productId.productName : 'Product' %></p>
                       <% if (item.returnReason) { %>
-                        <p class="mb-0 text-muted"><small>Reason: <%= item.returnReason %></small></p>
+                        <p class="mb-0 text-muted" style="font-family: 'Montserrat', sans-serif; color: #666;"><small>Reason: <%= item.returnReason %></small></p>
                       <% } %>
                     </div>
-                    <small><%= new Date(item.updatedAt || order.updatedAt).toLocaleString() %></small>
+                    <small style="font-family: 'Montserrat', sans-serif; color: #000000;"><%= new Date(item.updatedAt || order.updatedAt).toLocaleString() %></small>
                   </div>
                 </li>
               <% } %>

@@ -1,56 +1,98 @@
 const Orders = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
-const Product= require('../../models/productSchema')
+const Product = require('../../models/productSchema');
 const mongoose = require('mongoose');
 
 // List all orders with search, sort, and pagination
 exports.getOrders = async (req, res) => {
     try {
-        const { query, page = 1, limit = 10, sort = 'desc' } = req.query;
-        const currentPage = parseInt(page);
-        const perPage = parseInt(limit);
+        const { query, page = 1, limit = 5, sort = 'desc' } = req.query;
 
+        // Validate inputs
+        const currentPage = Math.max(1, parseInt(page) || 1);
+        const perPage = Math.max(1, Math.min(parseInt(limit) || 10, 50));
+        const sortOrder = sort === 'asc' ? 1 : -1;
+
+        // Build search filter
         let filter = {};
-        if (query) {
+        if (query && typeof query === 'string' && query.trim()) {
+            const sanitizedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             filter = {
                 $or: [
-                    { orderNumber: { $regex: query, $options: 'i' } },
-                    { userName: { $regex: query, $options: 'i' } },
-                    { status: { $regex: query, $options: 'i' } },
-                    { paymentStatus: { $regex: query, $options: 'i' } }
+                    { orderNumber: { $regex: sanitizedQuery, $options: 'i' } },
+                    { orderStatus: { $regex: sanitizedQuery, $options: 'i' } },
+                    { paymentStatus: { $regex: sanitizedQuery, $options: 'i' } },
+                    { 'user.name': { $regex: sanitizedQuery, $options: 'i' } } // Include user.name in the same $or
                 ]
             };
         }
 
-        const sortOrder = sort === 'asc' ? 1 : -1;
+        console.log('Search Filter:', JSON.stringify(filter));
+        console.log('Query Params:', { query, currentPage, perPage, sort });
 
-        const totalOrders = await Orders.countDocuments(filter);
-        const orders = await Orders.find(filter)
-            .populate('userId', 'name email')
-            .sort({ orderDate: sortOrder })
-            .skip((currentPage - 1) * perPage)
-            .limit(perPage)
-            .lean();
+        // Use aggregation to join with User for name search
+        let aggregationPipeline = [
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: { path: '$user', preserveNullAndEmptyArrays: true }
+            }
+        ];
 
-        const totalPages = Math.ceil(totalOrders / perPage);
+        // Add search filter to aggregation
+        if (Object.keys(filter).length > 0) {
+            aggregationPipeline.push({ $match: filter });
+        }
+
+        // Create a copy of the pipeline for counting
+        let countPipeline = [...aggregationPipeline, { $count: 'total' }];
+        const countResult = await Orders.aggregate(countPipeline);
+        const totalOrders = countResult.length > 0 ? countResult[0].total : 0;
+        const totalPages = Math.ceil(totalOrders / perPage) || 1;
+
+        // Add sorting, skipping, and limiting to the main pipeline
+        aggregationPipeline.push(
+            { $sort: { createdAt: sortOrder } },
+            { $skip: (currentPage - 1) * perPage },
+            { $limit: perPage }
+        );
+
+        // Fetch orders
+        const orders = await Orders.aggregate(aggregationPipeline);
+
+        console.log('Total Orders:', totalOrders);
+        console.log('Orders Fetched:', orders.length);
+
+        // Process orders
+        const processedOrders = orders.map(order => ({
+            ...order,
+            _id: order._id.toString(),
+            userName: order.user?.name || 'Unknown',
+            createdAt: order.createdAt ? new Date(order.createdAt) : null,
+            orderStatus: order.orderStatus || 'Unknown',
+            paymentStatus: order.paymentStatus || 'Unknown',
+            hasReturnRequest: order.orderedItem?.some(item => item.productStatus === 'Return Requested') || false,
+            hasReturnApproved: order.orderedItem?.some(item => item.productStatus === 'Return Approved') || false,
+            hasReturnRejected: order.orderedItem?.some(item => item.productStatus === 'Return Rejected') || false
+        }));
 
         res.render('admin/orders', {
-            orders: orders.map(order => ({
-                ...order,
-                userName: order.userId?.name || 'Unknown',
-                hasReturnRequest: order.orderedItem.some(item => item.productStatus === 'Return Requested'),
-                hasReturnApproved: order.orderedItem.some(item => item.productStatus === 'Return Approved'),
-                hasReturnRejected: order.orderedItem.some(item => item.productStatus === 'Return Rejected')
-            })),
-            currentPage,
+            orders: processedOrders,
+            currentPage: Math.min(currentPage, totalPages),
             totalPages,
             limit: perPage,
-            searchQuery: query,
+            searchQuery: query || '',
             sort
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error in getOrders:', error);
         req.flash('error', 'Error fetching orders');
         res.redirect('/admin/orders');
     }
@@ -73,21 +115,17 @@ exports.getOrderDetails = async (req, res) => {
             return res.redirect('/admin/orders');
         }
 
-        // Calculate original subtotal (sum of totalProductPrice)
         const originalSubtotal = order.orderedItem.reduce((sum, item) => sum + (item.totalProductPrice || item.productPrice * item.quantity), 0);
 
-        // Apply 20% discount if orderAmount > 5000
         let totalDiscount = order.discountAmount || 0;
         let finalPrice = order.finalAmount || originalSubtotal;
         if (order.orderAmount > 5000) {
-            totalDiscount = order.orderAmount * 0.2; // 20% discount
+            totalDiscount = order.orderAmount * 0.2;
             finalPrice = order.orderAmount - totalDiscount;
         }
 
-        // Distribute discount proportionally across items
         const processedItems = order.orderedItem.map(item => {
             const itemTotal = item.totalProductPrice || item.productPrice * item.quantity;
-            // Proportion of this item's total to the original subtotal
             const discountProportion = originalSubtotal ? itemTotal / originalSubtotal : 0;
             const itemDiscount = totalDiscount * discountProportion;
             const finalTotalProductPrice = itemTotal - itemDiscount;
@@ -100,7 +138,7 @@ exports.getOrderDetails = async (req, res) => {
             };
         });
 
-        const shippingCharge = 0;
+        const shippingCharge = 100;
 
         res.render('admin/orderdetails', {
             order: {
@@ -122,59 +160,6 @@ exports.getOrderDetails = async (req, res) => {
     }
 };
 
-exports.getOrders = async (req, res) => {
-    try {
-        const { query, page = 1, limit = 10, sort = 'desc' } = req.query;
-        const currentPage = parseInt(page);
-        const perPage = parseInt(limit);
-
-        let filter = {};
-        if (query) {
-            filter = {
-                $or: [
-                    { orderNumber: { $regex: query, $options: 'i' } },
-                    { userName: { $regex: query, $options: 'i' } },
-                    { orderStatus: { $regex: query, $options: 'i' } },
-                    { paymentStatus: { $regex: query, $options: 'i' } }
-                ]
-            };
-        }
-
-        const sortOrder = sort === 'asc' ? 1 : -1;
-
-        const totalOrders = await Orders.countDocuments(filter);
-        const orders = await Orders.find(filter)
-            .populate('userId', 'name email')
-            .sort({ createdAt: sortOrder })
-            .skip((currentPage - 1) * perPage)
-            .limit(perPage)
-            .lean();
-
-        const totalPages = Math.ceil(totalOrders / perPage);
-
-        res.render('admin/orders', {
-            orders: orders.map(order => ({
-                ...order,
-                userName: order.userId?.name || 'Unknown',
-                createdAt: order.createdAt ? new Date(order.createdAt) : null,
-                orderStatus: order.orderStatus || 'Unknown',
-                hasReturnRequest: order.orderedItem?.some(item => item.productStatus === 'Return Requested') || false,
-                hasReturnApproved: order.orderedItem?.some(item => item.productStatus === 'Return Approved') || false,
-                hasReturnRejected: order.orderedItem?.some(item => item.productStatus === 'Return Rejected') || false
-            })),
-            currentPage,
-            totalPages,
-            limit: perPage,
-            searchQuery: query,
-            sort
-        });
-    } catch (error) {
-        console.error(error);
-        req.flash('error', 'Error fetching orders');
-        res.redirect('/admin/orders');
-    }
-};
-
 // Update order status
 exports.updateOrderStatus = async (req, res) => {
     try {
@@ -187,7 +172,7 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid order status' });
         }
 
-        const validPaymentStatuses = ['pending', 'Paid', 'failed', 'refunded', 'partially-refunded'];
+        const validPaymentStatuses = ['pending', 'Paid', 'failed', 'refunded', 'Partially Refunded'];
         if (paymentStatus && !validPaymentStatuses.includes(paymentStatus)) {
             return res.status(400).json({ success: false, message: 'Invalid payment status' });
         }
@@ -197,7 +182,6 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        // Status transition rules
         const currentStatus = order.orderStatus;
         if (currentStatus === 'Delivered' && orderStatus !== 'Returned') {
             return res.status(400).json({ success: false, message: 'Delivered orders can only be changed to Returned' });
@@ -206,17 +190,14 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: `Cannot change status from ${currentStatus}` });
         }
 
-        // Update order status
         order.orderStatus = orderStatus;
 
-        // Set shipping/delivery dates
         if (orderStatus === 'Shipped') {
             order.shippingDate = new Date();
         } else if (orderStatus === 'Delivered') {
             order.deliveryDate = new Date();
         }
 
-        // Update payment status if provided and not an online payment
         const isOnlinePayment = ['Online', 'Wallet', 'Card', 'UPI'].includes(order.paymentMethod);
         if (paymentStatus && !isOnlinePayment) {
             order.paymentStatus = paymentStatus;
@@ -290,7 +271,6 @@ exports.updateProductStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Item not found in order' });
         }
 
-        // Status transition rules
         const currentStatus = item.productStatus;
         if (currentStatus === 'Delivered' && productStatus !== 'Returned') {
             return res.status(400).json({ success: false, message: 'Delivered items can only be changed to Returned' });
@@ -315,7 +295,7 @@ exports.updatePaymentStatus = async (req, res) => {
 
         console.log('Update Payment Status Request:', { orderId, paymentStatus });
 
-        const validPaymentStatuses = ['pending', 'Paid', 'failed', 'refunded', 'partially-refunded'];
+        const validPaymentStatuses = ['pending', 'Paid', 'failed', 'refunded', 'Partially Refunded'];
         if (!validPaymentStatuses.includes(paymentStatus)) {
             return res.status(400).json({ success: false, message: 'Invalid payment status' });
         }
@@ -325,11 +305,10 @@ exports.updatePaymentStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        // Payment status transition rules
         const currentPaymentStatus = order.paymentStatus;
         const isOnlinePayment = ['Online', 'Wallet', 'Card', 'UPI'].includes(order.paymentMethod);
 
-        if (isOnlinePayment && !['Paid', 'refunded', 'partially-refunded'].includes(paymentStatus)) {
+        if (isOnlinePayment && !['Paid', 'refunded', 'Partially Refunded'].includes(paymentStatus)) {
             return res.status(400).json({ success: false, message: 'Online payments can only be set to Paid, refunded, or partially-refunded' });
         }
         if (currentPaymentStatus === 'Paid' && ['pending', 'failed'].includes(paymentStatus)) {
@@ -338,7 +317,7 @@ exports.updatePaymentStatus = async (req, res) => {
         if (currentPaymentStatus === 'failed' && paymentStatus !== 'failed') {
             return res.status(400).json({ success: false, message: 'Cannot change status from failed' });
         }
-        if (['refunded', 'partially-refunded'].includes(currentPaymentStatus) && !['refunded', 'partially-refunded'].includes(paymentStatus)) {
+        if (['refunded', 'Partially Refunded'].includes(currentPaymentStatus) && !['refunded', 'partially-refunded'].includes(paymentStatus)) {
             return res.status(400).json({ success: false, message: 'Cannot change status from refunded or partially-refunded' });
         }
 
@@ -352,12 +331,11 @@ exports.updatePaymentStatus = async (req, res) => {
     }
 };
 
-// Verify return request (approve or reject)
+// Verify return request
 exports.verifyReturn = async (req, res) => {
     try {
       const { orderId, productId, status } = req.body;
   
-      // Validate inputs
       if (!mongoose.isValidObjectId(orderId) || !mongoose.isValidObjectId(productId)) {
         return res.status(400).json({ success: false, message: 'Invalid order or product ID' });
       }
@@ -366,25 +344,21 @@ exports.verifyReturn = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Invalid return status' });
       }
   
-      // Find the order
       const order = await Orders.findById(orderId).populate('orderedItem.productId');
       if (!order) {
         return res.status(404).json({ success: false, message: 'Order not found' });
       }
   
-      // Find the specific item in the orderedItem array
       const item = order.orderedItem.id(productId);
       if (!item || item.productStatus !== 'Return Requested') {
         return res.status(400).json({ success: false, message: 'Invalid item or no return requested' });
       }
   
-      // Update item status
       item.productStatus = status;
       item.returnApproved = status === 'Return Approved';
       item.returnApprovedDate = status === 'Return Approved' ? new Date() : null;
   
       if (status === 'Return Approved') {
-        // Update product stock
         const product = await Product.findById(item.productId);
         if (!product) {
           return res.status(404).json({ success: false, message: 'Product not found' });
@@ -392,10 +366,8 @@ exports.verifyReturn = async (req, res) => {
         product.stock += item.quantity;
         await product.save();
   
-        // Refund to wallet
         let wallet = await Wallet.findOne({ userId: order.userId });
         if (!wallet) {
-          // Create a new wallet if it doesn't exist
           wallet = new Wallet({
             userId: order.userId,
             balance: 0,
@@ -403,10 +375,8 @@ exports.verifyReturn = async (req, res) => {
           });
         }
   
-        // Calculate refund amount (finalTotalProductPrice is after discount)
         const refundAmount = item.finalTotalProductPrice;
   
-        // Update wallet balance and add transaction
         wallet.balance += refundAmount;
         wallet.transaction.push({
           amount: refundAmount,
@@ -418,23 +388,20 @@ exports.verifyReturn = async (req, res) => {
   
         await wallet.save();
   
-        // Mark item as refunded
         item.refunded = true;
   
-        // Update order status if all items are returned
         const allItemsReturned = order.orderedItem.every(i => i.productStatus === 'Returned' || i.productStatus === 'Return Approved');
         if (allItemsReturned) {
           order.orderStatus = 'Returned';
         }
   
-        // Update payment status if necessary
         const allItemsRefunded = order.orderedItem.every(i => i.refunded || i.productStatus === 'Cancelled');
         if (allItemsRefunded) {
           order.paymentStatus = 'refunded';
         } else {
           const anyItemRefunded = order.orderedItem.some(i => i.refunded);
           if (anyItemRefunded) {
-            order.paymentStatus = 'partially-refunded';
+            order.paymentStatus = 'Partially Refunded';
           }
         }
       }
@@ -449,4 +416,4 @@ exports.verifyReturn = async (req, res) => {
       console.error('Error verifying return:', error);
       res.status(500).json({ success: false, message: 'Server error while processing return request' });
     }
-  };
+};

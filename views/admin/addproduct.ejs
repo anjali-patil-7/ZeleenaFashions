@@ -1,22 +1,46 @@
 <%- include('../partials/admin/header') %>
 
+<!-- <style>
+    .alert {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        border: 1px solid #FFD700; /* Gold border */
+        background-color: #ffffff; /* White background */
+        color: #000000; /* Black text */
+    }
+    .alert ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+</style> -->
+
 <main class="main-wrap">
-    <section class="content-main">
+<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh; width: 100%; margin: 0 auto; padding-right: 100px;">
+
         <div class="content-header">
-            <h2 class="content-title">Add New Product</h2>
-            <a href="/admin/product" class="btn btn-light">Back to Products</a>
+            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Add New Product</h2>
+            <a href="/admin/product" 
+               class="btn" 
+               style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+               onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+               onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                Back to Products
+            </a>
         </div>
-        <div class="card mb-4">
-            <div class="card-body">
+        <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+            <div class="card-body" style="padding: 20px;">
                 <!-- Display server-side error/success messages -->
                 <% if (messages && (messages.error || messages.success)) { %>
-                    <div class="alert <%= messages.error ? 'alert-danger' : 'alert-success' %>" role="alert">
+                    <div class="alert" role="alert">
                         <%= messages.error || messages.success %>
                     </div>
                 <% } %>
                 <!-- Display server-side validation errors -->
                 <% if (errors && errors.length > 0) { %>
-                    <div class="alert alert-danger" role="alert">
+                    <div class="alert" role="alert">
                         <ul>
                             <% errors.forEach(error => { %>
                                 <li><%= error %></li>
@@ -25,21 +49,36 @@
                     </div>
                 <% } %>
                 <!-- Client-side validation errors -->
-                <div id="validationErrors" class="alert alert-danger" role="alert" style="display: none;">
+                <div id="validationErrors" class="alert" role="alert" style="display: none;">
                     <ul id="errorList"></ul>
                 </div>
                 <form id="addProductForm" action="/admin/addproduct" method="POST" enctype="multipart/form-data">
                     <div class="mb-4">
-                        <label for="name" class="form-label">Product Name</label>
-                        <input type="text" class="form-control" id="name" name="name" value="<%= product && product.name ? product.name : '' %>" required>
+                        <label for="name" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Product Name</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name" 
+                               name="name" 
+                               value="<%= product && product.name ? product.name : '' %>" 
+                               required
+                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
                     </div>
                     <div class="mb-4">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" required><%= product && product.description ? product.description : '' %></textarea>
+                        <label for="description" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Description</label>
+                        <textarea class="form-control" 
+                                  id="description" 
+                                  name="description" 
+                                  rows="4" 
+                                  required
+                                  style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"><%= product && product.description ? product.description : '' %></textarea>
                     </div>
                     <div class="mb-4">
-                        <label for="category" class="form-label">Category</label>
-                        <select class="form-select" id="category" name="category" required>
+                        <label for="category" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Category</label>
+                        <select class="form-select" 
+                                id="category" 
+                                name="category" 
+                                required
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
                             <option value="">Select a category</option>
                             <% categories.forEach(category => { %>
                                 <option value="<%= category._id %>" <%= product && product.category === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
@@ -47,34 +86,75 @@
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label for="price" class="form-label">Price ($)</label>
-                        <input type="number" step="0.01" class="form-control" id="price" name="price" value="<%= product && product.price ? product.price : '' %>" required>
+                        <label for="price" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Price ($)</label>
+                        <input type="number" 
+                               step="0.01" 
+                               class="form-control" 
+                               id="price" 
+                               name="price" 
+                               value="<%= product && product.price ? product.price : '' %>" 
+                               required
+                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
                     </div>
                     <div class="mb-4">
-                        <label for="stock" class="form-label">Total Stock</label>
-                        <input type="number" class="form-control" id="stock" name="stock" value="<%= product && product.stock ? product.stock : '' %>" required>
+                        <label for="stock" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Total Stock</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="stock" 
+                               name="stock" 
+                               value="<%= product && product.stock ? product.stock : '' %>" 
+                               required
+                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
                     </div>
                     <div class="mb-4">
-                        <label for="images" class="form-label">Product Images</label>
-                        <input type="file" class="form-control" id="images" name="images" accept="image/jpeg,image/jpg,image/png" multiple required>
-                        <small class="form-text text-muted">Upload exactly 3 images (JPEG, JPG, PNG). Max 5MB each. Resize images below (default: 800x800px).</small>
+                        <label for="images" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Product Images</label>
+                        <input type="file" 
+                               class="form-control" 
+                               id="images" 
+                               name="images" 
+                               accept="image/jpeg,image/jpg,image/png" 
+                               multiple 
+                               required
+                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
+                        <small class="form-text text-muted" style="color: #666; font-family: 'Montserrat', sans-serif;">Upload exactly 3 images (JPEG, JPG, PNG). Max 5MB each. Resize images below (default: 800x800px).</small>
                         <div class="mt-3">
-                            <label for="resizeWidth" class="form-label">Resize Width (px)</label>
-                            <input type="number" class="form-control" id="resizeWidth" value="800" min="100" max="2000">
-                            <label for="resizeHeight" class="form-label mt-2">Resize Height (px)</label>
-                            <input type="number" class="form-control" id="resizeHeight" value="800" min="100" max="2000">
+                            <label for="resizeWidth" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Resize Width (px)</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="resizeWidth" 
+                                   value="800" 
+                                   min="100" 
+                                   max="2000"
+                                   style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
+                            <label for="resizeHeight" class="form-label mt-2" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Resize Height (px)</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="resizeHeight" 
+                                   value="800" 
+                                   min="100" 
+                                   max="2000"
+                                   style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
                         </div>
                         <div id="imagePreview" class="mt-3 d-flex flex-wrap"></div>
                     </div>
                     <div class="mb-4">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status">
+                        <label for="status" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Status</label>
+                        <select class="form-select" 
+                                id="status" 
+                                name="status"
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
                             <option value="true" <%= product && product.status ? 'selected' : '' %>>Active</option>
                             <option value="false" <%= product && !product.status ? 'selected' : '' %>>Inactive</option>
                         </select>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Add Product</button>
+                        <button type="submit" 
+                                class="btn"
+                                style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                                onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                                onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                            Add Product
+                        </button>
                     </div>
                 </form>
             </div>

@@ -90,40 +90,6 @@
                         </div>
 
                         <br><br>
-
-                        <div class="welcome-section">
-                            <!-- Referral Section -->
-                            <div class="referral-section">
-                                <h3 class="section-title">Referral Program</h3>
-                                <p><strong>Your Referral Code:</strong> <%= user.referralCode %> (Share this with friends!)</p>
-                                <p>Invite friends and earn rewards when they sign up using your referral code.</p>
-                                <h4>Your Referral Rewards</h4>
-                                <% if (user.referralRewards && user.referralRewards.length > 0) { %>
-                                  <ul class="rewards-list">
-                                    <% user.referralRewards.forEach(reward => { %>
-                                      <li>
-                                        <% if (reward.offerId && reward.offerId.offerName) { %>
-                                          <%= reward.offerId.offerName %> - <%= reward.offerId.discount %>% off
-                                          <% if (reward.used && reward.dateIssued) { %>
-                                            (Used on <%= reward.dateIssued.toLocaleDateString() %>)
-                                          <% } else if (reward.offerId.endDate) { %>
-                                            (Valid until <%= reward.offerId.endDate.toLocaleDateString() %>)
-                                          <% } else { %>
-                                            (Reward details unavailable)
-                                          <% } %>
-                                        <% } else { %>
-                                          Incomplete reward information
-                                        <% } %>
-                                      </li>
-                                    <% }) %>
-                                  </ul>
-                                <% } else { %>
-                                  <p>No referral rewards yet. Start inviting friends!</p>
-                                <% } %>
-                            </div>
-                        </div>
-
-                        <br><br>
                     
                         <!-- Welcome Section -->
                         <div class="welcome-section">

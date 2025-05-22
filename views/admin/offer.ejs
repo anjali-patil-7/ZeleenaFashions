@@ -250,14 +250,14 @@
                 }
             %>
             <% if (startPage > 1) { %>
-                <a href="/admin/offers?page=1<%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
+                <a href="/admin/offer?page=1<%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
                 <% if (startPage > 2) { %>
                     <span class="page-link">...</span>
                 <% } %>
             <% } %>
 
             <% for (let i = startPage; i <= endPage; i++) { %>
-                <a href="/admin/offers?page=<%= i %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                <a href="/admin/offer?page=<%= i %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                     <%= i %>
                 </a>
             <% } %>
@@ -266,11 +266,11 @@
                 <% if (endPage < totalPages - 1) { %>
                     <span class="page-link">...</span>
                 <% } %>
-                <a href="/admin/offers?page=<%= totalPages %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+                <a href="/admin/offer?page=<%= totalPages %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
             <% } %>
 
             <% if (currentPage < totalPages) { %>
-                <a href="/admin/offers?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+                <a href="/admin/offer?page=<%= currentPage + 1 %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
             <% } %>
         </div>
     <% } %>

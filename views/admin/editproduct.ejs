@@ -5,29 +5,47 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
 
 <style>
+    .alert {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        border: 1px solid #FFD700; /* Gold border */
+        background-color: #ffffff; /* White background */
+        color: #000000; /* Black text */
+    }
+    .alert ul {
+        margin: 0;
+        padding-left: 20px;
+    }
     .preview-box {
         margin-bottom: 15px;
     }
     .preview-placeholder {
-        border: 2px dashed #ccc;
+        border: 2px dashed #000000; /* Black dashed border */
         height: 200px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f8f9fa;
+        background: #ffffff; /* White background */
+        color: #666; /* Gray text */
+        font-family: 'Montserrat', sans-serif;
     }
     .preview-image {
         width: 100%;
         height: 200px;
         object-fit: cover;
-        border: 1px solid #ddd;
+        border: 1px solid #000000; /* Black border */
     }
     .form-control.error, .form-select.error {
-        border-color: #dc3545;
+        border-color: #FFD700; /* Gold border for errors */
     }
     .text-danger {
         font-size: 0.875em;
         margin-top: 5px;
+        color: #000000; /* Black text */
+        font-family: 'Montserrat', sans-serif;
     }
     .image-preview-container {
         display: flex;
@@ -39,7 +57,7 @@
         position: relative;
         width: 200px;
         height: 200px;
-        border: 1px solid #ddd;
+        border: 1px solid #000000; /* Black border */
         overflow: hidden;
     }
     .image-preview-item img {
@@ -60,12 +78,13 @@
     .image-actions button {
         background: none;
         border: none;
-        color: white;
+        color: #FFD700; /* Gold text */
         cursor: pointer;
         font-size: 14px;
+        font-family: 'Montserrat', sans-serif;
     }
     .image-actions button:hover {
-        text-decoration: underline;
+        color: #ffffff; /* White text on hover */
     }
     .crop-modal {
         display: none;
@@ -80,10 +99,10 @@
     }
     .crop-modal-content {
         position: relative;
-        background-color: #fefefe;
+        background-color: #ffffff; /* White background */
         margin: 5% auto;
         padding: 20px;
-        border: 1px solid #888;
+        border: 1px solid #000000; /* Black border */
         width: 80%;
         max-width: 800px;
     }
@@ -118,40 +137,50 @@
         font-size: 24px;
         font-weight: bold;
         cursor: pointer;
+        color: #000000; /* Black text */
     }
     .crop-info {
         margin-bottom: 15px;
         padding: 10px;
-        background-color: #f8f9fa;
+        background-color: #ffffff; /* White background */
+        border: 1px solid #000000; /* Black border */
         border-radius: 4px;
         font-size: 14px;
-        color: #495057;
+        color: #000000; /* Black text */
+        font-family: 'Montserrat', sans-serif;
     }
     .croppie-container {
         width: 100%;
         height: 100%;
     }
     .croppie-container .cr-viewport {
-        border: 2px solid #fff;
+        border: 2px solid #FFD700; /* Gold border */
         box-shadow: 0 0 2000px 2000px rgba(0, 0, 0, 0.5);
     }
 </style>
 
-<section class="content-main">
+<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
     <div class="content-header">
-        <h1 class="content-title card-title">Edit Product</h1>
+        <h1 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Edit Product</h1>
+        <a href="/admin/product" 
+           class="btn" 
+           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+            Back to Products
+        </a>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-8">
                 <% if (messages.error && messages.error.length > 0) { %>
-                    <div class="alert alert-danger"><%= messages.error %></div>
+                    <div class="alert"><%= messages.error %></div>
                 <% } %>
                 <% if (messages.success && messages.success.length > 0) { %>
-                    <div class="alert alert-success"><%= messages.success %></div>
+                    <div class="alert"><%= messages.success %></div>
                 <% } %>
                 <% if (errors && errors.length > 0) { %>
-                    <div class="alert alert-danger">
+                    <div class="alert">
                         <ul>
                             <% errors.forEach(error => { %>
                                 <li><%= error %></li>
@@ -170,7 +199,7 @@
                     <input type="hidden" id="replacedImages" name="replacedImages" value="[]">
 
                     <div class="mb-4">
-                        <label for="name" class="form-label">Product Name</label>
+                        <label for="name" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Product Name</label>
                         <input 
                             type="text" 
                             class="form-control" 
@@ -178,23 +207,25 @@
                             name="name" 
                             value="<%= product.productName %>" 
                             required 
+                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         />
                         <div id="nameError" class="text-danger"></div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="description" class="form-label">Description</label>
+                        <label for="description" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Description</label>
                         <textarea 
                             class="form-control" 
                             id="description" 
                             name="description" 
                             required
+                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         ><%= product.description %></textarea>
                         <div id="descriptionError" class="text-danger"></div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="price" class="form-label">Price</label>
+                        <label for="price" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Price</label>
                         <input 
                             type="number" 
                             class="form-control" 
@@ -204,12 +235,13 @@
                             value="<%= product.price %>" 
                             min="0" 
                             step="0.01"
+                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         />
                         <div id="priceError" class="text-danger"></div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="stock" class="form-label">Stock Quantity</label>
+                        <label for="stock" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Stock Quantity</label>
                         <input 
                             type="number" 
                             class="form-control" 
@@ -218,17 +250,19 @@
                             required 
                             value="<%= product.totalStock %>" 
                             min="0"
+                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         />
                         <div id="stockError" class="text-danger"></div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="category" class="form-label">Category</label>
+                        <label for="category" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Category</label>
                         <select 
                             class="form-select" 
                             id="category" 
                             name="category" 
                             required
+                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         >
                             <option value="" disabled>Select a category</option>
                             <% categories.forEach(function(category) { %>
@@ -241,7 +275,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label">Current Images</label>
+                        <label class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Current Images</label>
                         <div class="image-preview-container">
                             <% if (product.productImage && product.productImage.length > 0) { %>
                                 <% product.productImage.forEach(function(image, index) { %>
@@ -254,19 +288,32 @@
                                     </div>
                                 <% }); %>
                             <% } else { %>
-                                <p>No images available</p>
+                                <p style="color: #666; font-family: 'Montserrat', sans-serif;">No images available</p>
                             <% } %>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="imageUpload" class="form-label">Upload New Images</label>
-                        <input type="file" id="imageUpload" name="images" class="form-control" accept="image/*" multiple />
+                        <label for="imageUpload" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Upload New Images</label>
+                        <input type="file" 
+                               id="imageUpload" 
+                               name="images" 
+                               class="form-control" 
+                               accept="image/*" 
+                               multiple
+                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                        />
                         <div id="newImagesPreview" class="d-flex flex-wrap mt-2 gap-2"></div>
                     </div>
 
                     <div class="d-flex justify-content-center mt-3">
-                        <button type="submit" class="btn btn-dark">Update Product</button>
+                        <button type="submit" 
+                                class="btn"
+                                style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                                onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                                onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                            Update Product
+                        </button>
                     </div>  
                 </form>
             </div>
@@ -277,7 +324,7 @@
 <div id="cropModal" class="crop-modal">
     <div class="crop-modal-content">
         <span class="close-crop-modal">×</span>
-        <h4>Crop Image (400 x 400)</h4>
+        <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Crop Image (400 x 400)</h4>
         <div class="crop-info">
             All product images will be cropped to a 400x400 pixel square format. Use the controls below to adjust your image.
         </div>
@@ -286,25 +333,57 @@
         </div>
         <div class="crop-actions">
             <div class="crop-controls">
-                <button id="zoomIn" class="btn btn-sm btn-outline-secondary">
+                <button id="zoomIn" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
                     <i class="fas fa-search-plus"></i> Zoom In
                 </button>
-                <button id="zoomOut" class="btn btn-sm btn-outline-secondary">
+                <button id="zoomOut" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
                     <i class="fas fa-search-minus"></i> Zoom Out
                 </button>
-                <button id="rotateLeft" class="btn btn-sm btn-outline-secondary">
+                <button id="rotateLeft" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
                     <i class="fas fa-undo"></i> Rotate Left
                 </button>
-                <button id="rotateRight" class="btn btn-sm btn-outline-secondary">
+                <button id="rotateRight" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
                     <i class="fas fa-redo"></i> Rotate Right
                 </button>
-                <button id="reset" class="btn btn-sm btn-outline-secondary">
+                <button id="reset" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
                     <i class="fas fa-sync"></i> Reset
                 </button>
             </div>
             <div class="crop-buttons">
-                <button id="cancelCrop" class="btn btn-secondary">Cancel</button>
-                <button id="confirmCrop" class="btn btn-primary">Confirm Crop</button>
+                <button id="cancelCrop" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                    Cancel
+                </button>
+                <button id="confirmCrop" 
+                        class="btn"
+                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                    Confirm Crop
+                </button>
             </div>
         </div>
     </div>
@@ -726,6 +805,6 @@
       // Initialize hidden inputs
       updateHiddenInputs();
     });
-  </script>
+</script>
 
 <%- include('../partials/admin/footer') %>

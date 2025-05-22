@@ -1,4 +1,6 @@
 const User = require('../../models/userSchema');
+const Orders = require('../../models/orderSchema');
+const Product = require('../../models/productSchema')
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -71,39 +73,245 @@ exports.adminLogin = async (req, res) => {
 
 // Render the dashboard
 exports.getDashboard = async (req, res) => {
-  try {
-    // Ensure session exists
-    if (!req.session || !req.session.admin) {
-      req.flash('error_msg', 'Session expired. Please log in again.');
-      console.log('Flash set: Session expired. Please log in again.');
-      return res.redirect('/admin/login');
-    }
+    try {
+        const currentDate = new Date();
+        const filter = req.query.filter || 'monthly';
 
-    // Fetch admin data
-    const admin = await User.findById(req.session.admin.id).select('name email');
-    if (!admin) {
-      req.flash('error_msg', 'Admin account not found');
-      console.log('Flash set: Admin account not found');
-      return res.redirect('/admin/login');
-    }
+        // Set start date based on filter
+        let startDate;
+        switch (filter) {
+            case 'daily':
+                startDate = new Date(currentDate.setHours(0, 0, 0, 0));
+                break;
+            case 'weekly':
+                startDate = new Date(currentDate.setDate(currentDate.getDate() - 7));
+                break;
+            case 'monthly':
+                startDate = new Date(currentDate.setFullYear(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate()));
+                break;
+            case 'yearly':
+                startDate = new Date(currentDate.setFullYear(currentDate.getFullYear() - 1));
+                break;
+            default:
+                startDate = new Date(currentDate.setMonth(currentDate.getMonth() - 1));
+        }
 
-    // Get filter from query parameter, default to 'daily'
-    const filter = req.query.filter || 'daily';
+        // Total Revenue
+        const totalRevenue = await Orders.aggregate([
+            { $match: { createdAt: { $gte: startDate }, orderStatus: 'Delivered' } },
+            { $group: { _id: null, total: { $sum: '$finalAmount' } } }
+        ]);
 
-    // Render dashboard with filter and flash messages
-    res.render('admin/index', {
-      admin: {
-        name: admin.name,
-        email: admin.email,
+        // Total Orders
+        const totalOrders = await Orders.countDocuments({
+            createdAt: { $gte: startDate },
+            orderStatus: 'Delivered'
+        });
+
+
+
+        // Total Products
+        const totalProducts = await Product.countDocuments({ status: true });
+
+        // Monthly Earning
+        const monthlyEarning = await Orders.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+                    },
+                    orderStatus: 'Delivered'
+                }
+            },
+            { $group: { _id: null, total: { $sum: '$finalAmount' } } }
+        ]);
+
+        // Sales Data for Chart
+
+const salesData = await Orders.aggregate([
+  { $match: { createdAt: { $gte: startDate }, orderStatus: 'Delivered' } },
+  {
+    $group: {
+      _id: {
+        $dateToString: {
+          format: filter === 'yearly' ? '%Y-%m' : '%Y-%m-%d', // Use month for yearly, date for others
+          date: '$createdAt'
+        }
       },
-      error_msg: req.flash('error_msg')[0] || '',
-      success_msg: req.flash('success_msg')[0] || '',
-      filter, // Pass filter to the view
-    });
-  } catch (error) {
-    console.error('Dashboard error:', error);
-    req.flash('error_msg', 'Error loading dashboard');
-    console.log('Flash set: Error loading dashboard');
-    res.redirect('/admin/login');
-  }
+      total: { $sum: '$finalAmount' }
+    }
+  },
+  { $sort: { '_id': 1 } }
+]);
+
+        // Top 10 Best Selling Products
+        const bestSellingProducts = await Orders.aggregate([
+            { $match: { createdAt: { $gte: startDate }, orderStatus: 'Delivered' } },
+            { $unwind: '$orderedItem' },
+            {
+                $group: {
+                    _id: '$orderedItem.productId',
+                    totalSold: { $sum: '$orderedItem.quantity' },
+                    totalRevenue: { $sum: '$orderedItem.finalTotalProductPrice' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'products', // Ensure this matches the actual collection name
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'product'
+                }
+            },
+            { $unwind: '$product' },
+            { $sort: { totalSold: -1 } },
+            { $limit: 10 }
+        ]);
+
+        // Top 10 Best Selling Categories
+        const bestSellingCategories = await Orders.aggregate([
+            { $match: { createdAt: { $gte: startDate }, orderStatus: 'Delivered' } },
+            { $unwind: '$orderedItem' },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'orderedItem.productId',
+                    foreignField: '_id',
+                    as: 'product'
+                }
+            },
+            { $unwind: '$product' },
+            {
+                $group: {
+                    _id: '$product.category',
+                    totalSold: { $sum: '$orderedItem.quantity' },
+                    totalRevenue: { $sum: '$orderedItem.finalTotalProductPrice' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories', // Ensure this matches the actual collection name
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $unwind: '$category' },
+            { $sort: { totalSold: -1 } },
+            { $limit: 10 }
+        ]);
+
+        // Latest Orders
+        const latestOrders = await Orders.find({
+            orderStatus: { $ne: 'Cancelled' }
+        })
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate('userId', 'name')
+            .populate('deliveryAddress');
+
+        // Sales Report URL
+        const salesReportUrl = '/admin/salesreport';
+
+        // Render the dashboard
+        res.render('admin/index', {
+            revenue: totalRevenue[0]?.total || 0,
+            orders: totalOrders,
+            products: totalProducts,
+            monthlyEarning: monthlyEarning[0]?.total || 0,
+            salesData,
+            bestSellingProducts,
+            bestSellingCategories,
+            latestOrders,
+            filter,
+            currentDate: new Date(),
+            salesReportUrl,
+            error_msg: req.flash('error'), // Assuming flash middleware is used
+            success_msg: req.flash('success') // Assuming flash middleware is used
+        });
+    } catch (error) {
+        console.error('Admin Dashboard Error:', error);
+        res.status(500).render('admin/index', {
+            revenue: 0,
+            orders: 0,
+            products: 0,
+            monthlyEarning: 0,
+            salesData: [],
+            bestSellingProducts: [],
+            bestSellingCategories: [],
+            latestOrders: [],
+            filter: 'monthly',
+            currentDate: new Date(),
+            salesReportUrl: '/admin/salesreport',
+            error_msg: 'Failed to load dashboard data. Please try again.',
+            success_msg: ''
+        });
+    }
+};
+
+
+exports.getSalesData = async (req, res) => {
+    try {
+        const filter = req.query.filter || 'yearly';
+        let groupBy, sortBy;
+
+        switch (filter) {
+            case 'yearly':
+                groupBy = {
+                    year: { $year: '$createdAt' }
+                };
+                sortBy = { '_id.year': 1 };
+                break;
+            case 'monthly':
+                groupBy = {
+                    year: { $year: '$createdAt' },
+                    month: { $month: '$createdAt' }
+                };
+                sortBy = { '_id.year': 1, '_id.month': 1 };
+                break;
+            case 'weekly':
+                groupBy = {
+                    year: { $year: '$createdAt' },
+                    week: { $week: '$createdAt' }
+                };
+                sortBy = { '_id.year': 1, '_id.week': 1 };
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid filter' });
+        }
+
+        const salesData = await Orders.aggregate([
+            {
+                $match: { 
+                    paymentStatus: 'Paid',
+                    orderStatus: { $nin: ['Cancelled', 'Returned'] }
+                } // Include only paid orders, exclude cancelled or returned
+            },
+            {
+                $group: {
+                    _id: groupBy,
+                    totalSales: { $sum: '$finalAmount' }, // Use finalAmount from schema
+                    orderCount: { $sum: 1 }
+                }
+            },
+            {
+                $sort: sortBy
+            },
+            {
+                $project: {
+                    year: '$_id.year',
+                    month: '$_id.month',
+                    week: '$_id.week',
+                    totalSales: 1,
+                    orderCount: 1,
+                    _id: 0
+                }
+            }
+        ]);
+
+        res.json(salesData);
+    } catch (error) {
+        console.error('Error fetching sales data:', error);
+        res.status(500).json({ error: 'Server Error' });
+    }
 };

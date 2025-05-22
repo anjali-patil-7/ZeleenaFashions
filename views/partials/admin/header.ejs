@@ -1,8 +1,6 @@
 <!DOCTYPE HTML>
 <html lang="en">
 
-
-<!-- Mirrored from wp.alithemes.com/html/evara/evara-backend/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 01 Aug 2021 15:32:35 GMT -->
 <head>
     <meta charset="utf-8">
     <title>Zeleena Fashions Dashboard</title>
@@ -18,8 +16,99 @@
     <!-- Template CSS -->
     <link href="/admin/assets/css/main.css" rel="stylesheet" type="text/css" />
     <link href="https://unpkg.com/cropperjs/dist/cropper.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <style>
+        /* Sidebar background and menu styling */
+        .navbar-aside {
+            background-color: #000000; /* Black background */
+            border-right: 1px solid #FFFFFF; /* White border */
+            width: 350px; /* Increased width */
+            transition: width 0.3s ease; /* Smooth transition for minimize/expand */
+        }
+        /* Adjust width when sidebar is minimized */
+        .navbar-aside.minimized {
+            width: 110px; /* Increased minimized width */
+        }
+        .aside-top {
+            background-color: #000000; /* Black background */
+        }
+        .menu-aside .menu-item {
+            border-bottom: 1px solid #FFFFFF; /* White border between items */
+        }
+        .menu-aside .text {
+            color: #FFD700; /* Golden yellow text */
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700; /* Bold */
+            text-transform: uppercase; /* Uppercase */
+            font-size: 14px;
+        }
+        .menu-link {
+            color: #FFD700; /* Golden yellow text */
+            font-family: 'Montserrat', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .menu-link:hover, .menu-link.active {
+            background-color: #FFFFFF; /* White background on hover/active */
+            color: #FFD700; /* Golden yellow text */
+        }
+        .material-icons {
+            color: #FFD700; /* Golden yellow icons */
+        }
+        .menu-link:hover .material-icons, .menu-link.active .material-icons {
+            color: #FFD700; /* Golden yellow icons on hover/active */
+        }
+        /* Adjust main content to accommodate wider sidebar */
+        .main-wrap {
+            margin-left: 350px; /* Match the sidebar width */
+            transition: margin-left 0.3s ease; /* Smooth transition */
+        }
+        .main-wrap.minimized {
+            margin-left: 110px; /* Match the minimized sidebar width */
+        }
+        /* Header styling */
+        .main-header {
+            background-color: #000000; /* Black background */
+            border-bottom: 1px solid #FFFFFF; /* White border */
+        }
+        .nav-item .nav-link {
+            color: #FFD700; /* Golden yellow icons/text */
+        }
+        .dropdown-menu {
+            background-color: #000000; /* Black background */
+            border: 1px solid #FFFFFF; /* White border */
+            border-radius: 4px;
+        }
+        .dropdown-item {
+            color: #FFD700; /* Golden yellow text */
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+        .dropdown-item:hover {
+            background-color: #FFFFFF; /* White background on hover */
+            color: #FFD700; /* Golden yellow text */
+        }
+        .dropdown-item.text-danger {
+            color: #FFD700 !important; /* Golden yellow text for logout */
+        }
+        .dropdown-item .material-icons {
+            color: #FFD700; /* Golden yellow icons */
+        }
+        .badge.rounded-pill {
+            background-color: #FFFFFF; /* White background */
+            color: #FFD700; /* Golden yellow text */
+            font-family: 'Montserrat', sans-serif;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar-aside {
+                width: 100%; /* Full width on mobile (offcanvas behavior) */
+            }
+            .main-wrap {
+                margin-left: 0; /* No margin on mobile */
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -27,7 +116,7 @@
     <aside class="navbar-aside" id="offcanvas_aside">
         <div class="aside-top">
             <a href="/admin/dashboard" class="brand-wrap">
-                <img src="/admin/assets/imgs/theme/logo.png" class="logo" alt="Evara Dashboard">
+                <img src="/admin/assets/imgs/theme/newlogo.png" class="logo" alt="Zeleena Fashions Dashboard">
             </a>
             <div>
                 <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>
@@ -35,113 +124,47 @@
         </div>
         <nav>
             <ul class="menu-aside">
-                <li class="menu-item ">
+                <li class="menu-item">
                     <a class="menu-link" href="/admin/index"> <i class="icon material-icons md-home"></i>
                         <span class="text">Dashboard</span>
                     </a>
                 </li>
-                <li class="menu-item ">
+                <li class="menu-item">
                     <a class="menu-link" href="/admin/product"> <i class="icon material-icons md-shopping_cart"></i>
                         <span class="text">Products</span>
                     </a>
-                   
                 </li>
-                <!-- <li class="menu-item has-submenu">
-                    <a class="menu-link" href="page-orders-1.html"> <i class="icon material-icons md-shopping_cart"></i>
-                        <span class="text">Orders</span>
-                    </a>
-                    
-                </li> -->
                 <li class="menu-item">
                     <a class="menu-link" href="/admin/users"> <i class="icon material-icons md-people"></i>
                         <span class="text">Users</span>
                     </a>
-                    
                 </li>
-                <li class="menu-item ">
+                <li class="menu-item">
                     <a class="menu-link" href="/admin/categories"> <i class="icon material-icons md-category"></i>
                         <span class="text">Category</span>
                     </a>
-                    
                 </li>
-                <li class="menu-item ">
+                <li class="menu-item">
                     <a class="menu-link" href="/admin/orders"> <i class="icon material-icons md-receipt_long"></i>
                         <span class="text">Orders</span>
                     </a>
-                    
                 </li>
-
-                <li class="menu-item ">
+                <li class="menu-item">
                     <a class="menu-link" href="/admin/coupon"> <i class="icon material-icons md-confirmation_number"></i>
                         <span class="text">Coupon</span>
                     </a>
                 </li>
-
-
-                <li class="menu-item ">
+                <li class="menu-item">
                     <a class="menu-link" href="/admin/offer"> <i class="icon material-icons md-local_offer"></i>
                         <span class="text">Offer</span>
                     </a>
-                    
                 </li>
-                <li class="menu-item ">
-                    <a class="menu-link"href="/admin/logout"><i class="material-icons md-exit_to_app"></i>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/logout"><i class="material-icons md-exit_to_app"></i>
                         <span class="text">Logout</span>
                     </a>
-
-                    
                 </li>
-                <!-- <li class="menu-item has-submenu">
-                    <a class="menu-link" href="page-transactions-1.html"> <i class="icon material-icons md-monetization_on"></i>
-                        <span class="text">Transactions</span>
-                    </a>
-                    <div class="submenu">
-                        <a href="page-transactions-1.html">Transaction 1</a>
-                        <a href="page-transactions-2.html">Transaction 2</a>
-                    </div>
-                </li> -->
-                <!-- <li class="menu-item has-submenu">
-                    <a class="menu-link" href="#"> <i class="icon material-icons md-person"></i>
-                        <span class="text">Account</span>
-                    </a>
-                    <div class="submenu">
-                        <a href="page-account-login.html">User login</a>
-                        <a href="page-account-register.html">User registration</a>
-                        <a href="page-error-404.html">Error 404</a>
-                    </div>
-                </li> -->
-                <!-- <li class="menu-item">
-                    <a class="menu-link" href="page-reviews.html"> <i class="icon material-icons md-comment"></i>
-                        <span class="text">Reviews</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="page-brands.html"> <i class="icon material-icons md-stars"></i>
-                        <span class="text">Brands</span> </a>
-                </li>
-                <li class="menu-item">
-                    <a class="menu-link" disabled href="#"> <i class="icon material-icons md-pie_chart"></i>
-                        <span class="text">Statistics</span>
-                    </a>
-                </li> -->
             </ul>
-            <hr>
-            <!-- <ul class="menu-aside">
-                <li class="menu-item has-submenu">
-                    <a class="menu-link" href="#"> <i class="icon material-icons md-settings"></i>
-                        <span class="text">Settings</span>
-                    </a>
-                    <div class="submenu">
-                        <a href="page-settings-1.html">Setting sample 1</a>
-                        <a href="page-settings-2.html">Setting sample 2</a>
-                    </div>
-                </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="page-blank.html"> <i class="icon material-icons md-local_offer"></i>
-                        <span class="text"> Starter page </span>
-                    </a>
-                </li>
-            </ul> -->
             <br>
             <br>
         </nav>
@@ -149,18 +172,6 @@
     <main class="main-wrap">
         <header class="main-header navbar">
             <div class="col-search">
-                <!-- <form class="searchform">
-                    <div class="input-group">
-                        <input list="search_terms" type="text" class="form-control" placeholder="Search term">
-                        <button class="btn btn-light bg" type="button"> <i class="material-icons md-search"></i></button>
-                    </div>
-                    <datalist id="search_terms">
-                        <option value="Products">
-                        <option value="New orders">
-                        <option value="Apple iphone">
-                        <option value="Ahmed Hassan">
-                    </datalist>
-                </form> -->
             </div>
             <div class="col-nav">
                 <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
@@ -179,22 +190,12 @@
                     </li>
                     <li class="dropdown nav-item">
                         <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownLanguage" aria-expanded="false"><i class="material-icons md-public"></i></a>
-                        <!-- <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLanguage">
-                            <a class="dropdown-item text-brand" href="#"><img src="/admin/assets/imgs/theme/flag-us.png" alt="English">English</a>
-                            <a class="dropdown-item" href="#"><img src="/admin/assets/imgs/theme/flag-fr.png" alt="Français">Français</a>
-                            <a class="dropdown-item" href="#"><img src="/admin/assets/imgs/theme/flag-jp.png" alt="Français">日本語</a>
-                            <a class="dropdown-item" href="#"><img src="/admin/assets/imgs/theme/flag-cn.png" alt="Français">中国人</a>
-                        </div> -->
                     </li>
                     <li class="dropdown nav-item">
                         <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="/admin/assets/imgs/people/avatar2.jpg" alt="User"></a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
                             <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
                             <a class="dropdown-item" href="#"><i class="material-icons md-settings"></i>Account Settings</a>
-                            <!-- <a class="dropdown-item" href="#"><i class="material-icons md-account_balance_wallet"></i>Wallet</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-receipt"></i>Billing</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-help_outline"></i>Help center</a>
-                            <div class="dropdown-divider"></div> -->
                             <a class="dropdown-item text-danger" href="/admin/logout"><i class="material-icons md-exit_to_app"></i>Logout</a>
                         </div>
                     </li>

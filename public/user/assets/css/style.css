@@ -6929,14 +6929,14 @@ button.li-btn:hover {
 
 /* --Blog Sidebar Other Related Stuff--- */
 @media (max-width: 991px) {
-  .hiraola-blog-sidebar-wrapper {
+  .hiraola-blog--wrapper {
     padding-bottom: 55px;
   }
 }
 .hiraola-blog-sidebar-wrapper .hiraola-blog-sidebar {
   padding-top: 30px;
 }
-.hiraola-blog-sidebar-wrapper .hiraola-blog-sidebar:first-child {
+.hiraola-blog--wrapper .hiraola-blog-sidebar:first-child {
   padding-top: 0;
 }
 .hiraola-blog-sidebar-wrapper .hiraola-blog-sidebar:last-child {

@@ -154,6 +154,11 @@
               <span class="price-label">Shipping Charge:</span>
               <span class="price-value">₹<%= order.shippingCharge.toFixed(2) %></span>
             </div>
+            <% } else { %>
+              <div class="price-row">
+              <span class="price-label">Shipping Charge:</span>
+              <span class="price-value">₹ 100.00</span>
+            </div>
             <% } %>
             <% if (discountAmount && discountAmount > 0) { %>
             <div class="price-row discount">

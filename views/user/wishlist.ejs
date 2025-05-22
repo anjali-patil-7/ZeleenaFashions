@@ -73,21 +73,21 @@
     <div class="row">
       <div class="col-12">
         <form action="javascript:void(0)">
-          <div class="table-content table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th class="hiraola-product-thumbnail">Sl. No</th>
-                  <th class="hiraola-product-thumbnail">Images</th>
-                  <th class="wishlist-product-name">Product</th>
-                  <th class="hiraola-product-price">Unit Price</th>
-                  <th class="hiraola-product-stock-status">Stock Status</th>
-                  <th class="hiraola-product-add-cart">Actions</th>
-                  <th class="hiraola-product-remove">Remove</th>
-                </tr>
-              </thead>
-              <tbody id="wishlist-items">
-                <% if (wishlistDetails.length > 0 && wishlistDetails[0].wishlistItems && wishlistDetails[0].wishlistItems.length > 0) { %>
+          <% if (wishlistDetails.length > 0 && wishlistDetails[0].wishlistItems && wishlistDetails[0].wishlistItems.length > 0) { %>
+            <div class="table-content table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="hiraola-product-thumbnail">Sl. No</th>
+                    <th class="hiraola-product-thumbnail">Images</th>
+                    <th class="wishlist-product-name">Product</th>
+                    <th class="hiraola-product-price">Unit Price</th>
+                    <th class="hiraola-product-stock-status">Stock Status</th>
+                    <th class="hiraola-product-add-cart">Actions</th>
+                    <th class="hiraola-product-remove">Remove</th>
+                  </tr>
+                </thead>
+                <tbody id="wishlist-items">
                   <% wishlistDetails[0].wishlistItems.forEach((item, index) => { %>
                     <tr class="wishlist-item" data-product-id="<%= item.productId._id %>">
                       <td class="hiraola-product-price">
@@ -134,29 +134,24 @@
                       </td>
                     </tr>
                   <% }); %>
-                <% } else { %>
-                  <tr id="empty-wishlist-row">
-                    <td colspan="7">
-                      <div class="empty-wishlist">
-                        <i class="fa fa-heart-o"></i>
-                        <h3>Your Wishlist is Empty</h3>
-                        <p>Start adding items you love to your wishlist</p>
-                        <a href="/shop" class="btn btn-primary" >Continue Shopping</a>
-                      </div>
-                    </td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="row">
-            <div class="col-md-12">
-              <div class="wishlist-page-total text-right">
-                <a href="/shop" class="btn btn-secondary">Continue Shopping</a>
+                </tbody>
+              </table>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="wishlist-page-total text-right">
+                  <a href="/shop" class="btn btn-secondary">Continue Shopping</a>
+                </div>
               </div>
             </div>
-          </div>
+          <% } else { %>
+            <div class="empty-wishlist">
+              <i class="fa fa-heart-o"></i>
+              <h3>Your Wishlist is Empty</h3>
+              <p>Start adding items you love to your wishlist</p>
+              <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+            </div>
+          <% } %>
         </form>
       </div>
     </div>
@@ -189,17 +184,15 @@
               
               // Check if wishlist is now empty
               if ($("#wishlist-items tr").length === 0) {
-                $("#wishlist-items").html(`
-                  <tr id="empty-wishlist-row">
-                    <td colspan="7">
-                      <div class="empty-wishlist">
-                        <i class="fa fa-heart-o"></i>
-                        <h3>Your Wishlist is Empty</h3>
-                        <p>Start adding items you love to your wishlist</p>
-                        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
-                      </div>
-                    </td>
-                  </tr>
+                $(".table-content").remove();
+                $(".wishlist-page-total").remove();
+                $(".hiraola-wishlist-area .container .row .col-12 form").html(`
+                  <div class="empty-wishlist">
+                    <i class="fa fa-heart-o"></i>
+                    <h3>Your Wishlist is Empty</h3>
+                    <p>Start adding items you love to your wishlist</p>
+                    <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+                  </div>
                 `);
               }
             });

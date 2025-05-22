@@ -7,21 +7,29 @@ const Category = require('../../models/categorySchema');
 exports.getOfferList = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 5;
         const skip = (page - 1) * limit;
         const searchQuery = req.query.query || '';
+
+        console.log('Search Query:', searchQuery); // Debug log
 
         const query = searchQuery 
             ? { offerName: { $regex: searchQuery, $options: 'i' } }
             : {};
 
+        console.log('MongoDB Query:', query); // Debug log
+
         const totalOffers = await Offer.countDocuments(query);
+        console.log('Total Offers:', totalOffers); // Debug log
+
         const offers = await Offer.find(query)
             .populate('productId', 'productName')
             .populate('categoryId', 'name')
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
+
+        console.log('Offers:', offers); // Debug log
 
         res.render('admin/offer', {
             offers,

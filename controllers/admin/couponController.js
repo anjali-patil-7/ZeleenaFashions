@@ -4,13 +4,13 @@ const Coupon = require('../../models/couponSchema');
 exports.getCoupons = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 5;
         const skip = (page - 1) * limit;
         const searchQuery = req.query.query || '';
 
         // Build query
         const query = searchQuery 
-            ? { couponCode: { $regex: searchQuery, $options: 'i' } }
+            ? { code: { $regex: searchQuery, $options: 'i' } }
             : {};
 
         const totalCoupons = await Coupon.countDocuments(query);
@@ -56,26 +56,38 @@ exports.postAddCoupon = async (req, res) => {
             minimumPrice,
             maxRedeem,
             expiry,
-            status
+            status,
+            description
         } = req.body;
 
         // Check if coupon code already exists
-        const existingCoupon = await Coupon.findOne({ couponCode: couponCode.toUpperCase() });
+        const existingCoupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
         if (existingCoupon) {
             req.flash('error', 'Coupon code already exists');
             return res.redirect('/admin/addcoupon');
         }
 
+        // Map form type to schema discountType
+        const discountTypeMap = {
+            percentageDiscount: 'percentage',
+            flatDiscount: 'flat'
+        };
+        const discountType = discountTypeMap[type];
+        if (!discountType) {
+            req.flash('error', 'Invalid discount type');
+            return res.redirect('/admin/addcoupon');
+        }
+
         // Create new coupon
         const coupon = new Coupon({
-            couponCode: couponCode.toUpperCase(),
-            type,
+            code: couponCode.toUpperCase(),
+            discountType,
             discount: parseFloat(discount),
             minimumPrice: parseFloat(minimumPrice),
             maxRedeem: parseInt(maxRedeem),
             expiry: new Date(expiry),
             status: status === 'true',
-            description: req.body.description || ''
+            description: description || ''
         });
 
         await coupon.save();
@@ -119,12 +131,13 @@ exports.postEditCoupon = async (req, res) => {
             minimumPrice,
             maxRedeem,
             expiry,
-            status
+            status,
+            description
         } = req.body;
 
         // Check if coupon code exists for another coupon
         const existingCoupon = await Coupon.findOne({
-            couponCode: couponCode.toUpperCase(),
+            code: couponCode.toUpperCase(),
             _id: { $ne: req.params.id }
         });
 
@@ -133,18 +146,29 @@ exports.postEditCoupon = async (req, res) => {
             return res.redirect(`/admin/editcoupon/${req.params.id}`);
         }
 
+        // Map form type to schema discountType
+        const discountTypeMap = {
+            percentageDiscount: 'percentage',
+            flatDiscount: 'flat'
+        };
+        const discountType = discountTypeMap[type];
+        if (!discountType) {
+            req.flash('error', 'Invalid discount type');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
         // Update coupon
         const coupon = await Coupon.findByIdAndUpdate(
             req.params.id,
             {
-                couponCode: couponCode.toUpperCase(),
-                type,
+                code: couponCode.toUpperCase(),
+                discountType,
                 discount: parseFloat(discount),
                 minimumPrice: parseFloat(minimumPrice),
                 maxRedeem: parseInt(maxRedeem),
                 expiry: new Date(expiry),
                 status: status === 'true',
-                description: req.body.description || ''
+                description: description || ''
             },
             { new: true, runValidators: true }
         );

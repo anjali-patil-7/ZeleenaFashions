@@ -1,7 +1,7 @@
 const Category = require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
-const Offer = require('../../models/offerSchema'); // Added Offer import
+const Offer = require('../../models/offerSchema');
 
 // Helper function to get the best offer for a product
 const getBestOffer = async (product) => {
@@ -51,10 +51,11 @@ exports.getHomePage = async (req, res) => {
             console.log('No active categories found.');
         }
 
-        // Fetch products (only active ones, limit to 10 for performance)
+        // Fetch products (only active ones, sorted by createdAt, increased limit to 20)
         const products = await Product.find({ status: true })
             .populate('category')
-            .limit(10)
+            .sort({ createdAt: -1 }) // Sort by createdAt in descending order (newest first)
+            .limit(20) // Increased limit to ensure new products are included
             .lean();
         console.log(products);
         if (!products.length) {

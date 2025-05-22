@@ -1,469 +1,400 @@
 <%- include('../partials/admin/header') %>
 
-<section class="content-main" style="background-color: white;">
-    <div class="content-header">
-        <div>
-            <h2 class="content-title card-title" style="color: black;">Dashboard </h2>
-            <p style="color: #333;">Whole data about your business here</p>
-        </div>
-        <div>
-            <a href="/admin/sales/daily" class="btn" style="background-color: black; color: white;"><i class="text-muted material-icons md-post_add" style="color: gold;"></i>Create report</a>
-        </div>
+<style>
+    .flash-message {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        max-width: 300px;
+        z-index: 1000;
+    }
+
+    .flash-message svg {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .error-message,
+    .success-message {
+        background-color: #ffffff; /* White background */
+        color: #000000; /* Black text */
+        border: 1px solid #FFD700; /* Gold border */
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dashboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        border: 1px solid #000000;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .dashboard-table th {
+        padding: 15px;
+        text-align: center;
+        background-color: #000000; /* Black background */
+        color: #FFD700; /* Gold text */
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dashboard-table td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #e0e0e0;
+        color: #333;
+    }
+
+    .dashboard-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .dashboard-table tr:hover {
+        background-color: #f0f0f0;
+    }
+
+    .badge {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+    }
+
+    .badge-soft-success {
+        background-color: #000000; /* Black background */
+        color: #FFD700; /* Gold text */
+    }
+
+    .badge-soft-warning {
+        background-color: #000000; /* Black background */
+        color: #FFD700; /* Gold text */
+    }
+
+    .badge-soft-danger {
+        background-color: #000000; /* Black background */
+        color: #FFD700; /* Gold text */
+    }
+</style>
+
+<% if (error_msg && error_msg.length > 0) { %>
+  <div class="flash-message error-message" id="flash-message">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span style="font-family: 'Montserrat', sans-serif;"><%= error_msg %></span>
+  </div>
+<% } %>
+
+<% if (success_msg && success_msg.length > 0) { %>
+  <div class="flash-message success-message" id="flash-message">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span style="font-family: 'Montserrat', sans-serif;"><%= success_msg %></span>
+  </div>
+<% } %>
+
+<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
+  <div class="content-header">
+    <div>
+      <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Dashboard</h2>
+      <p style="color: #666; font-family: 'Montserrat', sans-serif;">Business Analytics - <%= filter.charAt(0).toUpperCase() + filter.slice(1) %> View</p>
     </div>
-    <div class="row">
-        <div class="col-lg-3">
-            <div class="card card-body mb-4" style="border-color: gold; background-color: white;">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #fffaf0;"><i class="material-icons md-monetization_on" style="color: gold;"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title" style="color: black;">Revenue</h6>
-                        <span style="color: black;">$13,456.5</span>
-                        <span class="text-sm" style="color: #555;">
-                            Shipping fees are not included
-                        </span>
-                    </div>
-                </article>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="card card-body mb-4" style="border-color: gold; background-color: white;">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #fffaf0;"><i class="material-icons md-local_shipping" style="color: gold;"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title" style="color: black;">Orders</h6> <span style="color: black;">53.668</span>
-                        <span class="text-sm" style="color: #555;">
-                            Excluding orders in transit
-                        </span>
-                    </div>
-                </article>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="card card-body mb-4" style="border-color: gold; background-color: white;">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #fffaf0;"><i class="material-icons md-qr_code" style="color: gold;"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title" style="color: black;">Products</h6> <span style="color: black;">9.856</span>
-                        <span class="text-sm" style="color: #555;">
-                            In 19 Categories
-                        </span>
-                    </div>
-                </article>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="card card-body mb-4" style="border-color: gold; background-color: white;">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #fffaf0;"><i class="material-icons md-shopping_basket" style="color: gold;"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title" style="color: black;">Monthly Earning</h6> <span style="color: black;">$6,982</span>
-                        <span class="text-sm" style="color: #555;">
-                            Based in your local time.
-                        </span>
-                    </div>
-                </article>
-            </div>
-        </div>
+    <div class="btn-group" role="group" aria-label="Dashboard Controls" style="display: flex; gap: 5px;">
+      <a href="?filter=daily" 
+         class="btn <%= filter === 'daily' ? 'active' : '' %>" 
+         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+         onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        Daily
+      </a>
+      <a href="?filter=weekly" 
+         class="btn <%= filter === 'weekly' ? 'active' : '' %>" 
+         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+         onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        Weekly
+      </a>
+      <a href="?filter=monthly" 
+         class="btn <%= filter === 'monthly' ? 'active' : '' %>" 
+         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+         onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        Monthly
+      </a>
+      <a href="?filter=yearly" 
+         class="btn <%= filter === 'yearly' ? 'active' : '' %>" 
+         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+         onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        Yearly
+      </a>
+      <a href="/admin/sales/monthly" 
+         class="btn" 
+         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+         onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+        Generate Sales Report
+      </a>
     </div>
-    <div class="row">
-        <div class="col-xl-8 col-lg-12">
-            <div class="card mb-4" style="border-color: gold; background-color: white;">
-                <article class="card-body">
-                    <h5 class="card-title" style="color: black;">Sale statistics</h5>
-                    <canvas id="myChart" height="120px"></canvas>
-                </article>
-            </div>
-            <div class="row">
-                <div class="col-lg-5">
-                    <div class="card mb-4" style="border-color: gold; background-color: white;">
-                        <article class="card-body">
-                            <h5 class="card-title" style="color: black;">New Members</h5>
-                            <div class="new-member-list">
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img src="assets/imgs/people/avatar4.jpg" alt="" class="avatar">
-                                        <div>
-                                            <h6 style="color: black;">Patric Adams</h6>
-                                            <p class="text-muted font-xs" style="color: #555;">
-                                                Sanfrancisco
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <a href="#" class="btn btn-xs" style="background-color: black; color: white;"><i class="material-icons md-add" style="color: gold;"></i> Add</a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img src="assets/imgs/people/avatar2.jpg" alt="" class="avatar">
-                                        <div>
-                                            <h6 style="color: black;">Dilan Specter</h6>
-                                            <p class="text-muted font-xs" style="color: #555;">
-                                                Sanfrancisco
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <a href="#" class="btn btn-xs" style="background-color: black; color: white;"><i class="material-icons md-add" style="color: gold;"></i> Add</a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img src="assets/imgs/people/avatar3.jpg" alt="" class="avatar">
-                                        <div>
-                                            <h6 style="color: black;">Tomas Baker</h6>
-                                            <p class="text-muted font-xs" style="color: #555;">
-                                                Sanfrancisco
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <a href="#" class="btn btn-xs" style="background-color: black; color: white;"><i class="material-icons md-add" style="color: gold;"></i> Add</a>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-                <div class="col-lg-7">
-                    <div class="card mb-4" style="border-color: gold; background-color: white;">
-                        <article class="card-body">
-                            <h5 class="card-title" style="color: black;">Recent activities</h5>
-                            <ul class="verti-timeline list-unstyled font-sm">
-                                <li class="event-list">
-                                    <div class="event-timeline-dot">
-                                        <i class="material-icons md-play_circle_outline font-xxl" style="color: gold;"></i>
-                                    </div>
-                                    <div class="media">
-                                        <div class="me-3">
-                                            <h6 style="color: black;"><span>Today</span> <i class="material-icons md-trending_flat ml-15 d-inline-block" style="color: gold;"></i></h6>
-                                        </div>
-                                        <div class="media-body">
-                                            <div style="color: #333;">
-                                                Lorem ipsum dolor sit amet consectetur
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="event-list active">
-                                    <div class="event-timeline-dot">
-                                        <i class="material-icons md-play_circle_outline font-xxl animation-fade-right" style="color: gold;"></i>
-                                    </div>
-                                    <div class="media">
-                                        <div class="me-3">
-                                            <h6 style="color: black;"><span>17 May</span> <i class="material-icons md-trending_flat ml-15 d-inline-block" style="color: gold;"></i></h6>
-                                        </div>
-                                        <div class="media-body">
-                                            <div style="color: #333;">
-                                                Debitis nesciunt voluptatum dicta reprehenderit
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="event-list">
-                                    <div class="event-timeline-dot">
-                                        <i class="material-icons md-play_circle_outline font-xxl" style="color: gold;"></i>
-                                    </div>
-                                    <div class="media">
-                                        <div class="me-3">
-                                            <h6 style="color: black;"><span>13 May</span> <i class="material-icons md-trending_flat ml-15 d-inline-block" style="color: gold;"></i></h6>
-                                        </div>
-                                        <div class="media-body">
-                                            <div style="color: #333;">
-                                                Accusamus voluptatibus voluptas.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="event-list">
-                                    <div class="event-timeline-dot">
-                                        <i class="material-icons md-play_circle_outline font-xxl" style="color: gold;"></i>
-                                    </div>
-                                    <div class="media">
-                                        <div class="me-3">
-                                            <h6 style="color: black;"><span>05 April</span> <i class="material-icons md-trending_flat ml-15 d-inline-block" style="color: gold;"></i></h6>
-                                        </div>
-                                        <div class="media-body">
-                                            <div style="color: #333;">
-                                                At vero eos et accusamus et iusto odio dignissi
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="event-list">
-                                    <div class="event-timeline-dot">
-                                        <i class="material-icons md-play_circle_outline font-xxl" style="color: gold;"></i>
-                                    </div>
-                                    <div class="media">
-                                        <div class="me-3">
-                                            <h6 style="color: black;"><span>26 Mar</span> <i class="material-icons md-trending_flat ml-15 d-inline-block" style="color: gold;"></i></h6>
-                                        </div>
-                                        <div class="media-body">
-                                            <div style="color: #333;">
-                                                Responded to need "Volunteer Activities
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-4 col-lg-12">
-            <div class="card mb-4" style="border-color: gold; background-color: white;">
-                <article class="card-body">
-                    <h5 class="card-title" style="color: black;">Revenue Base on Area</h5>
-                    <canvas id="myChart2" height="217"></canvas>
-                </article>
-            </div>
-            <div class="card mb-4" style="border-color: gold; background-color: white;">
-                <article class="card-body">
-                    <h5 class="card-title" style="color: black;">Marketing Chanel</h5>
-                    <span class="text-muted font-xs" style="color: #555;">Facebook</span>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 15%; background-color: gold;">15%</div>
-                    </div>
-                    <span class="text-muted font-xs" style="color: #555;">Instagram</span>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 65%; background-color: gold;">65% </div>
-                    </div>
-                    <span class="text-muted font-xs" style="color: #555;">Google</span>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 51%; background-color: gold;"> 51% </div>
-                    </div>
-                    <span class="text-muted font-xs" style="color: #555;">Twitter</span>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 80%; background-color: gold;"> 80%</div>
-                    </div>
-                    <span class="text-muted font-xs" style="color: #555;">Other</span>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" style="width: 80%; background-color: gold;"> 80%</div>
-                    </div>
-                </article>
-            </div>
-        </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row">
+    <div class="col-lg-3">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="icontext">
+          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
+            <i class="material-icons md-monetization_on" style="color: #FFD700;"></i>
+          </span>
+          <div class="text">
+            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Revenue</h6>
+            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= revenue.toFixed(2) %></span>
+            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Based on <%= filter %> data</span>
+          </div>
+        </article>
+      </div>
     </div>
-    <div class="card mb-4" style="border-color: gold; background-color: white;">
-        <header class="card-header" style="background-color: white; border-bottom-color: gold;">
-            <h4 class="card-title" style="color: black;">Latest orders</h4>
-            <div class="row align-items-center">
-                <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-                    <div class="custom_select">
-                        <select class="form-select select-nice" style="border-color: gold; color: black;">
-                            <option selected>All Categories</option>
-                            <option>Women's Clothing</option>
-                            <option>Men's Clothing</option>
-                            <option>Cellphones</option>
-                            <option>Computer & Office</option>
-                            <option>Consumer Electronics</option>
-                            <option>Jewelry & Accessories</option>
-                            <option>Home & Garden</option>
-                            <option>Luggage & Bags</option>
-                            <option>Shoes</option>
-                            <option>Mother & Kids</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-2 col-6">
-                    <input type="date" value="02.05.2021" class="form-control" style="border-color: gold; color: black;">
-                </div>
-                <div class="col-md-2 col-6">
-                    <div class="custom_select">
-                        <select class="form-select select-nice" style="border-color: gold; color: black;">
-                            <option selected>Status</option>
-                            <option>All</option>
-                            <option>Paid</option>
-                            <option>Chargeback</option>
-                            <option>Refund</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </header>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table align-middle table-nowrap mb-0">
-                    <thead class="table-light" style="background-color: #fffaf0; color: black;">
-                        <tr>
-                            <th scope="col" class="text-center">
-                                <div class="form-check align-middle">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck01" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck01"></label>
-                                </div>
-                            </th>
-                            <th class="align-middle" scope="col">Order ID</th>
-                            <th class="align-middle" scope="col">Billing Name</th>
-                            <th class="align-middle" scope="col">Date</th>
-                            <th class="align-middle" scope="col">Total</th>
-                            <th class="align-middle" scope="col">Payment Status</th>
-                            <th class="align-middle" scope="col">Payment Method</th>
-                            <th class="align-middle" scope="col">View Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck02" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck02"></label>
-                                </div>
-                            </td>
-                            <td><a href="#" class="fw-bold" style="color: black;">#SK2540</a> </td>
-                            <td style="color: #333;">Neal Matthews</td>
-                            <td style="color: #333;">
-                                07 Oct, 2021
-                            </td>
-                            <td style="color: #333;">
-                                $400
-                            </td>
-                            <td>
-                                <span class="badge badge-pill badge-soft-success" style="background-color: #f0f8ff; color: gold; border: 1px solid gold;">Paid</span>
-                            </td>
-                            <td style="color: #333;">
-                                <i class="material-icons md-payment font-xxl text-muted mr-5" style="color: gold;"></i> Mastercard
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-xs" style="background-color: black; color: white;"> View details</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck03" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck03"></label>
-                                </div>
-                            </td>
-                            <td><a href="#" class="fw-bold" style="color: black;">#SK2541</a> </td>
-                            <td style="color: #333;">Jamal Burnett</td>
-                            <td style="color: #333;">
-                                07 Oct, 2021
-                            </td>
-                            <td style="color: #333;">
-                                $380
-                            </td>
-                            <td>
-                                <span class="badge badge-pill badge-soft-danger" style="background-color: #fff0f0; color: black; border: 1px solid gold;">Chargeback</span>
-                            </td>
-                            <td style="color: #333;">
-                                <i class="material-icons md-payment font-xxl text-muted mr-5" style="color: gold;"></i> Visa
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-xs" style="background-color: black; color: white;"> View details</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck04" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck04"></label>
-                                </div>
-                            </td>
-                            <td><a href="#" class="fw-bold" style="color: black;">#SK2542</a> </td>
-                            <td style="color: #333;">Juan Mitchell</td>
-                            <td style="color: #333;">
-                                06 Oct, 2021
-                            </td>
-                            <td style="color: #333;">
-                                $384
-                            </td>
-                            <td>
-                                <span class="badge badge-pill badge-soft-success" style="background-color: #f0f8ff; color: gold; border: 1px solid gold;">Paid</span>
-                            </td>
-                            <td style="color: #333;">
-                                <i class="material-icons md-payment font-xxl text-muted mr-5" style="color: gold;"></i> Paypal
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-xs" style="background-color: black; color: white;"> View details</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck05" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck05"></label>
-                                </div>
-                            </td>
-                            <td><a href="#" class="fw-bold" style="color: black;">#SK2543</a> </td>
-                            <td style="color: #333;">Barry Dick</td>
-                            <td style="color: #333;">
-                                05 Oct, 2021
-                            </td>
-                            <td style="color: #333;">
-                                $412
-                            </td>
-                            <td>
-                                <span class="badge badge-pill badge-soft-success" style="background-color: #f0f8ff; color: gold; border: 1px solid gold;">Paid</span>
-                            </td>
-                            <td style="color: #333;">
-                                <i class="material-icons md-payment font-xxl text-muted mr-5" style="color: gold;"></i> Mastercard
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-xs" style="background-color: black; color: white;"> View details</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck06" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck06"></label>
-                                </div>
-                            </td>
-                            <td><a href="#" class="fw-bold" style="color: black;">#SK2544</a> </td>
-                            <td style="color: #333;">Ronald Taylor</td>
-                            <td style="color: #333;">
-                                04 Oct, 2021
-                            </td>
-                            <td style="color: #333;">
-                                $404
-                            </td>
-                            <td>
-                                <span class="badge badge-pill badge-soft-warning" style="background-color: #fffaf0; color: black; border: 1px solid gold;">Refund</span>
-                            </td>
-                            <td style="color: #333;">
-                                <i class="material-icons md-payment font-xxl text-muted mr-5" style="color: gold;"></i> Visa
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-xs" style="background-color: black; color: white;"> View details</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="transactionCheck07" style="border-color: gold;">
-                                    <label class="form-check-label" for="transactionCheck07"></label>
-                                </div>
-                            </td>
-                            <td><a href="#" class="fw-bold" style="color: black;">#SK2545</a> </td>
-                            <td style="color: #333;">Jacob Hunter</td>
-                            <td style="color: #333;">
-                                04 Oct, 2021
-                            </td>
-                            <td style="color: #333;">
-                                $392
-                            </td>
-                            <td>
-                                <span class="badge badge-pill badge-soft-success" style="background-color: #f0f8ff; color: gold; border: 1px solid gold;">Paid</span>
-                            </td>
-                            <td style="color: #333;">
-                                <i class="material-icons md-payment font-xxl text-muted mr-5" style="color: gold;"></i> Paypal
-                            </td>
-                            <td>
-                                <a href="#" class="btn btn-xs" style="background-color: black; color: white;"> View details</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="col-lg-3">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="icontext">
+          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
+            <i class="material-icons md-local_shipping" style="color: #FFD700;"></i>
+          </span>
+          <div class="text">
+            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Orders</h6>
+            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= orders %></span>
+            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Delivered orders</span>
+          </div>
+        </article>
+      </div>
     </div>
-    <div class="pagination-area mt-30 mb-50">
-        <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-start">
-                <li class="page-item active"><a class="page-link" href="#" style="background-color: black; border-color: gold; color: white;">01</a></li>
-                <li class="page-item"><a class="page-link" href="#" style="color: black; border-color: gold;">02</a></li>
-                <li class="page-item"><a class="page-link" href="#" style="color: black; border-color: gold;">03</a></li>
-                <li class="page-item"><a class="page-link dot" href="#" style="color: black; border-color: gold;">...</a></li>
-                <li class="page-item"><a class="page-link" href="#" style="color: black; border-color: gold;">16</a></li>
-                <li class="page-item"><a class="page-link" href="#" style="color: black; border-color: gold;"><i class="material-icons md-chevron_right"></i></a></li>
-            </ul>
-        </nav>
+    <div class="col-lg-3">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="icontext">
+          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
+            <i class="material-icons md-qr_code" style="color: #FFD700;"></i>
+          </span>
+          <div class="text">
+            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Products</h6>
+            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= products %></span>
+            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Active products</span>
+          </div>
+        </article>
+      </div>
     </div>
+    <div class="col-lg-3">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="icontext">
+          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
+            <i class="material-icons md-shopping_basket" style="color: #FFD700;"></i>
+          </span>
+          <div class="text">
+            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Monthly Earning</h6>
+            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= monthlyEarning.toFixed(2) %></span>
+            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Current month</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts and Tables -->
+  <div class="row">
+    <div class="col-xl-8 col-lg-12">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="card-body">
+          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Sale Statistics</h5>
+          <canvas id="salesChart" height="120"></canvas>
+        </article>
+      </div>
+
+      <!-- Best Selling Products -->
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="card-body">
+          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Top 10 Best Selling Products</h5>
+          <div class="table-responsive">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Units Sold</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% bestSellingProducts.forEach(product => { %>
+                  <tr>
+                    <td style="color: #333;"><%= product.product?.productName || 'Unknown Product' %></td>
+                    <td style="color: #333;"><%= product.totalSold || 0 %></td>
+                    <td style="color: #333;"><%= product.totalRevenue?.toFixed(2) || '0.00' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <!-- Best Selling Categories -->
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="card-body">
+          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Top 10 Best Selling Categories</h5>
+          <div class="table-responsive">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Units Sold</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% bestSellingCategories.forEach(category => { %>
+                  <tr>
+                    <td style="color: #333;"><%= category.category?.name || 'Unknown Category' %></td>
+                    <td style="color: #333;"><%= category.totalSold || 0 %></td>
+                    <td style="color: #333;"><%= category.totalRevenue?.toFixed(2) || '0.00' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Latest Orders -->
+    <div class="col-xl-4 col-lg-12">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+        <article class="card-body">
+          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Latest Orders</h5>
+          <div class="table-responsive">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% latestOrders.forEach(order => { %>
+                  <tr>
+                    <td style="color: #333;"><%= order.orderNumber || 'N/A' %></td>
+                    <td style="color: #333;"><%= order.userId?.name || 'Unknown User' %></td>
+                    <td style="color: #333;"><%= order.finalAmount?.toFixed(2) || '0.00' %></td>
+                    <td>
+                      <span class="badge badge-pill badge-soft-<%= order.orderStatus === 'Delivered' ? 'success' : order.orderStatus === 'Pending' ? 'warning' : 'danger' %>">
+                        <%= order.orderStatus || 'N/A' %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
 </section>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const salesData = <%- JSON.stringify(salesData || []) %>;
+  const filter = '<%= filter %>';
+
+  // Format labels based on filter
+  const formatLabel = (id) => {
+    if (filter === 'yearly') {
+      // For yearly filter, convert "YYYY-MM" to "MMM YYYY" (e.g., "Jan 2025")
+      const [year, month] = id.split('-');
+      const date = new Date(year, parseInt(month) - 1);
+      return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+    } else {
+      // For daily, weekly, monthly filters, convert "YYYY-MM-DD" to "MMM DD" (e.g., "May 01")
+      const [year, month, day] = id.split('-');
+      const date = new Date(year, parseInt(month) - 1, day);
+      return date.toLocaleString('default', { month: 'short', day: '2-digit' });
+    }
+  };
+
+  const salesCtx = document.getElementById('salesChart').getContext('2d');
+  const salesChart = new Chart(salesCtx, {
+    type: 'line',
+    data: {
+      labels: salesData.map(d => formatLabel(d._id || 'Unknown')),
+      datasets: [{
+        label: 'Sales Revenue',
+        data: salesData.map(d => d.total || 0),
+        borderColor: '#FFD700', /* Gold */
+        backgroundColor: 'rgba(255, 215, 0, 0.2)', /* Gold with opacity */
+        fill: true,
+        tension: 0.1
+      }]
+    },
+    options: {
+      scales: {
+        y: { 
+          beginAtZero: true, 
+          title: { 
+            display: true, 
+            text: 'Revenue ($)', 
+            color: '#000000', 
+            font: { family: 'Montserrat', weight: '500' } 
+          }
+        },
+        x: { 
+          title: { 
+            display: true, 
+            text: filter.charAt(0).toUpperCase() + filter.slice(1) + ' Period', 
+            color: '#000000', 
+            font: { family: 'Montserrat', weight: '500' } 
+          }
+        }
+      }
+    }
+  });
+
+  function removeFlashMessage() {
+    const flashMessage = document.getElementById('flash-message');
+    if (flashMessage) {
+      setTimeout(() => {
+        flashMessage.remove();
+      }, 3000);
+    }
+  }
+
+  window.onload = removeFlashMessage;
+</script>
 
 <%- include('../partials/admin/footer') %>

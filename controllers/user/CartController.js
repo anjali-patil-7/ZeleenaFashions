@@ -4,6 +4,7 @@ const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const Wishlist = require('../../models/wishlistSchema');
 const Offer = require('../../models/offerSchema');
+const Coupon = require('../../models/couponSchema'); // Added Coupon model import
 
 // Helper function to get the best offer for a product
 const getBestOffer = async (product) => {
@@ -315,6 +316,8 @@ exports.getCartItem = async (req, res) => {
     }
 };
 
+//ქ
+
 // Get Cart Totals
 exports.getCartTotals = async (req, res) => {
     try {
@@ -378,8 +381,9 @@ exports.getCartTotals = async (req, res) => {
             if (item.productId && item.productId.price) {
                 const price = item.productId.price;
                 originalSubtotal += price * item.quantity;
-                if (item.productId.offer && item.productId.offer.discount) {
-                    discountAmount += (price * item.quantity * item.productId.offer.discount) / 100;
+                const offer = getBestOffer(item.productId); // Use getBestOffer for consistency
+                if (offer && offer.discount) {
+                    discountAmount += (price * item.quantity * offer.discount) / 100;
                 }
             }
         });
@@ -397,6 +401,8 @@ exports.getCartTotals = async (req, res) => {
                 } else {
                     couponDiscount = coupon.discount;
                 }
+            } else {
+                req.session.appliedCoupon = null; // Clear invalid coupon
             }
         }
 
