@@ -9,7 +9,8 @@ const moment = require('moment');
 const formatDate = (date) => moment(date).format('YYYY-MM-DD');
 
 // Helper function to calculate summary
-const calculateSummary = (orders) => {
+const calculateSummary = async (query) => {
+    const orders = await Order.find(query).lean();
     return {
         TotalAmount: orders.reduce((sum, order) => sum + (order.finalAmount || 0), 0),
         TotalDiscountAmount: orders.reduce((sum, order) => sum + (order.couponDiscount || 0), 0),
@@ -61,6 +62,10 @@ exports.getSalesReport = async (req, res) => {
         const totalPages = Math.ceil(totalOrders / perPage);
         console.log(`Total orders: ${totalOrders}, Total pages: ${totalPages}`);
 
+        // Calculate summary for all orders in the period
+        const summary = await calculateSummary(query);
+        console.log(`Summary: ${JSON.stringify(summary)}`);
+
         // Fetch paginated orders
         let orders = await Order.find(query)
             .populate('userId', 'name email')
@@ -69,14 +74,12 @@ exports.getSalesReport = async (req, res) => {
             .limit(perPage)
             .lean();
 
-        // Add formatted orderDate
+        // Add formatted orderDate and orderStatus
         orders = orders.map(order => ({
             ...order,
-            orderDate: formatDate(order.createdAt)
+            orderDate: formatDate(order.createdAt),
+            orderStatus: order.orderStatus || 'N/A'
         }));
-
-        const summary = calculateSummary(orders);
-        console.log(`Summary: ${JSON.stringify(summary)}`);
 
         if (format === 'pdf') {
             return exports.generatePDF(req, res, orders, summary, page);
@@ -85,7 +88,7 @@ exports.getSalesReport = async (req, res) => {
         }
 
         res.render('admin/salesreport', {
-            page, // Pass the corrected page value
+            page,
             orders,
             TotalAmount: summary.TotalAmount,
             TotalDiscountAmount: summary.TotalDiscountAmount,
@@ -100,7 +103,7 @@ exports.getSalesReport = async (req, res) => {
     } catch (error) {
         console.error('Error in getSalesReport:', error);
         res.status(500).render('admin/salesreport', {
-            page: req.params.period || 'daily', // Use req.params.period for error case
+            page: req.params.period || 'daily',
             orders: [],
             TotalAmount: 0,
             TotalDiscountAmount: 0,
@@ -162,30 +165,29 @@ exports.getCustomDateReport = async (req, res) => {
         }
 
         // Fetch total orders for pagination
-        const totalOrders = await Order.countDocuments({
-            createdAt: { $gte: startDate, $lte: endDate }
-        });
+        const query = { createdAt: { $gte: startDate, $lte: endDate } };
+        const totalOrders = await Order.countDocuments(query);
         const totalPages = Math.ceil(totalOrders / perPage);
         console.log(`Custom date - Total orders: ${totalOrders}, Total pages: ${totalPages}`);
 
+        // Calculate summary for all orders in the period
+        const summary = await calculateSummary(query);
+        console.log(`Custom date - Summary: ${JSON.stringify(summary)}`);
+
         // Fetch paginated orders
-        let orders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate }
-        })
+        let orders = await Order.find(query)
             .populate('userId', 'name email')
             .sort({ createdAt: -1 })
             .skip((parseInt(currentPage) - 1) * perPage)
             .limit(perPage)
             .lean();
 
-        // Add formatted orderDate
+        // Add formatted orderDate and orderStatus
         orders = orders.map(order => ({
             ...order,
-            orderDate: formatDate(order.createdAt)
+            orderDate: formatDate(order.createdAt),
+            orderStatus: order.orderStatus || 'N/A'
         }));
-
-        const summary = calculateSummary(orders);
-        console.log(`Custom date - Summary: ${JSON.stringify(summary)}`);
 
         if (format === 'pdf') {
             return exports.generatePDF(req, res, orders, summary, 'customDate', fromDate, toDate);
@@ -316,14 +318,16 @@ exports.generatePDF = (req, res, orders, summary, page, fromDate = null, toDate 
             yPosition = 50;
         }
 
+        // Updated table header with Order Status
         doc.rect(40, yPosition, 515, 25).fill('#f5f6fa');
         doc.font('Helvetica-Bold').fontSize(10).fillColor('#2c3e50');
-        doc.text('SI No', 50, yPosition + 8, { width: 50 })
-           .text('Order Date', 100, yPosition + 8, { width: 100 })
-           .text('Customer Name', 200, yPosition + 8, { width: 150 })
-           .text('Order ID', 350, yPosition + 8, { width: 100 })
-           .text('Order Amount', 450, yPosition + 8, { width: 50, align: 'right' })
-           .text('Discount', 500, yPosition + 8, { width: 50, align: 'right' });
+        doc.text('SI No', 50, yPosition + 8, { width: 40 })
+           .text('Order Date', 90, yPosition + 8, { width: 80 })
+           .text('Customer Name', 170, yPosition + 8, { width: 120 })
+           .text('Order ID', 290, yPosition + 8, { width: 80 })
+           .text('Order Amount', 370, yPosition + 8, { width: 50, align: 'right' })
+           .text('Discount', 420, yPosition + 8, { width: 50, align: 'right' })
+           .text('Status', 470, yPosition + 8, { width: 80, align: 'left' });
 
         yPosition += 30;
         doc.font('Helvetica').fontSize(10).fillColor('#000000');
@@ -345,13 +349,15 @@ exports.generatePDF = (req, res, orders, summary, page, fromDate = null, toDate 
                 const orderId = order.orderNumber || order._id;
                 const orderAmount = (order.orderAmount || 0).toFixed(2);
                 const discount = (order.couponDiscount || 0).toFixed(2);
+                const orderStatus = order.orderStatus || 'N/A';
 
-                doc.text(`${siNo}`, 50, yPosition + 5, { width: 50 });
-                doc.text(orderDate, 100, yPosition + 5, { width: 100 });
-                doc.text(customerName, 200, yPosition + 5, { width: 150 });
-                doc.text(orderId, 350, yPosition + 5, { width: 100 });
-                doc.text(`₹${orderAmount}`, 450, yPosition + 5, { width: 50, align: 'right' });
-                doc.text(`₹${discount}`, 500, yPosition + 5, { width: 50, align: 'right' });
+                doc.text(`${siNo}`, 50, yPosition + 5, { width: 40 });
+                doc.text(orderDate, 90, yPosition + 5, { width: 80 });
+                doc.text(customerName, 170, yPosition + 5, { width: 120 });
+                doc.text(orderId, 290, yPosition + 5, { width: 80 });
+                doc.text(`₹${orderAmount}`, 370, yPosition + 5, { width: 50, align: 'right' });
+                doc.text(`₹${discount}`, 420, yPosition + 5, { width: 50, align: 'right' });
+                doc.text(orderStatus, 470, yPosition + 5, { width: 80, align: 'left' });
 
                 yPosition += 20;
             });
@@ -389,7 +395,8 @@ exports.generateExcel = async (req, res, orders, summary, page, fromDate = null,
             { header: 'Customer Name', key: 'customerName', width: 20 },
             { header: 'Order ID', key: 'orderId', width: 20 },
             { header: 'Order Amount', key: 'orderAmount', width: 15 },
-            { header: 'Discount', key: 'discount', width: 15 }
+            { header: 'Discount', key: 'discount', width: 15 },
+            { header: 'Status', key: 'orderStatus', width: 15 }
         ];
 
         // Add summary
@@ -414,7 +421,8 @@ exports.generateExcel = async (req, res, orders, summary, page, fromDate = null,
                 customerName: order.userId?.name || 'N/A',
                 orderId: order.orderNumber || order._id,
                 orderAmount: `₹${(order.orderAmount || 0).toFixed(2)}`,
-                discount: `₹${(order.couponDiscount || 0).toFixed(2)}`
+                discount: `₹${(order.couponDiscount || 0).toFixed(2)}`,
+                orderStatus: order.orderStatus || 'N/A'
             });
         });
 

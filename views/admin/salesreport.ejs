@@ -176,6 +176,7 @@
                                     <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order ID</th>
                                     <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order Amount</th>
                                     <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Discount</th>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -183,16 +184,17 @@
                                     <% orders.forEach((order, i) => { %>
                                         <tr style="background-color: <%= i % 2 === 0 ? '#f9f9f9' : '#ffffff' %>;">
                                             <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i + 1 + (currentPage - 1) * perPage %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderDate %></td>
                                             <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.userId?.name || 'N/A' %></td>
                                             <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderNumber || order._id %></td>
                                             <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">₹<%= (order.orderAmount || 0).toFixed(2) %></td>
                                             <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderStatus || 'N/A' %></td>
                                         </tr>
                                     <% }) %>
                                 <% } else { %>
                                     <tr>
-                                        <td colspan="6" style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">No orders found</td>
+                                        <td colspan="7" style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">No orders found</td>
                                     </tr>
                                 <% } %>
                             </tbody>
