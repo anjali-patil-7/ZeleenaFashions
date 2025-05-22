@@ -1,60 +1,17 @@
+const mongoose = require('mongoose');
 const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const moment = require('moment');
-const fs = require('fs');
-const path = require('path');
 
 // Helper function to format dates
 const formatDate = (date) => moment(date).format('YYYY-MM-DD');
-const formatMonthYear = (date) => moment(date).format('MMMM YYYY');
-const formatYear = (date) => moment(date).format('YYYY');
-
-// Helper function to aggregate data
-const aggregateSalesData = (orders, period) => {
-    const groupedData = {};
-    orders.forEach(order => {
-        let key;
-        if (period === 'daily' || period === 'customDate') {
-            key = formatDate(order.createdAt); // Use createdAt from timestamps
-        } else if (period === 'weekly') {
-            const startOfWeek = moment(order.createdAt).startOf('week').format('YYYY-MM-DD');
-            const endOfWeek = moment(order.createdAt).endOf('week').format('YYYY-MM-DD');
-            key = `${startOfWeek}_${endOfWeek}`;
-        } else if (period === 'monthly') {
-            key = formatMonthYear(order.createdAt);
-        } else if (period === 'yearly') {
-            key = formatYear(order.createdAt);
-        }
-
-        if (!groupedData[key]) {
-            groupedData[key] = {
-                dateFormatted: period === 'daily' || period === 'customDate' ? key : null,
-                startOfWeek: period === 'weekly' ? key.split('_')[0] : null,
-                endOfWeek: period === 'weekly' ? key.split('_')[1] : null,
-                monthYear: period === 'monthly' ? key : null,
-                year: period === 'yearly' ? key : null,
-                totalOrderCount: 0,
-                totalProducts: 0,
-                totalDiscount: 0,
-                totalSales: 0
-            };
-        }
-
-        groupedData[key].totalOrderCount += 1;
-        groupedData[key].totalProducts += order.orderedItem.reduce((sum, item) => sum + item.quantity, 0);
-        groupedData[key].totalDiscount += order.couponDiscount || 0;
-        groupedData[key].totalSales += order.finalAmount; // Use finalAmount from schema
-    });
-
-    return Object.values(groupedData);
-};
 
 // Helper function to calculate summary
 const calculateSummary = (orders) => {
     return {
-        TotalAmount: orders.reduce((sum, order) => sum + order.finalAmount, 0), // Use finalAmount
+        TotalAmount: orders.reduce((sum, order) => sum + (order.finalAmount || 0), 0),
         TotalDiscountAmount: orders.reduce((sum, order) => sum + (order.couponDiscount || 0), 0),
         TotalSaleCount: orders.length
     };
@@ -63,12 +20,17 @@ const calculateSummary = (orders) => {
 // Render Sales Report
 exports.getSalesReport = async (req, res) => {
     try {
-        const { page = 'daily', format } = req.query;
-        let reportData = [];
-        let orders = [];
+        const { period } = req.params; 
+        const { format, currentPage = 1 } = req.query; 
+        const perPage = 10;
         let query = {};
 
-        // Date range filtering using createdAt
+        // Validate period parameter
+        const validPeriods = ['daily', 'weekly', 'monthly', 'yearly'];
+        const page = validPeriods.includes(period) ? period : 'daily'; 
+        console.log(`Processing sales report for period: ${page}, page: ${currentPage}`);
+
+        // Date range filtering
         if (page === 'daily') {
             query.createdAt = {
                 $gte: moment().startOf('day').toDate(),
@@ -91,55 +53,64 @@ exports.getSalesReport = async (req, res) => {
             };
         }
 
-        // Fetch orders
-        orders = await Order.find(query)
+        // Log the query date range
+        console.log(`Query date range: ${JSON.stringify(query.createdAt)}`);
+
+        // Fetch total orders for pagination
+        const totalOrders = await Order.countDocuments(query);
+        const totalPages = Math.ceil(totalOrders / perPage);
+        console.log(`Total orders: ${totalOrders}, Total pages: ${totalPages}`);
+
+        // Fetch paginated orders
+        let orders = await Order.find(query)
             .populate('userId', 'name email')
+            .sort({ createdAt: -1 })
+            .skip((parseInt(currentPage) - 1) * perPage)
+            .limit(perPage)
             .lean();
 
-        if (!orders.length && format !== 'pdf' && format !== 'excel') {
-            return res.render('admin/salesreport', {
-                page,
-                reportData: [],
-                TotalAmount: 0,
-                TotalDiscountAmount: 0,
-                TotalSaleCount: 0,
-                error: 'No orders found for the selected period.',
-                fromDate: null,
-                toDate: null
-            });
-        }
+        // Add formatted orderDate
+        orders = orders.map(order => ({
+            ...order,
+            orderDate: formatDate(order.createdAt)
+        }));
 
-        // Aggregate data
-        reportData = aggregateSalesData(orders, page);
         const summary = calculateSummary(orders);
+        console.log(`Summary: ${JSON.stringify(summary)}`);
 
         if (format === 'pdf') {
             return exports.generatePDF(req, res, orders, summary, page);
         } else if (format === 'excel') {
-            return exports.generateExcel(req, res, reportData, summary, page);
+            return exports.generateExcel(req, res, orders, summary, page);
         }
 
         res.render('admin/salesreport', {
-            page,
-            reportData,
+            page, // Pass the corrected page value
+            orders,
             TotalAmount: summary.TotalAmount,
             TotalDiscountAmount: summary.TotalDiscountAmount,
             TotalSaleCount: summary.TotalSaleCount,
-            error: null,
+            error: orders.length === 0 ? 'No orders found for the selected period.' : null,
             fromDate: null,
-            toDate: null
+            toDate: null,
+            currentPage: parseInt(currentPage),
+            totalPages,
+            perPage
         });
     } catch (error) {
         console.error('Error in getSalesReport:', error);
         res.status(500).render('admin/salesreport', {
-            page: req.query.page || 'daily',
-            reportData: [],
+            page: req.params.period || 'daily', // Use req.params.period for error case
+            orders: [],
             TotalAmount: 0,
             TotalDiscountAmount: 0,
             TotalSaleCount: 0,
-            error: 'An error occurred while fetching the sales report.',
+            error: `An error occurred while fetching the sales report: ${error.message}`,
             fromDate: null,
-            toDate: null
+            toDate: null,
+            currentPage: 1,
+            totalPages: 0,
+            perPage: 10
         });
     }
 };
@@ -148,18 +119,25 @@ exports.getSalesReport = async (req, res) => {
 exports.getCustomDateReport = async (req, res) => {
     try {
         const { fromDate, toDate } = req.body;
-        const { format } = req.query;
+        const { format, page: currentPage = 1 } = req.query;
+        const perPage = 10;
+
+        console.log(`Custom date report requested: fromDate=${fromDate}, toDate=${toDate}, page=${currentPage}`);
 
         if (!fromDate || !toDate) {
+            console.log('Missing fromDate or toDate');
             return res.status(400).render('admin/salesreport', {
                 page: 'customDate',
-                reportData: [],
+                orders: [],
                 TotalAmount: 0,
                 TotalDiscountAmount: 0,
                 TotalSaleCount: 0,
                 error: 'Please provide both start and end dates.',
                 fromDate,
-                toDate
+                toDate,
+                currentPage: 1,
+                totalPages: 0,
+                perPage
             });
         }
 
@@ -167,72 +145,81 @@ exports.getCustomDateReport = async (req, res) => {
         const endDate = moment(toDate).endOf('day').toDate();
 
         if (endDate < startDate) {
+            console.log('End date is earlier than start date');
             return res.status(400).render('admin/salesreport', {
                 page: 'customDate',
-                reportData: [],
+                orders: [],
                 TotalAmount: 0,
                 TotalDiscountAmount: 0,
                 TotalSaleCount: 0,
                 error: 'End date cannot be earlier than start date.',
                 fromDate,
-                toDate
+                toDate,
+                currentPage: 1,
+                totalPages: 0,
+                perPage
             });
         }
 
-        // Fetch orders
-        const orders = await Order.find({
-            createdAt: {
-                $gte: startDate,
-                $lte: endDate
-            }
+        // Fetch total orders for pagination
+        const totalOrders = await Order.countDocuments({
+            createdAt: { $gte: startDate, $lte: endDate }
+        });
+        const totalPages = Math.ceil(totalOrders / perPage);
+        console.log(`Custom date - Total orders: ${totalOrders}, Total pages: ${totalPages}`);
+
+        // Fetch paginated orders
+        let orders = await Order.find({
+            createdAt: { $gte: startDate, $lte: endDate }
         })
             .populate('userId', 'name email')
+            .sort({ createdAt: -1 })
+            .skip((parseInt(currentPage) - 1) * perPage)
+            .limit(perPage)
             .lean();
 
-        if (!orders.length && format !== 'pdf' && format !== 'excel') {
-            return res.render('admin/salesreport', {
-                page: 'customDate',
-                reportData: [],
-                TotalAmount: 0,
-                TotalDiscountAmount: 0,
-                TotalSaleCount: 0,
-                error: 'No orders found for the selected date range.',
-                fromDate,
-                toDate
-            });
-        }
+        // Add formatted orderDate
+        orders = orders.map(order => ({
+            ...order,
+            orderDate: formatDate(order.createdAt)
+        }));
 
-        // Aggregate data
-        const reportData = aggregateSalesData(orders, 'customDate');
         const summary = calculateSummary(orders);
+        console.log(`Custom date - Summary: ${JSON.stringify(summary)}`);
 
         if (format === 'pdf') {
             return exports.generatePDF(req, res, orders, summary, 'customDate', fromDate, toDate);
         } else if (format === 'excel') {
-            return exports.generateExcel(req, res, reportData, summary, 'customDate', fromDate, toDate);
+            return exports.generateExcel(req, res, orders, summary, 'customDate', fromDate, toDate);
         }
 
         res.render('admin/salesreport', {
             page: 'customDate',
-            reportData,
+            orders,
             TotalAmount: summary.TotalAmount,
             TotalDiscountAmount: summary.TotalDiscountAmount,
             TotalSaleCount: summary.TotalSaleCount,
-            error: null,
+            error: orders.length === 0 ? 'No orders found for the selected date range.' : null,
             fromDate,
-            toDate
+            toDate,
+            currentPage: parseInt(currentPage),
+            totalPages,
+            perPage
         });
     } catch (error) {
         console.error('Error in getCustomDateReport:', error);
         res.status(500).render('admin/salesreport', {
             page: 'customDate',
-            reportData: [],
+            orders: [],
             TotalAmount: 0,
             TotalDiscountAmount: 0,
             TotalSaleCount: 0,
-            error: 'An error occurred while fetching the custom date report.',
-            fromDate: req.body.fromDate,
-            toDate: req.body.toDate
+            error: `An error occurred while fetching the custom date report: ${error.message}`,
+            fromDate: req.body.fromDate || '',
+            toDate: req.body.toDate || '',
+            currentPage: 1,
+            totalPages: 0,
+            perPage: 10
         });
     }
 };
@@ -241,6 +228,8 @@ exports.getCustomDateReport = async (req, res) => {
 exports.checkDataExist = async (req, res) => {
     try {
         const { fromDate, toDate } = req.query;
+
+        console.log(`Checking data existence: fromDate=${fromDate}, toDate=${toDate}`);
 
         if (!fromDate || !toDate) {
             return res.json({ success: false, message: 'Please provide both start and end dates.' });
@@ -254,11 +243,10 @@ exports.checkDataExist = async (req, res) => {
         }
 
         const orders = await Order.find({
-            createdAt: {
-                $gte: startDate,
-                $lte: endDate
-            }
+            createdAt: { $gte: startDate, $lte: endDate }
         }).limit(1);
+
+        console.log(`Data existence check: ${orders.length} orders found`);
 
         if (orders.length === 0) {
             return res.json({ success: false, message: 'No orders found for the selected date range.' });
@@ -267,131 +255,175 @@ exports.checkDataExist = async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Error in checkDataExist:', error);
-        res.json({ success: false, message: 'An error occurred while checking data availability.' });
+        res.json({ success: false, message: `An error occurred while checking data availability: ${error.message}` });
     }
 };
 
 // Generate PDF Report
 exports.generatePDF = (req, res, orders, summary, page, fromDate = null, toDate = null) => {
     try {
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=${page}_sales_report.pdf`);
 
         doc.pipe(res);
 
         // Branding and Header
-        doc.fontSize(20).text('Sales Report', { align: 'center' });
-        doc.fontSize(12).text(`Generated on: ${moment().format('MMMM Do YYYY, h:mm:ss a')}`, { align: 'center' });
-        if (page === 'customDate') {
-            doc.text(`Period: ${formatDate(fromDate)} to ${formatDate(toDate)}`, { align: 'center' });
-        } else {
-            doc.text(`Period: ${page.charAt(0).toUpperCase() + page.slice(1)}`, { align: 'center' });
-        }
-        doc.moveDown();
+        doc.font('Helvetica-Bold').fontSize(24).fillColor('#2c3e50')
+           .text('Zeleena Fashions', 40, 40, { align: 'left' });
+        
+        doc.font('Helvetica').fontSize(10).fillColor('#7f8c8d')
+           .text('123 Fashion Avenue, Style City, SC 12345', 40, 70)
+           .text('Phone: +1 (555) 123-4567 | Email: contact@zeleenafashions.com', 40, 85)
+           .text('Website: www.zeleenafashions.com | GSTIN: 12ABCDE1234F1Z5', 40, 100);
+        
+        doc.font('Helvetica-Bold').fontSize(28).fillColor('#34495e')
+           .text('SALES REPORT', 0, 40, { align: 'right' });
+        
+        doc.moveTo(40, 130).lineTo(555, 130).lineWidth(1).fillAndStroke('#3498db');
+        doc.moveDown(2);
 
         // Summary Section
-        doc.fontSize(14).text('Summary', { underline: true });
-        doc.fontSize(12)
-            .text(`Total Orders: ${summary.TotalSaleCount}`)
-            .text(`Total Revenue: $${summary.TotalAmount.toFixed(2)}`)
-            .text(`Total Discount: $${summary.TotalDiscountAmount.toFixed(2)}`)
-            .text(`Net Revenue: $${(summary.TotalAmount - summary.TotalDiscountAmount).toFixed(2)}`);
-        doc.moveDown();
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+           .text('Summary', 40, doc.y, { underline: true });
+        doc.font('Helvetica').fontSize(10).fillColor('#34495e');
+        let yPosition = doc.y + 10;
+        
+        doc.text(`Generated on: ${moment().format('MMMM Do YYYY, h:mm:ss a')}`, 40, yPosition);
+        yPosition += 15;
+        if (page === 'customDate') {
+            doc.text(`Period: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 40, yPosition);
+        } else {
+            doc.text(`Period: ${page.charAt(0).toUpperCase() + page.slice(1)}`, 40, yPosition);
+        }
+        yPosition += 15;
+        doc.text(`Total Orders: ${summary.TotalSaleCount}`, 40, yPosition);
+        yPosition += 15;
+        doc.text(`Total Revenue: ₹${summary.TotalAmount.toFixed(2)}`, 40, yPosition);
+        yPosition += 15;
+        doc.text(`Total Discount: ₹${summary.TotalDiscountAmount.toFixed(2)}`, 40, yPosition);
+        yPosition += 15;
+        doc.text(`Net Revenue: ₹${(summary.TotalAmount - summary.TotalDiscountAmount).toFixed(2)}`, 40, yPosition);
+        yPosition += 20;
 
-        // Detailed Orders
-        doc.fontSize(14).text('Order Details', { underline: true });
-        orders.forEach((order, index) => {
-            doc.fontSize(12)
-                .text(`Order ${index + 1}`)
-                .text(`Order ID: ${order.orderNumber}`) // Use orderNumber from schema
-                .text(`Customer: ${order.userId?.name || 'N/A'} (${order.userId?.email || 'N/A'})`)
-                .text(`Date: ${formatDate(order.createdAt)}`)
-                .text(`Payment Method: ${order.paymentMethod}`)
-                .text(`Coupon Discount: $${(order.couponDiscount || 0).toFixed(2)}`)
-                .text(`Total Before Discount: $${order.orderAmount.toFixed(2)}`) // Use orderAmount
-                .text(`Total After Discount: $${order.finalAmount.toFixed(2)}`) // Use finalAmount
-                .text(`Status: ${order.orderStatus}`)
-                .moveDown();
-        });
+        // Orders Table
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+           .text('Order Details', 40, yPosition, { underline: true });
+        
+        yPosition += 15;
+        if (yPosition > 650) {
+            doc.addPage();
+            yPosition = 50;
+        }
+
+        doc.rect(40, yPosition, 515, 25).fill('#f5f6fa');
+        doc.font('Helvetica-Bold').fontSize(10).fillColor('#2c3e50');
+        doc.text('SI No', 50, yPosition + 8, { width: 50 })
+           .text('Order Date', 100, yPosition + 8, { width: 100 })
+           .text('Customer Name', 200, yPosition + 8, { width: 150 })
+           .text('Order ID', 350, yPosition + 8, { width: 100 })
+           .text('Order Amount', 450, yPosition + 8, { width: 50, align: 'right' })
+           .text('Discount', 500, yPosition + 8, { width: 50, align: 'right' });
+
+        yPosition += 30;
+        doc.font('Helvetica').fontSize(10).fillColor('#000000');
+
+        if (orders && orders.length > 0) {
+            orders.forEach((order, index) => {
+                if (yPosition > 700) {
+                    doc.addPage();
+                    yPosition = 50;
+                }
+
+                if (index % 2 === 0) {
+                    doc.rect(40, yPosition, 515, 20).fill('#f9fbfd');
+                }
+
+                const siNo = index + 1;
+                const orderDate = order.orderDate;
+                const customerName = order.userId?.name || 'N/A';
+                const orderId = order.orderNumber || order._id;
+                const orderAmount = (order.orderAmount || 0).toFixed(2);
+                const discount = (order.couponDiscount || 0).toFixed(2);
+
+                doc.text(`${siNo}`, 50, yPosition + 5, { width: 50 });
+                doc.text(orderDate, 100, yPosition + 5, { width: 100 });
+                doc.text(customerName, 200, yPosition + 5, { width: 150 });
+                doc.text(orderId, 350, yPosition + 5, { width: 100 });
+                doc.text(`₹${orderAmount}`, 450, yPosition + 5, { width: 50, align: 'right' });
+                doc.text(`₹${discount}`, 500, yPosition + 5, { width: 50, align: 'right' });
+
+                yPosition += 20;
+            });
+        } else {
+            doc.text('No orders available', 50, yPosition + 5, { width: 250 });
+            yPosition += 20;
+        }
+
+        doc.moveTo(40, yPosition).lineTo(555, yPosition).lineWidth(0.5).stroke('#3498db');
+        yPosition += 20;
+
+        // Footer
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#7f8c8d');
+        const footerPosition = doc.page.height - 60;
+        doc.text('Thank you for shopping with Zeleena Fashions!', 0, footerPosition, { align: 'center' })
+           .text(`Generated on ${moment().format('MMMM Do YYYY, h:mm:ss a')} | All rights reserved © 2025`, 0, footerPosition + 15, { align: 'center' });
 
         doc.end();
     } catch (error) {
         console.error('Error in generatePDF:', error);
-        res.status(500).send('Failed to generate PDF report.');
+        res.status(500).send(`Failed to generate PDF report: ${error.message}`);
     }
 };
 
 // Generate Excel Report
-exports.generateExcel = async (req, res, reportData, summary, page, fromDate = null, toDate = null) => {
+exports.generateExcel = async (req, res, orders, summary, page, fromDate = null, toDate = null) => {
     try {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Sales Report');
 
-        // Define columns based on report type
-        let columns = [];
-        if (page === 'daily' || page === 'customDate') {
-            columns = [
-                { header: 'SI No', key: 'siNo', width: 10 },
-                { header: 'Date', key: 'dateFormatted', width: 15 },
-                { header: 'Total Orders', key: 'totalOrderCount', width: 15 },
-                { header: 'Product Count', key: 'totalProducts', width: 15 },
-                { header: 'Total Discount', key: 'totalDiscount', width: 15 },
-                { header: 'Total Revenue', key: 'totalSales', width: 15 }
-            ];
-        } else if (page === 'weekly') {
-            columns = [
-                { header: 'SI No', key: 'siNo', width: 10 },
-                { header: 'Start Date', key: 'startOfWeek', width: 15 },
-                { header: 'End Date', key: 'endOfWeek', width: 15 },
-                { header: 'Total Orders', key: 'totalOrderCount', width: 15 },
-                { header: 'Product Count', key: 'totalProducts', width: 15 },
-                { header: 'Total Discount', key: 'totalDiscount', width: 15 },
-                { header: 'Total Revenue', key: 'totalSales', width: 15 }
-            ];
-        } else if (page === 'monthly') {
-            columns = [
-                { header: 'SI No', key: 'siNo', width: 10 },
-                { header: 'Month-Year', key: 'monthYear', width: 15 },
-                { header: 'Total Orders', key: 'totalOrderCount', width: 15 },
-                { header: 'Product Count', key: 'totalProducts', width: 15 },
-                { header: 'Total Discount', key: 'totalDiscount', width: 15 },
-                { header: 'Total Revenue', key: 'totalSales', width: 15 }
-            ];
-        } else if (page === 'yearly') {
-            columns = [
-                { header: 'SI No', key: 'siNo', width: 10 },
-                { header: 'Year', key: 'year', width: 15 },
-                { header: 'Total Orders', key: 'totalOrderCount', width: 15 },
-                { header: 'Product Count', key: 'totalProducts', width: 15 },
-                { header: 'Total Discount', key: 'totalDiscount', width: 15 },
-                { header: 'Total Revenue', key: 'totalSales', width: 15 }
-            ];
-        }
-
-        worksheet.columns = columns;
+        // Define columns
+        worksheet.columns = [
+            { header: 'SI No', key: 'siNo', width: 10 },
+            { header: 'Order Date', key: 'orderDate', width: 15 },
+            { header: 'Customer Name', key: 'customerName', width: 20 },
+            { header: 'Order ID', key: 'orderId', width: 20 },
+            { header: 'Order Amount', key: 'orderAmount', width: 15 },
+            { header: 'Discount', key: 'discount', width: 15 }
+        ];
 
         // Add summary
         worksheet.addRow(['Summary']);
         worksheet.addRow(['Total Orders', summary.TotalSaleCount]);
-        worksheet.addRow(['Total Revenue', `$${summary.TotalAmount.toFixed(2)}`]);
-        worksheet.addRow(['Total Discount', `$${summary.TotalDiscountAmount.toFixed(2)}`]);
-        worksheet.addRow(['Net Revenue', `$${(summary.TotalAmount - summary.TotalDiscountAmount).toFixed(2)}`]);
+        worksheet.addRow(['Total Revenue', `₹${summary.TotalAmount.toFixed(2)}`]);
+        worksheet.addRow(['Total Discount', `₹${summary.TotalDiscountAmount.toFixed(2)}`]);
+        worksheet.addRow(['Net Revenue', `₹${(summary.TotalAmount - summary.TotalDiscountAmount).toFixed(2)}`]);
+        worksheet.addRow([]);
+        if (page === 'customDate') {
+            worksheet.addRow(['Period', `${formatDate(fromDate)} to ${formatDate(toDate)}`]);
+        } else {
+            worksheet.addRow(['Period', page.charAt(0).toUpperCase() + page.slice(1)]);
+        }
         worksheet.addRow([]);
 
-        // Add report data
-        reportData.forEach((data, index) => {
-            const row = { ...data, siNo: index + 1 };
-            if (row.totalDiscount) row.totalDiscount = `$${row.totalDiscount.toFixed(2)}`;
-            if (row.totalSales) row.totalSales = `$${row.totalSales.toFixed(2)}`;
-            worksheet.addRow(row);
+        // Add orders
+        orders.forEach((order, index) => {
+            worksheet.addRow({
+                siNo: index + 1,
+                orderDate: order.orderDate,
+                customerName: order.userId?.name || 'N/A',
+                orderId: order.orderNumber || order._id,
+                orderAmount: `₹${(order.orderAmount || 0).toFixed(2)}`,
+                discount: `₹${(order.couponDiscount || 0).toFixed(2)}`
+            });
         });
 
         // Styling
         worksheet.getRow(1).font = { bold: true, size: 14 };
         worksheet.getRow(7).font = { bold: true };
+        worksheet.getRow(8).font = { bold: true };
         worksheet.eachRow((row, rowNumber) => {
-            if (rowNumber <= 5) {
+            if (rowNumber <= 8) {
                 row.font = { bold: true };
             }
             row.eachCell(cell => {
@@ -408,11 +440,10 @@ exports.generateExcel = async (req, res, reportData, summary, page, fromDate = n
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=${page}_sales_report.xlsx`);
 
-        // Write to response
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
         console.error('Error in generateExcel:', error);
-        res.status(500).send('Failed to generate Excel report.');
+        res.status(500).send(`Failed to generate Excel report: ${error.message}`);
     }
 };

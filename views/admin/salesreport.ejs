@@ -10,28 +10,28 @@
 
     <!-- Button Group -->
     <div class="btn-group" role="group" aria-label="Sales Report Controls" style="margin-bottom: 30px;">
-        <a href="/admin/sales/daily" 
+        <a href="/admin/sales/daily?page=1" 
            class="btn <%= page === 'daily' ? 'active' : '' %>" 
            style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
             Daily
         </a>
-        <a href="/admin/sales/weekly" 
+        <a href="/admin/sales/weekly?page=1" 
            class="btn <%= page === 'weekly' ? 'active' : '' %>" 
            style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
             Weekly
         </a>
-        <a href="/admin/sales/monthly" 
+        <a href="/admin/sales/monthly?page=1" 
            class="btn <%= page === 'monthly' ? 'active' : '' %>" 
            style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
             Monthly
         </a>
-        <a href="/admin/sales/yearly" 
+        <a href="/admin/sales/yearly?page=1" 
            class="btn <%= page === 'yearly' ? 'active' : '' %>" 
            style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
@@ -52,12 +52,12 @@
             <div class="dropdown-menu p-3" 
                  aria-labelledby="salesReportDropdown" 
                  style="background-color: #ffffff; border: 1px solid #000000; font-family: 'Montserrat', sans-serif;">
-                <form action="/admin/customdate" method="post">
+                <form id="customDateForm" action="/admin/sales/customdate?page=1" method="post">
                     <div class="mb-2">
                         <label class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">From Date</label>
                         <input type="date" 
                                id="fromDate" 
-                               value="<%= fromDate %>" 
+                               value="<%= fromDate || '' %>" 
                                name="fromDate" 
                                class="form-control" 
                                required
@@ -68,7 +68,7 @@
                         <input type="date" 
                                id="toDate" 
                                name="toDate" 
-                               value="<%= toDate %>" 
+                               value="<%= toDate || '' %>" 
                                class="form-control" 
                                required
                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
@@ -95,7 +95,7 @@
                     </span>
                     <div class="text">
                         <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Total Revenue</h6>
-                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= TotalAmount.toFixed(2) %></span>
+                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;">₹<%= TotalAmount.toFixed(2) %></span>
                         <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Total sales amount</span>
                     </div>
                 </article>
@@ -109,7 +109,7 @@
                     </span>
                     <div class="text">
                         <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Total Discount</h6>
-                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= TotalDiscountAmount.toFixed(2) %></span>
+                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;">₹<%= TotalDiscountAmount.toFixed(2) %></span>
                         <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Discount offered</span>
                     </div>
                 </article>
@@ -144,13 +144,13 @@
         </div>
     </div>
 
-    <!-- Sales Data Table -->
+    <!-- Orders Table -->
     <div class="row">
         <div class="col-12">
             <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
                 <article class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Sales Details</h5>
+                        <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Order Details</h5>
                         <div>
                             <button id="downloadPdfBtn" 
                                     style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
@@ -168,109 +168,60 @@
                     </div>
                     <div class="table-responsive">
                         <table class="sales-table" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-family: 'Montserrat', sans-serif;">
-                            <% if(page === "daily" || page === "customDate") { %>
-                                <thead>
-                                    <tr>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">SI No</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Orders</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Product Count</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Discount</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% reportData.forEach((data, i) => { %>
+                            <thead>
+                                <tr>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">SI No</th>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order Date</th>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Customer Name</th>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order ID</th>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order Amount</th>
+                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Discount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (orders && orders.length > 0) { %>
+                                    <% orders.forEach((order, i) => { %>
                                         <tr style="background-color: <%= i % 2 === 0 ? '#f9f9f9' : '#ffffff' %>;">
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i+1 %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.dateFormatted %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalOrderCount %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalProducts %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalDiscount.toFixed(2) %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalSales.toFixed(2) %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i + 1 + (currentPage - 1) * perPage %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.userId?.name || 'N/A' %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderNumber || order._id %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">₹<%= (order.orderAmount || 0).toFixed(2) %></td>
+                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
                                         </tr>
                                     <% }) %>
-                                </tbody>
-                            <% } else if(page === "weekly") { %>
-                                <thead>
+                                <% } else { %>
                                     <tr>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">SI No</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Start Date</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">End Date</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Orders</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Product Count</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Discount</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</th>
+                                        <td colspan="6" style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">No orders found</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <% reportData.forEach((data, i) => { %>
-                                        <tr style="background-color: <%= i % 2 === 0 ? '#f9f9f9' : '#ffffff' %>;">
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i+1 %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.startOfWeek %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.endOfWeek %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalOrderCount %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalProducts %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalDiscount.toFixed(2) %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalSales.toFixed(2) %></td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            <% } else if(page === "monthly") { %>
-                                <thead>
-                                    <tr>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">SI No</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Month-Year</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Orders</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Product Count</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Discount</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% reportData.forEach((data, i) => { %>
-                                        <tr style="background-color: <%= i % 2 === 0 ? '#f9f9f9' : '#ffffff' %>;">
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i+1 %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.monthYear %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalOrderCount %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalProducts %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalDiscount.toFixed(2) %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalSales.toFixed(2) %></td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            <% } else if(page === "yearly") { %>
-                                <thead>
-                                    <tr>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">SI No</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Year</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Orders</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Product Count</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Discount</th>
-                                        <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% reportData.forEach((data, i) => { %>
-                                        <tr style="background-color: <%= i % 2 === 0 ? '#f9f9f9' : '#ffffff' %>;">
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i+1 %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.year %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalOrderCount %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalProducts %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalDiscount.toFixed(2) %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= data.totalSales.toFixed(2) %></td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            <% } %>
+                                <% } %>
+                            </tbody>
                         </table>
                     </div>
+                    <!-- Pagination -->
+                    <% if (totalPages > 1) { %>
+                        <nav aria-label="Page navigation" style="margin-top: 20px;">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage - 1}&fromDate=${fromDate}&toDate=${toDate}` : `/admin/sales/${page}?page=${currentPage - 1}` %>" style="color: #000000; border: 1px solid #000000;">Previous</a>
+                                </li>
+                                <% for (let i = 1; i <= totalPages; i++) { %>
+                                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                        <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${i}&fromDate=${fromDate}&toDate=${toDate}` : `/admin/sales/${page}?page=${i}` %>" style="color: #000000; border: 1px solid #000000; <%= currentPage === i ? 'background-color: #FFD700; color: #000000;' : '' %>"><%= i %></a>
+                                    </li>
+                                <% } %>
+                                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage + 1}&fromDate=${fromDate}&toDate=${toDate}` : `/admin/sales/${page}?page=${currentPage + 1}` %>" style="color: #000000; border: 1px solid #000000;">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    <% } %>
                 </article>
             </div>
         </div>
     </div>
 
-    <!-- Pagination (if needed in the future) -->
+    <!-- Styles -->
     <style>
         .sales-table {
             width: 100%;
@@ -292,6 +243,11 @@
             color: #666;
             font-family: 'Montserrat', sans-serif;
         }
+
+        .pagination .page-link:hover {
+            background-color: #FFD700;
+            color: #000000;
+        }
     </style>
 </section>
 
@@ -302,17 +258,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const fromDateInput = document.getElementById('fromDate');
     const toDateInput = document.getElementById('toDate');
     const errorElement = document.getElementById('errordate');
-    const filterButton = document.getElementById('saleDateFilterBtn');
-
-    let fromDate = null;
-    let toDate = null;
+    const filterButton = document.querySelector('form button[type="submit"]');
+    const customDateForm = document.getElementById('customDateForm');
 
     function updateDates() {
-        fromDate = fromDateInput.value;
-        toDate = toDateInput.value;
+        const fromDate = fromDateInput.value;
+        const toDate = toDateInput.value;
 
         if (fromDate && toDate) {
-            // Validate that toDate is not before fromDate
             if (new Date(toDate) < new Date(fromDate)) {
                 errorElement.innerHTML = "To Date cannot be earlier than From Date.";
                 errorElement.style.display = 'block';
@@ -331,11 +284,13 @@ document.addEventListener('DOMContentLoaded', function () {
     toDateInput.addEventListener('change', updateDates);
 
     function checkdata(fromDate, toDate) {
+        console.log(`Checking data for: fromDate=${fromDate}, toDate=${toDate}`);
         fetch(`/admin/checkDataExist?fromDate=${fromDate}&toDate=${toDate}`, {
             method: 'GET'
         })
             .then(res => res.json())
             .then(data => {
+                console.log('Check data response:', data);
                 if (!data.success) {
                     errorElement.innerHTML = data.message;
                     errorElement.style.display = 'block';
@@ -347,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(err => {
-                console.log('Error in checkDataExist:', err);
+                console.error('Error in checkDataExist:', err);
                 errorElement.innerHTML = "Error checking data availability. Please try again.";
                 errorElement.style.display = 'block';
                 filterButton.disabled = true;
@@ -355,23 +310,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function downloadReport(format) {
-        let reportType = '<%= page %>';
-        let fromDate = document.getElementById('fromDate').value;
-        let toDate = document.getElementById('toDate').value;
+        const reportType = '<%= page %>';
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+
+        console.log(`Downloading ${format} report for ${reportType}`);
+
+        if (reportType === 'customDate' && (!fromDate || !toDate)) {
+            alert('Please select both From Date and To Date.');
+            return;
+        }
+
+        let url = reportType === 'customDate' 
+            ? `/admin/sales/customdate?format=${format}&page=<%= currentPage %>`
+            : `/admin/sales/${reportType}?format=${format}&page=<%= currentPage %>`;
 
         if (reportType === 'customDate') {
-            if (!fromDate || !toDate) {
-                alert('Please select both From Date and To Date.');
-                return;
-            }
-            fetch(`/admin/customdate?format=${format}`, {
+            fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fromDate, toDate })
             })
             .then(response => {
+                console.log(`Download ${format} response status: ${response.status}`);
                 if (!response.ok) {
-                    throw new Error(`Failed to download ${format.toUpperCase()}`);
+                    throw new Error(`Failed to download ${format} report`);
                 }
                 return response.blob();
             })
@@ -384,13 +347,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error downloading report:', error);
                 alert(`Failed to download the ${format.toUpperCase()} report. Please try again.`);
             });
         } else {
-            window.location.href = `/admin/sales/${reportType}?format=${format}`;
+            window.location.href = url;
         }
     }
 
@@ -400,6 +364,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('downloadExcelBtn').addEventListener('click', function () {
         downloadReport('excel');
+    });
+
+    // Handle custom date form submission
+    customDateForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const fromDate = fromDateInput.value;
+        const toDate = toDateInput.value;
+
+        console.log(`Submitting custom date form: fromDate=${fromDate}, toDate=${toDate}`);
+
+        if (!fromDate || !toDate) {
+            errorElement.innerHTML = "Please select both From Date and To Date.";
+            errorElement.style.display = 'block';
+            return;
+        }
+
+        if (new Date(toDate) < new Date(fromDate)) {
+            errorElement.innerHTML = "To Date cannot be earlier than From Date.";
+            errorElement.style.display = 'block';
+            return;
+        }
+
+        fetch('/admin/sales/customdate?page=1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fromDate, toDate })
+        })
+        .then(response => {
+            console.log(`Custom date form response status: ${response.status}`);
+            if (response.ok) {
+                window.location.href = `/admin/sales/customdate?page=1&fromDate=${fromDate}&toDate=${toDate}`;
+            } else {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Failed to load custom date report');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting custom date form:', error);
+            errorElement.innerHTML = error.message || 'Failed to load custom date report. Please try again.';
+            errorElement.style.display = 'block';
+        });
     });
 });
 </script>

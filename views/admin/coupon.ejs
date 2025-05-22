@@ -196,11 +196,11 @@
                         <td><%= index + 1 %></td>
                         <td><%= coupon.code %></td>
                         <td>
-                            <span class="badge <%= coupon.type === 'percentageDiscount' ? 'badge-percent' : 'badge-flat' %>">
-                                <%= coupon.type === 'percentageDiscount' ? 'Percentage' : 'Flat' %>
+                            <span class="badge <%= coupon.discountType === 'percentage' ? 'badge-percent' : 'badge-flat' %>">
+                                <%= coupon.discountType === 'percentage' ? 'Percentage' : 'Flat' %>
                             </span>
                         </td>
-                        <td><%= coupon.type === 'percentageDiscount' ? coupon.discount + '%' : '₹' + coupon.discount %></td>
+                        <td><%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '₹' + coupon.discount %></td>
                         <td>₹<%= coupon.minimumPrice %></td>
                         <td><%= coupon.maxRedeem %></td>
                         <td class="<%= isExpired ? 'expired' : '' %>">
@@ -247,7 +247,7 @@
                 <% } %>
             <% } %>
 
-       <% for (let i = startPage; i <= endPage; i++) { %>
+            <% for (let i = startPage; i <= endPage; i++) { %>
                 <a href="/admin/coupon?page=<%= i %><%= locals.searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                     <%= i %>
                 </a>
@@ -301,7 +301,7 @@
         fetch(`/admin/api/blockcoupon/${couponId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/csv',
+                'Content-Type': 'application/json',
             }
         })
         .then(response => {

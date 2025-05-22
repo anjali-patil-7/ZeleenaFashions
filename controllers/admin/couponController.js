@@ -60,6 +60,12 @@ exports.postAddCoupon = async (req, res) => {
             description
         } = req.body;
 
+        // Validate inputs
+        if (!couponCode || !type || !discount || !minimumPrice || !maxRedeem || !expiry) {
+            req.flash('error', 'All required fields must be filled');
+            return res.redirect('/admin/addcoupon');
+        }
+
         // Check if coupon code already exists
         const existingCoupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
         if (existingCoupon) {
@@ -74,6 +80,7 @@ exports.postAddCoupon = async (req, res) => {
         };
         const discountType = discountTypeMap[type];
         if (!discountType) {
+            console.error(`Invalid discount type received: ${type}`);
             req.flash('error', 'Invalid discount type');
             return res.redirect('/admin/addcoupon');
         }
@@ -135,6 +142,12 @@ exports.postEditCoupon = async (req, res) => {
             description
         } = req.body;
 
+        // Validate inputs
+        if (!couponCode || !type || !discount || !minimumPrice || !maxRedeem || !expiry) {
+            req.flash('error', 'All required fields must be filled');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
         // Check if coupon code exists for another coupon
         const existingCoupon = await Coupon.findOne({
             code: couponCode.toUpperCase(),
@@ -153,6 +166,7 @@ exports.postEditCoupon = async (req, res) => {
         };
         const discountType = discountTypeMap[type];
         if (!discountType) {
+            console.error(`Invalid discount type received: ${type}`);
             req.flash('error', 'Invalid discount type');
             return res.redirect(`/admin/editcoupon/${req.params.id}`);
         }

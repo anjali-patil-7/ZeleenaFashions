@@ -202,7 +202,7 @@
                         <td><%= offer.discount %>%</td>
                         <td>
                             <% if (offer.offerType === 'product' && offer.productId && offer.productId.length > 0) { %>
-                                <%= offer.productId.length > 1 ? offer.productId.length + ' products' : offer.productId[0].name %>
+                                <%= offer.productId.length > 1 ? offer.productId.length + ' products' : offer.productId[0].productName %>
                             <% } else if (offer.offerType === 'category' && offer.categoryId && offer.categoryId.length > 0) { %>
                                 <%= offer.categoryId.length > 1 ? offer.categoryId.length + ' categories' : offer.categoryId[0].name %>
                             <% } else { %>

@@ -211,9 +211,9 @@ exports.getCheckoutPage = async (req, res) => {
 
     // Fetch available coupons
     const availableCoupons = await Coupon.find({
-      isActive: true,
-      expiryDate: { $gte: new Date() },
-      minPurchase: { $lte: originalSubtotal },
+      status: true,
+       expiry: { $gte: new Date() },
+      minimumPrice: { $lte: originalSubtotal },
     });
 
     // Apply 20% discount for orders above ₹5000
@@ -291,7 +291,7 @@ exports.applyCoupon = async (req, res) => {
   try {
     const { couponCode, action } = req.body;
     const userId = req.user.id;
-
+      console.log("coupon apply>>>>>>",couponCode, action)
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
     if (!cart || !cart.cartItem || cart.cartItem.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty' });
@@ -311,8 +311,8 @@ exports.applyCoupon = async (req, res) => {
 
       const coupon = await Coupon.findOne({
         code: couponCode,
-        isActive: true,
-        expiryDate: { $gte: new Date() },
+        status: true,
+        expiry: { $gte: new Date() },
       });
 
       if (!coupon) {
@@ -336,10 +336,10 @@ exports.applyCoupon = async (req, res) => {
         });
       }
 
-      if (coupon.minPurchase && originalSubtotal < coupon.minPurchase) {
+      if (coupon.minimumPrice && originalSubtotal < coupon.minimumPrice) {
         return res.status(400).json({
           success: false,
-          message: `Minimum purchase of ₹${coupon.minPurchase} required for this coupon`,
+          message: `Minimum purchase of ₹${coupon.minimumPrice} required for this coupon`,
         });
       }
 

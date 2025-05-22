@@ -343,7 +343,7 @@ exports.cancelSingleProduct = async (req, res) => {
 exports.downloadInvoice = async (req, res) => {
     try {
         console.log('Download invoice route hit');
-        if (!req.user.id) {
+        if (!req.user || !req.user.id) {
             console.error('User not authenticated');
             return res.status(401).send('Authentication required');
         }
@@ -359,67 +359,96 @@ exports.downloadInvoice = async (req, res) => {
 
         console.log('Searching for order in database...');
         const order = await Orders.findOne({ _id: orderId, userId })
-            .populate('orderedItem.productId')
+            .populate({
+                path: 'orderedItem.productId',
+                select: 'productName price',
+                match: { productName: { $exists: true } }
+            })
             .populate('deliveryAddress')
             .populate('appliedOffer')
             .populate('couponApplied')
             .lean();
 
-        console.log('Order query result:', order ? 'Found' : 'Not found');
+        console.log('Full order object:', JSON.stringify(order, null, 2));
+        console.log('Ordered items:', order?.orderedItem ? JSON.stringify(order.orderedItem, null, 2) : 'Not found');
 
-        if (!order) {
-            console.log('Order not found for ID:', orderId, 'user:', userId);
-            return res.status(404).send('Order not found');
+        if (!order || !order.orderedItem || order.orderedItem.length === 0) {
+            console.log('Order or ordered items not found for ID:', orderId, 'user:', userId);
+            return res.status(404).send('Order or ordered items not found');
+        }
+
+        const hasValidItems = order.orderedItem.every(item => item.productId && item.productId.productName);
+        if (!hasValidItems) {
+            console.log('Some ordered items are missing product data');
+            return res.status(400).send('Invalid product data in order');
         }
 
         console.log('Order found, generating PDF...');
         const doc = new PDFDocument({
             size: 'A4',
-            margin: 50
+            margin: 40,
+            bufferPages: true
         });
         
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderNumber || orderId}.pdf`);
         
         doc.pipe(res);
+
+        // Company Header
+        doc.font('Helvetica-Bold').fontSize(24).fillColor('#2c3e50')
+           .text('Zeleena Fashions', 40, 40, { align: 'left' });
         
-        doc.fontSize(20).font('Helvetica-Bold').text('INVOICE', { align: 'center' });
-        doc.moveDown();
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-        doc.moveDown();
+        doc.font('Helvetica').fontSize(10).fillColor('#7f8c8d')
+           .text('123 Fashion Avenue, Style City, SC 12345', 40, 70)
+           .text('Phone: +1 (555) 123-4567 | Email: contact@zeleenafashions.com', 40, 85)
+           .text('Website: www.zeleenafashions.com | GSTIN: 12ABCDE1234F1Z5', 40, 100);
+        
+        // Invoice Title
+        doc.font('Helvetica-Bold').fontSize(28).fillColor('#34495e')
+           .text('INVOICE', 0, 40, { align: 'right' });
+        
+        doc.moveTo(40, 130).lineTo(555, 130).lineWidth(1).fillAndStroke('#3498db');
+        doc.moveDown(2);
 
-        doc.fontSize(12).font('Helvetica-Bold').text('Order Details', { underline: true });
-        doc.fontSize(10).font('Helvetica');
-        doc.text(`Order Number: ${order.orderNumber || orderId}`);
-        doc.text(`Order Date: ${new Date(order.createdAt).toLocaleDateString()}`);
-        doc.text(`Payment Method: ${order.paymentMethod || 'Cash on Delivery'}`);
-        doc.text(`Order Status: ${order.orderStatus}`);
-        doc.moveDown();
+        // Order Details
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+           .text('Order Details', 40, doc.y, { underline: true });
+        doc.font('Helvetica').fontSize(10).fillColor('#34495e');
+        
+        doc.text(`Order Number: ${order.orderNumber || order._id || 'N/A'}`, 40, doc.y + 10)
+           .text(`Order Date: ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}`, 40, doc.y + 5)
+           .text(`Payment Method: ${order.paymentMethod || 'Cash on Delivery'}`, 40, doc.y + 5)
+           .text(`Order Status: ${order.orderStatus || 'N/A'}`, 40, doc.y + 5);
+        doc.moveDown(2);
 
+        // Shipping Address
         const address = order.deliveryAddress;
-        doc.fontSize(12).font('Helvetica-Bold').text('Shipping Address', { underline: true });
-        doc.fontSize(10).font('Helvetica');
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+           .text('Shipping Address', 40, doc.y, { underline: true });
+        doc.font('Helvetica').fontSize(10).fillColor('#34495e');
         
         if (address) {
-            doc.text(address.name || 'N/A');
-            doc.text(address.mobile || 'N/A');
-            doc.text([
-                address.houseName,
-                address.street,
-                address.city,
-                address.state,
-                address.pincode,
-                address.country
-            ].filter(Boolean).join(', '));
+            doc.text(address.name || 'N/A', 40, doc.y + 10)
+               .text(address.mobile || 'N/A', 40, doc.y + 5)
+               .text([
+                   address.houseName,
+                   address.street,
+                   address.city,
+                   address.state,
+                   address.pincode,
+                   address.country
+               ].filter(Boolean).join(', '), 40, doc.y + 5);
         } else {
-            doc.text('Shipping Address: Not available');
+            doc.text('Shipping Address: Not available', 40, doc.y + 10);
         }
-        doc.moveDown();
+        doc.moveDown(2);
 
-        doc.fontSize(12).font('Helvetica-Bold').text('Ordered Items', { underline: true });
-        doc.fontSize(10);
+        // Items Table Header
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+           .text('Ordered Items', 40, doc.y, { underline: true });
         
-        let yPosition = doc.y + 5;
+       let yPosition = doc.y + 5;
         doc.font('Helvetica-Bold');
         doc.text('Item', 50, yPosition, { width: 200 });
         doc.text('Price', 250, yPosition, { width: 70 });
@@ -457,52 +486,57 @@ exports.downloadInvoice = async (req, res) => {
             yPosition += 20;
         }
         
-        doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
+        doc.moveTo(40, yPosition).lineTo(555, yPosition).lineWidth(0.5).stroke('#3498db');
         yPosition += 20;
+        console.log(`yPosition after items section: ${yPosition}`);
 
-        doc.fontSize(12).font('Helvetica-Bold').text('Price Summary', 350, yPosition, { underline: true });
-        doc.fontSize(10).font('Helvetica');
+        // Price Summary
+        doc.font('Helvetica-Bold').fontSize(14).fillColor('#2c3e50')
+           .text('Price Summary', 350, yPosition, { underline: true });
+        doc.font('Helvetica').fontSize(10).fillColor('#34495e');
         yPosition += 20;
-        doc.text('Items Total:', 350, yPosition);
-        doc.text(`₹${order.orderAmount.toFixed(2)}`, 480, yPosition);
+        
+        doc.text('Items Total:', 350, yPosition)
+           .text(`₹${(order.orderAmount || 0).toFixed(2)}`, 480, yPosition, { align: 'right' });
         yPosition += 15;
 
         if (order.shippingCharge) {
-            doc.text('Shipping Charge:', 350, yPosition);
-            doc.text(`₹${order.shippingCharge.toFixed(2)}`, 480, yPosition);
+            doc.text('Shipping Charge:', 350, yPosition)
+               .text(`₹${order.shippingCharge.toFixed(2)}`, 480, yPosition, { align: 'right' });
             yPosition += 15;
-        }
-        else{
-            doc.text('Shipping Charge:', 350, yPosition);
-            doc.text(`₹ 100.00`, 480, yPosition);
+        } else {
+            doc.text('Shipping Charge:', 350, yPosition)
+               .text('₹100.00', 480, yPosition, { align: 'right' });
             yPosition += 15;
         }
 
         if (order.couponDiscount && order.couponCode) {
             const couponName = order.couponApplied ? order.couponApplied.code : order.couponCode;
-            doc.text(`Coupon Discount (${couponName}):`, 350, yPosition);
-            doc.text(`-₹${order.couponDiscount.toFixed(2)}`, 480, yPosition);
+            doc.text(`Coupon Discount (${couponName}):`, 350, yPosition)
+               .text(`-₹${order.couponDiscount.toFixed(2)}`, 480, yPosition, { align: 'right' });
             yPosition += 15;
         }
 
         if (order.discountAmount) {
-            doc.text(`Offer Discount:`, 350, yPosition);
-            doc.text(`-₹${order.discountAmount.toFixed(2)}`, 480, yPosition);
+            doc.text('Offer Discount:', 350, yPosition)
+               .text(`-₹${order.discountAmount.toFixed(2)}`, 480, yPosition, { align: 'right' });
             yPosition += 15;
         }
 
-        doc.moveTo(350, yPosition).lineTo(550, yPosition).stroke();
+        doc.moveTo(350, yPosition).lineTo(555, yPosition).lineWidth(0.5).stroke('#3498db');
         yPosition += 15;
-        doc.font('Helvetica-Bold');
-        doc.text('Final Amount:', 350, yPosition);
-        doc.text(`₹${order.finalAmount.toFixed(2)}`, 480, yPosition);
-        doc.font('Helvetica');
-                
-        doc.fontSize(8);
-        const footerPosition = doc.page.height - 50;
-        doc.text('Thank you for your order!', 50, footerPosition, { align: 'center' });
-        doc.text(`Generated on ${new Date().toLocaleString()}`, 50, footerPosition + 15, { align: 'center' });
+        
+        doc.font('Helvetica-Bold').fontSize(12).fillColor('#2c3e50')
+           .text('Final Amount:', 350, yPosition)
+           .text(`₹${(order.finalAmount || 0).toFixed(2)}`, 480, yPosition, { align: 'right' });
+        
+        // Footer
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#7f8c8d');
+        const footerPosition = doc.page.height - 60;
+        doc.text('Thank you for shopping with Zeleena Fashions!', 0, footerPosition, { align: 'center' })
+           .text(`Generated on ${new Date().toLocaleString()} | All rights reserved © 2025`, 0, footerPosition + 15, { align: 'center' });
 
+        doc.flushPages();
         doc.end();
         console.log('Invoice generated successfully for order:', orderId);
     } catch (error) {

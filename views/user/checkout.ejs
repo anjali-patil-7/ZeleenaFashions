@@ -493,54 +493,56 @@
     });
 
     // Apply coupon function
-    function applyCoupon(couponCode) {
-      console.log('Applying coupon:', couponCode);
-      applyCouponBtn.disabled = true;
-      applyCouponBtn.textContent = 'Applying...';
+ function applyCoupon(couponCode) {
+  console.log('Applying coupon:', couponCode);
+  const applyCouponBtn = document.getElementById('applyCouponBtn'); // Ensure this ID matches your HTML
+  applyCouponBtn.disabled = true;
+  applyCouponBtn.textContent = 'Applying...';
 
-      fetch('/apply-coupon', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          couponCode: couponCode,
-        }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Apply coupon response:', data);
-          applyCouponBtn.disabled = false;
-          applyCouponBtn.textContent = 'Apply';
+  fetch('/apply-coupon', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      couponCode: couponCode,
+      action: 'apply' // Add action field
+    }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Apply coupon response:', data);
+      applyCouponBtn.disabled = false;
+      applyCouponBtn.textContent = 'Apply';
 
-          if (data.success) {
-            state.couponCode = couponCode;
-            Swal.fire({
-              icon: 'success',
-              title: 'Success!',
-              text: 'Coupon applied successfully!',
-            }).then(() => {
-              window.location.reload();
-            });
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: data.message || 'Failed to apply coupon!',
-            });
-          }
-        })
-        .catch(error => {
-          console.error('Error applying coupon:', error);
-          applyCouponBtn.disabled = false;
-          applyCouponBtn.textContent = 'Apply';
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong!',
-          });
+      if (data.success) {
+        state.couponCode = couponCode;
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Coupon applied successfully!',
+        }).then(() => {
+          window.location.reload();
         });
-    }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: data.message || 'Failed to apply coupon!',
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error applying coupon:', error);
+      applyCouponBtn.disabled = false;
+      applyCouponBtn.textContent = 'Apply';
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Something went wrong!',
+      });
+    });
+}
 
     // Remove coupon function
     function removeCoupon() {
