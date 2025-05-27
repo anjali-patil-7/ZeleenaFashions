@@ -96,7 +96,7 @@
                 />
                 <span class="input-group-text" id="discountSymbol">%</span>
               </div>
-              <small id="discountHelp" class="form-text">For percentage discount, enter a value between 1-100</small>
+              <small id="discountHelp" class="form-text">For percentage discount, enter a value between 5-90</small>
               <div id="discountError" class="text-danger"></div>
             </div>
             
@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const discountSymbol = document.getElementById('discountSymbol');
   const discountHelp = document.getElementById('discountHelp');
   const discountInput = document.getElementById('discount');
+  const minimumPriceInput = document.getElementById('minimumPrice');
   const expiryInput = document.getElementById('expiry');
 
   // Set minimum date for expiry to today
@@ -182,12 +183,14 @@ document.addEventListener('DOMContentLoaded', function() {
   typeSelect.addEventListener('change', function() {
     if (this.value === 'percentageDiscount') {
       discountSymbol.textContent = '%';
-      discountHelp.textContent = 'For percentage discount, enter a value between 1-100';
+      discountHelp.textContent = 'For percentage discount, enter a value between 5-90';
       discountInput.setAttribute('max', '100');
+      validateField(discountInput); // Re-validate discount on type change
     } else if (this.value === 'flatDiscount') {
       discountSymbol.textContent = '₹';
-      discountHelp.textContent = 'For flat discount, enter the amount in rupees';
+      discountHelp.textContent = 'For flat discount, enter the amount in rupees (less than minimum purchase amount)';
       discountInput.removeAttribute('max');
+      validateField(discountInput); // Re-validate discount on type change
     }
   });
 
@@ -231,23 +234,30 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'discount':
         const discount = parseFloat(field.value);
         const discountType = document.getElementById('type').value;
+        const minimumPrice = parseFloat(document.getElementById('minimumPrice').value);
         if (!discount || isNaN(discount)) {
           showError(field, errorElement, 'Discount value is required');
-        } else if (discountType === 'percentageDiscount' && (discount <= 0 || discount > 100)) {
-          showError(field, errorElement, 'Percentage must be between 1-100');
+        } else if (discountType === 'percentageDiscount' && (discount <= 5 || discount > 90)) {
+          showError(field, errorElement, 'Percentage must be between 5-90');
         } else if (discountType === 'flatDiscount' && discount <= 0) {
           showError(field, errorElement, 'Flat discount must be greater than 0');
         } else if (discountType === 'flatDiscount' && discount > 10000) {
           showError(field, errorElement, 'Flat discount cannot exceed ₹10,000');
+        } else if (discountType === 'flatDiscount' && !isNaN(minimumPrice) && discount >= minimumPrice) {
+          showError(field, errorElement, 'Flat discount must be less than the minimum purchase amount');
         }
         break;
 
       case 'minimumPrice':
         const minPrice = parseFloat(field.value);
+        const discountValue = parseFloat(document.getElementById('discount').value);
+        const type = document.getElementById('type').value;
         if (isNaN(minPrice) || minPrice < 0) {
           showError(field, errorElement, 'Minimum amount must be 0 or greater');
         } else if (minPrice > 100000) {
           showError(field, errorElement, 'Minimum amount cannot exceed ₹100,000');
+        } else if (type === 'flatDiscount' && !isNaN(discountValue) && discountValue >= minPrice) {
+          showError(field, errorElement, 'Minimum purchase amount must be greater than the flat discount');
         }
         break;
 

@@ -1,233 +1,299 @@
 const Category = require('../../models/categorySchema');
-const Product = require('../../models/productSchema');
-const { processImage, deleteImage } = require('../../helpers/imageHelper');
-const { body, validationResult } = require('express-validator');
-const path = require("path")
+const path = require('path');
+const fs = require('fs');
 
-// Validation middleware for postAddCategory
-exports.validateAddCategory = [
-    body('name')
-        .trim()
-        .notEmpty()
-        .withMessage('Category name is required')
-        .isLength({ min: 2, max: 50 })
-        .withMessage('Name must be 2-50 characters long')
-        .matches(/^[a-zA-Z\s]+$/)
-        .withMessage('Name should only contain letters and spaces, no numbers allowed'),
-    body('description')
-        .trim()
-        .notEmpty()
-        .withMessage('Description is required')
-        .isLength({ min: 10, max: 500 })
-        .withMessage('Description must be 10-500 characters long')
-        .matches(/^[a-zA-Z\s]+$/)
-        .withMessage('Description should only contain letters and spaces, no numbers allowed'),
-];
-
-// Get all categories with search, sort, and pagination
-exports.getCategories = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 10;
-        const searchQuery = req.query.query || '';
-        const sortBy = req.query.sortBy || 'createdAt';
-        const sortOrder = req.query.sortOrder || 'desc';
-
-        let query = {};
-        if (searchQuery) {
-            query = {
-                $or: [
-                    { name: { $regex: searchQuery, $options: 'i' } },
-                    { description: { $regex: searchQuery, $options: 'i' } }
-                ]
-            };
-        }
-
-        const sortOptions = {};
-        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
-
-        const totalCategories = await Category.countDocuments(query);
-        const categories = await Category.find(query)
-            .sort(sortOptions)
-            .skip((page - 1) * limit)
-            .limit(limit);
-
-        res.render('admin/categories', {
-            categories,
-            currentPage: page,
-            totalPages: Math.ceil(totalCategories / limit),
-            searchQuery,
-            sortBy,
-            sortOrder,
-            messages: { error: req.flash('error'), success: req.flash('success') },
-            breadcrumbs: [
-                { name: 'Home', url: '/admin' },
-                { name: 'Categories', url: '/admin/categories' }
-            ]
-        });
-    } catch (error) {
-        console.error(error);
-        req.flash('error', 'Failed to load categories');
-        res.status(500).render('admin/categories', {
-            categories: [],
-            currentPage: 1,
-            totalPages: 1,
-            searchQuery: '',
-            sortBy: 'createdAt',
-            sortOrder: 'desc',
-            messages: { error: req.flash('error'), success: req.flash('success') },
-            breadcrumbs: [
-                { name: 'Home', url: '/admin' },
-                { name: 'Categories', url: '/admin/categories' }
-            ]
-        });
-    }
-};
-
-// Render add category form
+// Render add category page
 exports.getAddCategory = (req, res) => {
     res.render('admin/addcategory', {
+        messages: {},
         name: '',
         description: '',
-        messages: { error: req.flash('error'), success: req.flash('success') },
         breadcrumbs: [
-            { name: 'Home', url: '/admin' },
+            { name: 'Home', url: '/admin/dashboard' },
             { name: 'Categories', url: '/admin/categories' },
-            { name: 'Add Category', url: '/admin/addcategory' }
+            { name: 'Add Category' }
         ]
     });
 };
 
-// Add new category
-exports.postAddCategory = async (req, res) => {
+// Middleware to validate add category input
+exports.validateAddCategory = async (req, res, next) => {
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            req.flash('error', errors.array().map(err => err.msg).join(', '));
-            return res.render('admin/addcategory', {
-                name: req.body.name || '',
-                description: req.body.description || '',
-                messages: { error: req.flash('error'), success: req.flash('success') },
+        const { name, description } = req.body;
+
+        // Validate required fields
+        if (!name || !description) {
+            return res.status(400).render('admin/addcategory', {
+                messages: { error: 'Name and description are required' },
+                name: name || '',
+                description: description || '',
                 breadcrumbs: [
-                    { name: 'Home', url: '/admin' },
+                    { name: 'Home', url: '/admin/dashboard' },
                     { name: 'Categories', url: '/admin/categories' },
-                    { name: 'Add Category', url: '/admin/addcategory' }
+                    { name: 'Add Category' }
                 ]
             });
         }
 
-        if (!req.file) {
-            req.flash('error', 'Category image is required');
-            return res.render('admin/addcategory', {
-                name: req.body.name || '',
-                description: req.body.description || '',
-                messages: { error: req.flash('error'), success: req.flash('success') },
-                breadcrumbs: [
-                    { name: 'Home', url: '/admin' },
-                    { name: 'Categories', url: '/admin/categories' },
-                    { name: 'Add Category', url: '/admin/addcategory' }
-                ]
-            });
-        }
+        // Normalize the name by trimming whitespace
+        const trimmedName = name.trim();
 
-        const existingCategory = await Category.findOne({ name: req.body.name });
-        if (existingCategory) {
-            req.flash('error', 'Category name already exists');
-            return res.render('admin/addcategory', {
-                name: req.body.name || '',
-                description: req.body.description || '',
-                messages: { error: req.flash('error'), success: req.flash('success') },
-                breadcrumbs: [
-                    { name: 'Home', url: '/admin' },
-                    { name: 'Categories', url: '/admin/categories' },
-                    { name: 'Add Category', url: '/admin/addcategory' }
-                ]
-            });
-        }
-
-        // Define the upload directory for categories
-        const uploadDir = path.join(__dirname, '../../public/uploads/categories');
-        // Pass uploadDir to processImage
-        const imageName = await processImage(req.file, uploadDir);
-        const category = new Category({
-            name: req.body.name,
-            description: req.body.description,
-            image: imageName,
+       
+         // Check for existing category (case-insensitive)
+        const existingCategory = await Category.findOne({
+            name: { $regex: new RegExp(`^${trimmedName}$`, 'i') },
             status: true
         });
 
-        await category.save();
-        req.flash('success', 'Category added successfully');
-        res.redirect('/admin/categories');
+        if (existingCategory) {
+            return res.status(400).render('admin/addcategory', {
+                messages: { error: 'A category with this name already exists (case-insensitive)' },
+                name: trimmedName,
+                description,
+                breadcrumbs: [
+                    { name: 'Home', url: '/admin/dashboard' },
+                    { name: 'Categories', url: '/admin/categories' },
+                    { name: 'Add Category' }
+                ]
+            });
+        }
+
+        // Store trimmed name in request body for consistency
+        req.body.name = trimmedName;
+        next();
     } catch (error) {
         console.error(error);
-        req.flash('error', 'Failed to add category');
-        res.render('admin/addcategory', {
+        res.status(500).render('admin/addcategory', {
+            messages: { error: 'An error occurred while validating the category.' },
             name: req.body.name || '',
             description: req.body.description || '',
-            messages: { error: req.flash('error'), success: req.flash('success') },
             breadcrumbs: [
-                { name: 'Home', url: '/admin' },
+                { name: 'Home', url: '/admin/dashboard' },
                 { name: 'Categories', url: '/admin/categories' },
-                { name: 'Add Category', url: '/admin/addcategory' }
+                { name: 'Add Category' }
             ]
         });
     }
 };
 
-// Render edit category form
+// Handle add category form submission
+exports.postAddCategory = async (req, res) => {
+    try {
+        const { name, description, croppedImageData } = req.body;
+        let imagePath = '';
+        if (croppedImageData) {
+            const base64Data = croppedImageData.replace(/^data:image\/\w+;base64,/, '');
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            imagePath = `category-${uniqueSuffix}.jpg`;
+            fs.writeFileSync(path.join(__dirname, '../public/Uploads/categories', imagePath), imageBuffer);
+        } else if (req.file) {
+            imagePath = req.file.filename;
+        }
+
+        const category = new Category({
+            name: name.trim(),
+            description,
+            image: imagePath,
+            status: true,
+            isDeleted:false
+        });
+
+        await category.save();
+        req.flash('success', 'Category added successfully!');
+        res.redirect(302, '/admin/categories');
+    } catch (error) {
+        console.error(error);
+        res.status(500).render('admin/addcategory', {
+            messages: { error: 'An error occurred while adding the category.' },
+            name: req.body.name || '',
+            description: req.body.description || '',
+            breadcrumbs: [
+                { name: 'Home', url: '/admin/dashboard' },
+                { name: 'Categories', url: '/admin/categories' },
+                { name: 'Add Category' }
+            ]
+        });
+    }
+};
+
+// Render edit category page
 exports.getEditCategory = async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
         if (!category) {
-            req.flash('error', 'Category not found');
-            return res.redirect('/admin/categories');
+            return res.status(404).render('admin/editcategory', {
+                messages: { error: 'Category not found' },
+                category: { _id: req.params.id, name: '', description: '' },
+                breadcrumbs: [
+                    { name: 'Home', url: '/admin/dashboard' },
+                    { name: 'Categories', url: '/admin/categories' },
+                    { name: 'Edit Category' }
+                ]
+            });
         }
         res.render('admin/editcategory', {
             category,
-            messages: { error: req.flash('error'), success: req.flash('success') },
+            messages: {},
             breadcrumbs: [
-                { name: 'Home', url: '/admin' },
+                { name: 'Home', url: '/admin/dashboard' },
                 { name: 'Categories', url: '/admin/categories' },
-                { name: 'Edit Category', url: `/admin/editcategory/${req.params.id}` }
+                { name: 'Edit Category' }
             ]
         });
     } catch (error) {
         console.error(error);
-        req.flash('error', 'Failed to load category');
-        res.redirect('/admin/categories');
+        res.status(500).render('admin/editcategory', {
+            messages: { error: 'Error fetching category' },
+            category: { _id: req.params.id, name: '', description: '' },
+            breadcrumbs: [
+                { name: 'Home', url: '/admin/dashboard' },
+                { name: 'Categories', url: '/admin/categories' },
+                { name: 'Edit Category' }
+            ]
+        });
     }
 };
 
 // Update category
 exports.updateCategory = async (req, res) => {
     try {
-        const { name, description } = req.body;
-        const id = req.params.id;
-        const uploadDir = path.join(__dirname, '../../public/uploads/categories');
-
-        if (!name || !description) {
-            req.flash('error', 'Name and description are required');
-            return res.redirect(`/admin/editCategory/${id}`);
+        const { id, name, description, croppedImageData } = req.body;
+        const category = await Category.findById(id);
+        if (!category) {
+            req.flash('error', 'Category not found');
+            return res.status(404).render('admin/editcategory', {
+                messages: req.flash(),
+                category: { _id: id, name: name || '', description: description || '' },
+                breadcrumbs: [
+                    { name: 'Home', url: '/admin/dashboard' },
+                    { name: 'Categories', url: '/admin/categories' },
+                    { name: 'Edit Category' }
+                ]
+            });
         }
 
-        const updateData = { name, description };
+        // Normalize the name by trimming whitespace
+        const trimmedName = name.trim();
 
-        if (req.file) {
-            const category = await Category.findById(id);
+        // Check for existing category (case-insensitive, excluding current category)
+        const existingCategory = await Category.findOne({
+            name: { $regex: new RegExp(`^${trimmedName}$`, 'i') },
+            _id: { $ne: id } // Exclude the current category
+        });
+
+        if (existingCategory) {
+            req.flash('error', 'A category with this name already exists (case-insensitive)');
+            return res.status(400).render('admin/editcategory', {
+                messages: req.flash(),
+                category: { _id: id, name: trimmedName, description, image: category.image },
+                breadcrumbs: [
+                    { name: 'Home', url: '/admin/dashboard' },
+                    { name: 'Categories', url: '/admin/categories' },
+                    { name: 'Edit Category' }
+                ]
+            });
+        }
+
+        // Update category fields
+        category.name = trimmedName;
+        category.description = description;
+
+        // Handle image update
+        let imagePath = category.image; // Retain existing image if no new image
+        if (croppedImageData) {
+            const base64Data = croppedImageData.replace(/^data:image\/\w+;base64,/, '');
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            imagePath = `category-${uniqueSuffix}.jpg`;
+            fs.writeFileSync(path.join(__dirname, '../public/Uploads/categories', imagePath), imageBuffer);
+
+            // Delete old image if it exists
             if (category.image) {
-                await deleteImage(category.image, uploadDir);
+                const oldImagePath = path.join(__dirname, '../public/Uploads/categories', category.image);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
             }
-            updateData.image = await processImage(req.file, uploadDir);
+            category.image = imagePath;
+        } else if (req.file) {
+            // Delete old image if it exists
+            if (category.image) {
+                const oldImagePath = path.join(__dirname, '../public/Uploads/categories', category.image);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+            category.image = req.file.filename;
         }
 
-        await Category.findByIdAndUpdate(id, updateData);
-        req.flash('success', 'Category updated successfully');
-        res.redirect('/admin/categories');
+        await category.save();
+        req.flash('success', 'Category updated successfully!');
+        res.redirect(302, '/admin/categories');
     } catch (error) {
         console.error(error);
-        req.flash('error', 'Failed to update category');
-        res.redirect(`/admin/editCategory/${req.params.id}`);
+        req.flash('error', 'An error occurred while updating the category.');
+        res.status(500).render('admin/editcategory', {
+            messages: req.flash(),
+            category: { _id: req.body.id, name: req.body.name || '', description: req.body.description || '' },
+            breadcrumbs: [
+                { name: 'Home', url: '/admin/dashboard' },
+                { name: 'Categories', url: '/admin/categories' },
+                { name: 'Edit Category' }
+            ]
+        });
+    }
+};
+
+// List categories
+exports.getCategories = async (req, res) => {
+    try {
+        const { query = '', page = 1, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        const searchQuery = query ? {
+            $or: [
+                { name: { $regex: query, $options: 'i' } },
+                { description: { $regex: query, $options: 'i' } }
+            ]
+        } : {};
+
+        const categories = await Category.find(searchQuery)
+            .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalCategories = await Category.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalCategories / limit);
+
+        res.render('admin/categories', {
+            categories,
+            currentPage: parseInt(page),
+            totalPages,
+            searchQuery: query,
+            sortBy,
+            sortOrder,
+            breadcrumbs: [
+                { name: 'Home', url: '/admin/dashboard' },
+                { name: 'Categories' }
+            ]
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).render('admin/categories', {
+            messages: { error: 'An error occurred while fetching categories.' },
+            categories: [],
+            currentPage: 1,
+            totalPages: 1,
+            searchQuery: '',
+            sortBy: 'createdAt',
+            sortOrder: 'desc',
+            breadcrumbs: [
+                { name: 'Home', url: '/admin/dashboard' },
+                { name: 'Categories' }
+            ]
+        });
     }
 };
 
@@ -238,56 +304,28 @@ exports.toggleCategoryStatus = async (req, res) => {
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
-
         category.status = !category.status;
         await category.save();
-
-        res.json({
-            status: category.status,
-            message: `Category ${category.status ? 'unblocked' : 'blocked'} successfully`
-        });
+        res.json({ status: category.status });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Failed to update category status' });
+        res.status(500).json({ error: 'An error occurred while toggling category status' });
     }
 };
 
-// Delete category with enhanced error handling
+// Delete category
 exports.deleteCategory = async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
+        category.isDeleted = true
+        await category.save()
 
-        // Check if category is associated with any products
-        const products = await Product.find({ category: req.params.id });
-        if (products.length > 0) {
-            return res.status(400).json({
-                error: 'Cannot delete category. It is associated with one or more products.'
-            });
-        }
-
-        // Delete associated image
-        if (category.image) {
-            try {
-                await deleteImage(category.image);
-            } catch (imageError) {
-                console.error('Image deletion error:', imageError);
-                return res.status(500).json({
-                    error: 'Failed to delete category image'
-                });
-            }
-        }
-
-        await Category.findByIdAndDelete(req.params.id);
-        return res.json({
-            message: 'Category deleted successfully'
-        });
+        res.json({message : 'Category deleted successfully'})
     } catch (error) {
-        console.error('Delete category error:', error);
-        return res.status(500).json({
-            error: 'Failed to delete category. Please try again later.'
-        });
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while deleting the category' });
     }
 };

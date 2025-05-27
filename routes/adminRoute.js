@@ -46,7 +46,7 @@ router.delete('/deleteCategory/:id',adminSession, categoryController.deleteCateg
 router.get('/product',adminSession, productController.getProducts);
 router.get('/addproduct',adminSession, productController.renderAddProduct);
 router.post('/addproduct', adminSession, productUpload.array('images', 3), productController.addProduct);
-
+router.delete('/api/deleteproduct/:id', adminSession, productController.deleteProduct);
 router.get('/editproduct/:id', adminSession, productController.renderEditProduct);
 router.post('/editproduct/:id', adminSession, productUpload.array('images', 3), productController.editProduct);
 router.post('/api/blockproduct/:id',adminSession, productController.toggleProductStatus);

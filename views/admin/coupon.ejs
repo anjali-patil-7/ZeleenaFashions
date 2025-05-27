@@ -1,177 +1,325 @@
 <%- include('../partials/admin/header') %>
 
-<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
+<style>
+    /* Define global font and color variables for consistency */
+    :root {
+        --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --color-primary: #000000; /* Black */
+        --color-accent: #FFD700; /* Gold */
+        --color-text: #333333; /* Dark gray for body text */
+        --color-muted: #666666; /* Muted gray for secondary text */
+        --color-success: #28a745;
+        --color-danger: #dc3545;
+        --color-badge-percent-bg: #e6f7ff;
+        --color-badge-percent: #0066cc;
+        --color-badge-flat-bg: #fff0e6;
+        --color-badge-flat: #ff6600;
+    }
+
+    /* General Typography */
+    .content-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem; /* 24px */
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .content-main p,
+    .no-data {
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400;
+        line-height: 1.6;
+        color: var(--color-muted);
+    }
+
+    /* Content Header */
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+    }
+
+    .add-coupon-btn {
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        padding: 0.625rem 1.25rem;
+        border: none;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+        transition: all 0.3s;
+    }
+
+    .add-coupon-btn:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Search Container */
+    .search-container {
+        margin-bottom: 1.875rem;
+    }
+
+    .search-container form {
+        display: flex;
+        max-width: 31.25rem; /* 500px */
+    }
+
+    .search-container input {
+        flex: 1;
+        padding: 0.625rem 0.9375rem;
+        border: 1px solid var(--color-primary);
+        border-radius: 0.25rem 0 0 0.25rem;
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400;
+        line-height: 1.5;
+        color: var(--color-text);
+    }
+
+    .search-container input::placeholder {
+        color: var(--color-muted);
+    }
+
+    .search-container button {
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        padding: 0.625rem 1.25rem;
+        border: none;
+        border-radius: 0 0.25rem 0.25rem 0;
+        cursor: pointer;
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+        transition: all 0.3s;
+    }
+
+    .search-container button:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    .search-container a {
+        background-color: #f8f8f8;
+        color: var(--color-primary);
+        padding: 0.625rem 0.9375rem;
+        border: 1px solid var(--color-primary);
+        border-left: none;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+        transition: all 0.3s;
+    }
+
+    .search-container a:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Coupons Table */
+    .coupons-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        border: 1px solid var(--color-primary);
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        line-height: 1.5;
+    }
+
+    .coupons-table th {
+        padding: 0.9375rem;
+        text-align: center;
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .coupons-table td {
+        padding: 0.75rem;
+        text-align: center;
+        border: 1px solid #e0e0e0;
+        color: var(--color-text);
+        font-weight: 400;
+    }
+
+    .coupons-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .coupons-table tr:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.3125rem;
+        justify-content: center;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        color: var(--color-accent);
+        background-color: var(--color-primary);
+        text-decoration: none;
+        display: inline-block;
+        font-family: var(--font-heading);
+        font-size: 0.75rem; /* 12px */
+        font-weight: 500;
+        line-height: 1.3;
+        transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Pagination */
+    .pagination {
+        margin-top: 1.875rem;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .page-link {
+        padding: 0.5rem 0.875rem;
+        border: 1px solid var(--color-primary);
+        text-decoration: none;
+        color: var(--color-primary);
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+        border-radius: 0.25rem;
+        transition: all 0.3s;
+    }
+
+    .page-link:hover {
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+    }
+
+    .page-link.active {
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+
+    /* No Data Message */
+    .no-data {
+        text-align: center;
+        font-weight: 500;
+        font-size: 1rem; /* 16px */
+    }
+
+    /* Spinner */
+    .spinner {
+        display: inline-block;
+        width: 1.125rem;
+        height: 1.125rem;
+        border: 3px solid rgba(255, 215, 0, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--color-accent);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Badges */
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-family: var(--font-body);
+        font-size: 0.75rem; /* 12px */
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .badge-percent {
+        background-color: var(--color-badge-percent-bg);
+        color: var(--color-badge-percent);
+    }
+
+    .badge-flat {
+        background-color: var(--color-badge-flat-bg);
+        color: var(--color-badge-flat);
+    }
+
+    /* Expired Status */
+    .expired {
+        color: var(--color-danger);
+        font-weight: 500;
+    }
+
+    /* SweetAlert2 Custom Styles */
+    .gold-swal {
+        border: 2px solid var(--color-accent) !important;
+        font-family: var(--font-body) !important;
+        font-size: 0.875rem !important; /* 14px */
+    }
+
+    .gold-confirm-btn {
+        background-color: var(--color-primary) !important;
+        color: var(--color-accent) !important;
+        font-family: var(--font-heading) !important;
+        font-size: 0.875rem !important; /* 14px */
+        font-weight: 500 !important;
+    }
+</style>
+
+<section class="content-main" style="background: #ffffff; padding: 1.25rem; min-height: 80vh;">
     <div class="content-header">
         <div>
-            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Coupon List</h2>
-            <p style="color: #666;">Coupon Management</p>
+            <h2 class="content-title">Coupon List</h2>
+            <p>Coupon Management</p>
         </div>
-        <a href="/admin/addcoupon" class="add-coupon-btn" style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-            + Add Coupon
-        </a>
+        <a href="/admin/addcoupon" class="add-coupon-btn">+ Add Coupon</a>
     </div>
 
     <!-- Search Container -->
-    <div class="search-container" style="margin-bottom: 30px;">
+    <div class="search-container">
         <form action="/admin/coupon" method="GET">
-            <div style="display: flex; max-width: 500px;">
+            <div style="display: flex; max-width: 31.25rem;">
                 <input 
                     type="text" 
                     name="query" 
                     placeholder="Search by coupon code..." 
-                    style="flex: 1; padding: 10px 15px; border: 1px solid #000000; border-radius: 4px 0 0 4px; font-family: 'Montserrat', sans-serif;"
                     value="<%= locals.searchQuery || '' %>"
                 >
-                <button 
-                    type="submit" 
-                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';"
-                >
-                    Search
-                </button>
+                <button type="submit">Search</button>
                 <% if (locals.searchQuery) { %>
-                    <a 
-                        href="/admin/coupon" 
-                        style="background-color: #f8f8f8; color: #000000; padding: 10px 15px; border: 1px solid #000000; border-left: none; text-decoration: none; display: flex; align-items: center; font-family: 'Montserrat', sans-serif;"
-                    >
-                        Clear
-                    </a>
+                    <a href="/admin/coupon">Clear</a>
                 <% } %>
             </div>
         </form>
     </div>
-
-    <style>
-        .coupons-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 25px 0;
-            border: 1px solid #000000;
-            font-family: 'Montserrat', sans-serif;
-        }
-        
-        .coupons-table th {
-            padding: 15px;
-            text-align: center;
-            background-color: #000000;
-            color: #FFD700;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .coupons-table td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #e0e0e0;
-            color: #333;
-        }
-        
-        .coupons-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        
-        .coupons-table tr:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .action-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 5px;
-            color: #FFD700;
-            text-decoration: none;
-            display: inline-block;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 500;
-            transition: all 0.3s;
-            background-color: #000000;
-        }
-        
-        .action-btn:hover {
-            background-color: #FFD700;
-            color: #000000;
-        }
-        
-        .pagination {
-            margin-top: 30px;
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .page-link {
-            padding: 8px 14px;
-            border: 1px solid #000000;
-            text-decoration: none;
-            color: #000000;
-            font-family: 'Montserrat', sans-serif;
-            border-radius: 4px;
-            transition: all 0.3s;
-        }
-        
-        .page-link:hover {
-            background-color: #000000;
-            color: #FFD700;
-        }
-        
-        .page-link.active {
-            background-color: #000000;
-            color: #FFD700;
-            font-weight: 600;
-        }
-        
-        .no-data {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 30px;
-            font-size: 18px;
-            color: #666;
-            font-family: 'Montserrat', sans-serif;
-        }
-        
-        .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(255, 215, 0, 0.3);
-            border-radius: 50%;
-            border-top-color: #FFD700;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .badge-percent {
-            background-color: #e6f7ff;
-            color: #0066cc;
-        }
-        
-        .badge-flat {
-            background-color: #fff0e6;
-            color: #ff6600;
-        }
-        
-        .expired {
-            color: #dc3545;
-            font-weight: 500;
-        }
-    </style>
 
     <% if (coupons.length > 0) { %>
         <table class="coupons-table" id="coupons-table">
@@ -210,7 +358,7 @@
                             <%= coupon.status ? "Active" : "Inactive" %>
                         </td>
                         <td>
-                            <div class="action-buttons" style="display: flex; gap: 5px; justify-content: center;">
+                            <div class="action-buttons">
                                 <button onclick="confirmBlock('<%= coupon._id %>', '<%= coupon.status %>')" id="block-btn-<%= coupon._id %>" class="action-btn">
                                     <%= coupon.status ? "Block" : "Unblock" %>
                                 </button>
@@ -345,13 +493,3 @@
         });
     }
 </script>
-
-<style>
-    .gold-swal {
-        border: 2px solid #FFD700 !important;
-    }
-    .gold-confirm-btn {
-        background-color: #000000 !important;
-        color: #FFD700 !important;
-    }
-</style>

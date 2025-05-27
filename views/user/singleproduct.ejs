@@ -71,6 +71,16 @@
             transform: translateY(1px);
             box-shadow: none;
         }
+        .qty-wishlist_btn.active {
+            background: #ffc107; /* Golden yellow background */
+            color: #ffffff; /* White icon for contrast */
+            border-color: #e0a800; /* Slightly darker border */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .qty-wishlist_btn.active i {
+            font-family: "Ionicons";
+            content: "\f387"; /* Ionicons code for filled heart */
+        }
         .qty-wishlist_btn i {
             display: flex;
             align-items: center;
@@ -385,15 +395,15 @@
                                             </button>
                                         </li>
                                         <li>
-                                            <a
+                                            <button
                                                 class="qty-wishlist_btn"
-                                                href="/wishlist"
                                                 data-bs-toggle="tooltip"
                                                 title="Add To Wishlist"
                                                 data-product-id="<%= product._id %>"
+                                                onclick="toggleWishlist('<%= product._id %>')"
                                             >
                                                 <i class="ion-android-favorite-outline"></i>
-                                            </a>
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>
@@ -756,6 +766,10 @@
                     }
                 }
             );
+
+            // Check wishlist status on page load
+            const productId = '<%= product._id %>';
+            checkWishlistStatus(productId);
         });
 
         const MAX_QUANTITY = 7;
@@ -833,6 +847,102 @@
                     icon: "warning",
                     title: "Please Login",
                     text: "Please login to add items to your cart.",
+                });
+            }
+        }
+
+        // Check if product is in wishlist
+        async function checkWishlistStatus(productId) {
+            try {
+                const response = await fetch(`/checkwishlist/${productId}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                const data = await response.json();
+                if (response.ok && data.isInWishlist) {
+                    const wishlistBtn = document.querySelector(`.qty-wishlist_btn[data-product-id="${productId}"]`);
+                    wishlistBtn.classList.add("active");
+                    wishlistBtn.querySelector("i").className = "ion-android-favorite";
+                }
+            } catch (error) {
+                console.error("Error checking wishlist status:", error);
+            }
+        }
+
+        // Toggle wishlist (add/remove)
+        async function toggleWishlist(productId) {
+            const wishlistBtn = document.querySelector(`.qty-wishlist_btn[data-product-id="${productId}"]`);
+            const isActive = wishlistBtn.classList.contains("active");
+            const endpoint = isActive ? `/wishlist/remove` : `/wishlist/add`;
+            const method = isActive ? "POST" : "POST"; // Both use POST in your controller
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ productId }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (isActive) {
+                        wishlistBtn.classList.remove("active");
+                        wishlistBtn.querySelector("i").className = "ion-android-favorite-outline";
+                        Swal.fire({
+                            icon: "success",
+                            title: "Removed from Wishlist",
+                            text: data.message || "Product removed from your wishlist!",
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
+                    } else {
+                        wishlistBtn.classList.add("active");
+                        wishlistBtn.querySelector("i").className = "ion-android-favorite";
+                        Swal.fire({
+                            icon: "success",
+                            title: "Added to Wishlist",
+                            text: data.message || "Product added to your wishlist!",
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
+                    }
+                } else {
+                    let errorMessage = data.message || "Failed to update wishlist";
+                    if (errorMessage.includes("login") || response.status === 401) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Please Login",
+                            text: "Please login to manage your wishlist.",
+                            confirmButtonText: "OK",
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "/login";
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: errorMessage,
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Error toggling wishlist:", error);
+                Swal.fire({
+                    icon: "warning",
+                    title: "Please Login",
+                    text: "Please login to manage your wishlist.",
+                    confirmButtonText: "OK",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "/login";
+                    }
                 });
             }
         }

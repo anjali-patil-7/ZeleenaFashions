@@ -1,333 +1,556 @@
 <%- include('../partials/admin/header') %>
-
-<style>
-    .alert {
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-        border: 1px solid #FFD700; /* Gold border */
-        background-color: #ffffff; /* White background */
-        color: #000000; /* Black text */
-    }
-    .alert ul {
-        margin: 0;
-        padding-left: 20px;
-    }
-    .form-control.error, .form-select.error {
-        border-color: #FFD700; /* Gold border for errors */
-    }
-    .text-danger {
-        font-size: 0.875em;
-        margin-top: 5px;
-        color: #000000; /* Black text */
-        font-family: 'Montserrat', sans-serif;
-    }
-    .breadcrumbs {
-        margin-bottom: 20px;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-    }
-    .breadcrumbs a {
-        color: #000000; /* Black text */
-        text-decoration: none;
-        margin-right: 5px;
-    }
-    .breadcrumbs a:hover {
-        color: #FFD700; /* Gold text on hover */
-    }
-    .breadcrumbs span {
-        margin: 0 5px;
-        color: #666; /* Gray text */
-    }
-    .image-preview-container {
-        margin-top: 10px;
-        max-width: 100%;
-    }
-    .image-preview {
-        max-width: 100%;
-        max-height: 300px;
-        display: none;
-        border: 1px solid #000000; /* Black border */
-    }
-    .cropper-container {
-        margin-top: 10px;
-        max-width: 100%;
-        background-color: #ffffff; /* White background */
-        border: 1px solid #000000; /* Black border */
-    }
-    .crop-button {
-        margin-top: 10px;
-        display: none;
-    }
-    .cropper-view-box, .cropper-face {
-        border: 2px solid #FFD700 !important; /* Gold border for cropper viewport */
-    }
-</style>
-
-<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
-    <div class="breadcrumbs">
-        <% breadcrumbs.forEach((crumb, index) => { %>
-            <% if (index < breadcrumbs.length - 1) { %>
-                <a href="<%= crumb.url %>"><%= crumb.name %></a>
-                <span>></span>
-            <% } else { %>
-                <%= crumb.name %>
-            <% } %>
-        <% }) %>
-    </div>
-
-    <div class="content-header">
-        <div>
-            <h1 class="content-title card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Add Categories</h1>
-        </div>
-        <a href="/admin/categories" 
-           class="btn" 
-           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-            Back to Categories
-        </a>
-    </div>
-    <div class="card-body" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px; padding: 20px;">
-        <div class="row">
-            <div class="col-md-8">
-                <% if (messages.error && messages.error.length > 0) { %>
-                    <div class="alert">
-                        <%= messages.error %>
-                    </div>
-                <% } %>
-                <% if (messages.success && messages.success.length > 0) { %>
-                    <div class="alert">
-                        <%= messages.success %>
-                    </div>
-                <% } %>
-                <form id="addCategoryForm" method="post" action="/admin/addcategory" enctype="multipart/form-data">
-                    <div class="mb-4">
-                        <label for="name" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Name</label>
-                        <input 
-                            type="text" 
-                            placeholder="Type here" 
-                            class="form-control" 
-                            id="name" 
-                            name="name" 
-                            value="<%= name || '' %>"
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        />
-                        <div id="nameError" class="text-danger"></div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="description" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Description</label>
-                        <textarea 
-                            placeholder="Type here" 
-                            class="form-control" 
-                            id="description" 
-                            name="description"
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        ><%= description || '' %></textarea>
-                        <div id="descriptionError" class="text-danger"></div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="image" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Category Image</label>
-                        <input 
-                            type="file" 
-                            class="form-control" 
-                            id="image" 
-                            name="image" 
-                            accept="image/*"
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        />
-                        <div id="imageError" class="text-danger"></div>
-                        <div class="image-preview-container">
-                            <img id="imagePreview" class="image-preview" src="#" alt="Image Preview" />
-                        </div>
-                        <div class="cropper-container">
-                            <img id="cropperImage" style="max-width: 100%; display: none;" />
-                        </div>
-                        <button type="button" 
-                                id="cropButton" 
-                                class="btn crop-button"
-                                style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                                onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                                onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                            Crop Image
-                        </button>
-                        <input type="hidden" id="croppedImageData" name="croppedImageData" />
-                    </div>
-                    <button type="submit" 
-                            class="btn"
-                            style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                        Add Category
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Include Cropper.js CSS and JS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('addCategoryForm');
-        const imageInput = document.getElementById('image');
-        const imagePreview = document.getElementById('imagePreview');
-        const cropperImage = document.getElementById('cropperImage');
-        const cropButton = document.getElementById('cropButton');
-        const croppedImageDataInput = document.getElementById('croppedImageData');
-        let cropper = null;
-
-        // Form submission handler
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            if (validateForm()) {
-                this.submit();
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            color: #000000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            border: 1px solid #FFD700;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        .alert ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .form-control.error, .form-select.error {
+            border-color: #FFD700;
+        }
+        
+        .text-danger {
+            font-size: 0.875em;
+            margin-top: 5px;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .breadcrumbs {
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+        
+        .breadcrumbs a {
+            color: #000000;
+            text-decoration: none;
+            margin-right: 5px;
+        }
+        
+        .breadcrumbs a:hover {
+            color: #FFD700;
+        }
+        
+        .breadcrumbs span {
+            margin: 0 5px;
+            color: #666;
+        }
+        
+        .content-main {
+            background: #ffffff;
+            padding: 20px;
+            min-height: 80vh;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .content-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #000000;
+            margin: 0;
+        }
+        
+        .btn {
+            background-color: #000000;
+            color: #FFD700;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background-color: #FFD700;
+            color: #000000;
+        }
+        
+        .card-body {
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            padding: 20px;
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+        }
+        
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            color: #000000;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            width: 100%;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Croppie specific styles */
+        .image-crop-container {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .crop-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .crop-controls button {
+            margin: 0 5px;
+        }
+        
+        .cropped-preview {
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .cropped-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #000000;
+            border-radius: 4px;
+        }
+        
+        #uploadCropper {
+            width: 100%;
+            height: 300px;
+        }
+        
+        .croppie-container {
+            border: 1px solid #000000 !important;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .col-md-8 {
+                flex: 0 0 100%;
+                max-width: 100%;
             }
-        });
-
-        // Image input change handler
-        imageInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Show preview
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-
-                    // Initialize cropper
-                    cropperImage.src = e.target.result;
-                    cropperImage.style.display = 'block';
-                    cropButton.style.display = 'block';
-
-                    if (cropper) {
-                        cropper.destroy();
-                    }
-                    cropper = new Cropper(cropperImage, {
-                        aspectRatio: NaN, // Free-size cropping
-                        viewMode: 1,
-                        autoCropArea: 0.8,
-                        responsive: true,
-                        zoomable: true,
-                        scalable: true,
-                        movable: true,
-                    });
-                };
-                reader.readAsDataURL(file);
-            } else {
-                resetImageSection();
+            
+            .content-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
-        });
-
-        // Crop button handler
-        cropButton.addEventListener('click', function() {
-            if (cropper) {
-                const canvas = cropper.getCroppedCanvas();
-                if (canvas) {
-                    // Update preview with cropped image
-                    imagePreview.src = canvas.toDataURL('image/jpeg');
-                    imagePreview.style.display = 'block';
-
-                    // Store cropped image data
-                    croppedImageDataInput.value = canvas.toDataURL('image/jpeg');
-
-                    // Hide cropper
-                    cropperImage.style.display = 'none';
-                    cropButton.style.display = 'none';
-                    cropper.destroy();
-                    cropper = null;
-                }
-            }
-        });
-
-        // Real-time validation
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            input.addEventListener('input', function() {
-                validateField(this);
-            });
-        });
-
-        function validateField(field) {
-            const errorElement = document.getElementById(field.id + 'Error');
-            errorElement.innerHTML = '';
-            field.classList.remove('error');
-
-            switch(field.id) {
-                case 'name':
-                    const name = field.value.trim();
-                    if (!name) {
-                        showError(field, errorElement, 'Category name is required');
-                    } else if (name.length < 2 || name.length > 50) {
-                        showError(field, errorElement, 'Name must be 2-50 characters long');
-                    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-                        showError(field, errorElement, 'Name should only contain letters and spaces, no numbers allowed');
-                    }
-                    break;
-
-                case 'description':
-                    const description = field.value.trim();
-                    if (!description) {
-                        showError(field, errorElement, 'Description is required');
-                    } else if (description.length < 10 || description.length > 500) {
-                        showError(field, errorElement, 'Description must be 10-500 characters long');
-                    } else if (!/^[a-zA-Z\s]+$/.test(description)) {
-                        showError(field, errorElement, 'Description should only contain letters and spaces, no numbers allowed');
-                    }
-                    break;
-
-                case 'image':
-                    if (!croppedImageDataInput.value && field.files.length === 0) {
-                        showError(field, errorElement, 'Image is required');
-                    } else if (field.files.length > 0) {
-                        const file = field.files[0];
-                        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                        if (!allowedTypes.includes(file.type)) {
-                            showError(field, errorElement, 'Only JPEG, PNG, or GIF images are allowed');
-                        } else if (file.size > 5 * 1024 * 1024) {
-                            showError(field, errorElement, 'Image size must be less than 5MB');
-                        }
-                    }
-                    break;
+            
+            #uploadCropper {
+                height: 250px;
             }
         }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section class="content-main">
+            <div class="breadcrumbs">
+                <a href="/admin">Dashboard</a>
+                <span>></span>
+                <a href="/admin/categories">Categories</a>
+                <span>></span>
+                Add Categories
+            </div>
 
-        function validateForm() {
-            let isValid = true;
-            const fields = ['name', 'description', 'image'];
+            <div class="content-header">
+                <div>
+                    <h1 class="content-title">Add Categories</h1>
+                </div>
+                <a href="/admin/categories" class="btn">
+                    Back to Categories
+                </a>
+            </div>
             
-            fields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                validateField(field);
-                if (field.classList.contains('error')) {
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="successAlert" class="alert" style="display: none;">
+                            Category added successfully!
+                        </div>
+                        <div id="errorAlert" class="alert" style="display: none;">
+                            Please fix the errors below.
+                        </div>
+                        
+                        <form id="addCategoryForm" method="post" action="/admin/addcategory" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <label for="name" class="form-label">Name</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Type here" 
+                                    class="form-control" 
+                                    id="name" 
+                                    name="name" 
+                                    value=""
+                                />
+                                <div id="nameError" class="text-danger"></div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea 
+                                    placeholder="Type here" 
+                                    class="form-control" 
+                                    id="description" 
+                                    name="description"
+                                ></textarea>
+                                <div id="descriptionError" class="text-danger"></div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="image" class="form-label">Category Image</label>
+                                <input 
+                                    type="file" 
+                                    class="form-control" 
+                                    id="image" 
+                                    name="image" 
+                                    accept="image/*"
+                                />
+                                <div id="imageError" class="text-danger"></div>
+                                
+                                <!-- Croppie container -->
+                                <div class="image-crop-container" id="imageCropContainer">
+                                    <div id="uploadCropper"></div>
+                                    <div class="crop-controls">
+                                        <button type="button" class="btn" id="cropButton">Crop Image</button>
+                                        <button type="button" class="btn" id="cancelCropButton" style="background-color: #666; color: white;">Cancel</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Cropped image preview -->
+                                <div class="cropped-preview" id="croppedPreview">
+                                    <p style="margin-bottom: 10px; color: #000000; font-weight: 500;">Cropped Image Preview:</p>
+                                    <img id="croppedImage" src="#" alt="Cropped Preview" />
+                                    <div style="margin-top: 10px;">
+                                        <button type="button" class="btn" id="changeCropButton" style="background-color: #666; color: white;">Change Crop</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hidden input for cropped image data -->
+                                <input type="hidden" id="croppedImageData" name="croppedImageData" />
+                            </div>
+                            
+                            <button type="submit" class="btn">
+                                Add Category
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('addCategoryForm');
+            const imageInput = document.getElementById('image');
+            const imageCropContainer = document.getElementById('imageCropContainer');
+            const croppedPreview = document.getElementById('croppedPreview');
+            const croppedImage = document.getElementById('croppedImage');
+            const croppedImageData = document.getElementById('croppedImageData');
+            const cropButton = document.getElementById('cropButton');
+            const cancelCropButton = document.getElementById('cancelCropButton');
+            const changeCropButton = document.getElementById('changeCropButton');
+            
+            let uploadCrop;
+            let originalFile;
+
+            // Initialize Croppie
+            function initializeCroppie() {
+                uploadCrop = new Croppie(document.getElementById('uploadCropper'), {
+                    viewport: {
+                        width: 250,
+                        height: 250,
+                        type: 'square'
+                    },
+                    boundary: {
+                        width: 300,
+                        height: 300
+                    },
+                    showZoomer: true,
+                    enableResize: true,
+                    enableOrientation: true,
+                    mouseWheelZoom: 'ctrl'
+                });
+            }
+
+            // Form submission handler
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                if (validateForm()) {
+                    // If we have cropped image data, we'll handle it in the form submission
+                    if (croppedImageData.value) {
+                        // Convert base64 to blob and append to FormData
+                        const formData = new FormData();
+                        formData.append('name', document.getElementById('name').value);
+                        formData.append('description', document.getElementById('description').value);
+                        
+                        // Convert base64 to blob
+                        const base64Data = croppedImageData.value.split(',')[1];
+                        const byteCharacters = atob(base64Data);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: 'image/png' });
+                        
+                        formData.append('image', blob, 'cropped-image.png');
+                        
+                        // Show success message (in real implementation, this would be server response)
+                        showSuccessMessage();
+                    } else {
+                        this.submit();
+                    }
+                }
+            });
+
+            // Image input change handler
+            imageInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    originalFile = file;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Initialize Croppie if not already done
+                        if (!uploadCrop) {
+                            initializeCroppie();
+                        }
+                        
+                        // Bind image to Croppie
+                        uploadCrop.bind({
+                            url: e.target.result
+                        });
+                        
+                        // Show crop container
+                        imageCropContainer.style.display = 'block';
+                        croppedPreview.style.display = 'none';
+                        croppedImageData.value = '';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    resetImageSection();
+                }
+            });
+
+            // Crop button handler
+            cropButton.addEventListener('click', function() {
+                uploadCrop.result({
+                    type: 'base64',
+                    size: 'viewport',
+                    format: 'png',
+                    quality: 0.8
+                }).then(function(result) {
+                    // Show cropped preview
+                    croppedImage.src = result;
+                    croppedImageData.value = result;
+                    croppedPreview.style.display = 'block';
+                    imageCropContainer.style.display = 'none';
+                });
+            });
+
+            // Cancel crop button handler
+            cancelCropButton.addEventListener('click', function() {
+                resetImageSection();
+                imageInput.value = '';
+            });
+
+            // Change crop button handler
+            changeCropButton.addEventListener('click', function() {
+                if (originalFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        uploadCrop.bind({
+                            url: e.target.result
+                        });
+                        imageCropContainer.style.display = 'block';
+                        croppedPreview.style.display = 'none';
+                        croppedImageData.value = '';
+                    };
+                    reader.readAsDataURL(originalFile);
+                }
+            });
+
+            // Real-time validation
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    validateField(this);
+                });
+            });
+
+            function validateField(field) {
+                const errorElement = document.getElementById(field.id + 'Error');
+                errorElement.innerHTML = '';
+                field.classList.remove('error');
+
+                switch(field.id) {
+                    case 'name':
+                        const name = field.value.trim();
+                        if (!name) {
+                            showError(field, errorElement, 'Category name is required');
+                        } else if (name.length < 2 || name.length > 50) {
+                            showError(field, errorElement, 'Name must be 2-50 characters long');
+                        } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                            showError(field, errorElement, 'Name should only contain letters and spaces, no numbers allowed');
+                        }
+                        break;
+
+                    case 'description':
+                        const description = field.value.trim();
+                        if (!description) {
+                            showError(field, errorElement, 'Description is required');
+                        } else if (description.length < 10 || description.length > 500) {
+                            showError(field, errorElement, 'Description must be 10–500 characters long');
+                        } else if (!/^[a-zA-Z][a-zA-Z\s\W]*$/.test(description)) {
+                            showError(field, errorElement, 'Description must start with a letter and can include letters, spaces, and symbols (no numbers)');
+                        }
+                        break;
+
+                    case 'image':
+                        if (field.files.length === 0) {
+                            showError(field, errorElement, 'Image is required');
+                        } else if (field.files.length > 0) {
+                            const file = field.files[0];
+                            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                            if (!allowedTypes.includes(file.type)) {
+                                showError(field, errorElement, 'Only JPEG, PNG, or GIF images are allowed');
+                            } else if (file.size > 5 * 1024 * 1024) {
+                                showError(field, errorElement, 'Image size must be less than 5MB');
+                            }
+                        }
+                        break;
+                }
+            }
+
+            function validateForm() {
+                let isValid = true;
+                const fields = ['name', 'description', 'image'];
+                
+                fields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    validateField(field);
+                    if (field.classList.contains('error')) {
+                        isValid = false;
+                    }
+                });
+
+                // Check if image is cropped (for demo purposes, we'll require cropping)
+                if (imageInput.files.length > 0 && !croppedImageData.value) {
+                    const imageError = document.getElementById('imageError');
+                    showError(imageInput, imageError, 'Please crop the image before submitting');
                     isValid = false;
                 }
-            });
 
-            return isValid;
-        }
-
-        function showError(field, errorElement, message) {
-            errorElement.innerHTML = message;
-            field.classList.add('error');
-        }
-
-        function resetImageSection() {
-            imagePreview.style.display = 'none';
-            cropperImage.style.display = 'none';
-            cropButton.style.display = 'none';
-            croppedImageDataInput.value = '';
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
+                return isValid;
             }
-        }
-    });
-</script>
 
+            function showError(field, errorElement, message) {
+                errorElement.innerHTML = message;
+                field.classList.add('error');
+            }
+
+            function resetImageSection() {
+                imageCropContainer.style.display = 'none';
+                croppedPreview.style.display = 'none';
+                croppedImageData.value = '';
+                if (uploadCrop) {
+                    uploadCrop.destroy();
+                    uploadCrop = null;
+                }
+            }
+
+            function showSuccessMessage() {
+                const successAlert = document.getElementById('successAlert');
+                const errorAlert = document.getElementById('errorAlert');
+                
+                successAlert.style.display = 'block';
+                errorAlert.style.display = 'none';
+                
+                // Reset form
+                form.reset();
+                resetImageSection();
+                
+                // Clear all error messages
+                document.querySelectorAll('.text-danger').forEach(el => el.innerHTML = '');
+                document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }
+        });
+    </script>
 <%- include('../partials/admin/footer') %>

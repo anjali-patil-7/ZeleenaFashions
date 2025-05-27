@@ -9,6 +9,7 @@ const productSchema = new Schema({
     totalStock: { type: Number, required: true },
     productImage: { type: [String], required: true },
     status: { type: Boolean, default: true },
+    isDeleted:{type:Boolean, default:false},
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

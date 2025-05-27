@@ -4,14 +4,13 @@ const path = require("path");
 const fs = require("fs");
 const { uploadImage } = require("../../config/cloudinary");
 
-// Add Product
+// productController.js
 exports.addProduct = async (req, res) => {
   try {
     const { name, description, price, stock, category, status } = req.body;
-    const files = req.files || [];
+    const files = req.files; // Files come as an object: { image1, image2, image3 }
 
-    const imageUrls = await uploadImage(files);
-
+    // Validation
     const errors = [];
     if (!name || name.trim().length < 2 || name.trim().length > 100) {
       errors.push("Product name must be 2-100 characters long");
@@ -24,29 +23,17 @@ exports.addProduct = async (req, res) => {
     } else {
       const trimmedDescription = description.trim();
       if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
-        errors.push("Description must be 10–1000 characters long");
+        errors.push("Description must be 10-1000 characters long");
       } else if (!/^[a-zA-Z0-9\s,.]+$/.test(trimmedDescription)) {
-        errors.push(
-          "Description can only contain letters, numbers, spaces, periods, and commas"
-        );
+        errors.push("Description can only contain letters, numbers, spaces, periods, and commas");
       }
     }
 
-    if (
-      !price ||
-      isNaN(price) ||
-      parseFloat(price) <= 0 ||
-      parseFloat(price) > 1000000
-    ) {
+    if (!price || isNaN(price) || parseFloat(price) <= 0 || parseFloat(price) > 1000000) {
       errors.push("Price must be between 0.01 and 1,000,000");
     }
 
-    if (
-      !stock ||
-      isNaN(stock) ||
-      parseInt(stock) < 0 ||
-      parseInt(stock) > 10000
-    ) {
+    if (!stock || isNaN(stock) || parseInt(stock) < 0 || parseInt(stock) > 10000) {
       errors.push("Stock must be between 0 and 10,000");
     }
 
@@ -54,16 +41,24 @@ exports.addProduct = async (req, res) => {
       errors.push("Category is required");
     }
 
-    if (files.length !== 3) {
-      errors.push(`Exactly 3 images are required, received ${files.length}`);
+    // Validate images
+    const imageKeys = ["image1", "image2", "image3"];
+    const uploadedFiles = imageKeys
+      .map((key) => files[key])
+      .filter(Boolean)
+      .map((file) => file[0]); // Multer fields provide arrays
+    const validExtensions = ["image/jpeg", "image/jpg", "image/png"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (uploadedFiles.length !== 3) {
+      errors.push(`Exactly 3 images are required, received ${uploadedFiles.length}`);
     } else {
-      const validExtensions = ["image/jpeg", "image/jpg", "image/png"];
-      const maxSize = 5 * 1024 * 1024;
-      files.forEach((file, index) => {
-        if (!validExtensions.includes(file.mimetype)) {
+      uploadedFiles.forEach((file, index) => {
+        if (!file) {
+          errors.push(`Image ${index + 1} is missing`);
+        } else if (!validExtensions.includes(file.mimetype)) {
           errors.push(`Image ${index + 1} must be JPG, JPEG, or PNG`);
-        }
-        if (file.size > maxSize) {
+        } else if (file.size > maxSize) {
           errors.push(`Image ${index + 1} must be less than 5MB`);
         }
       });
@@ -71,7 +66,7 @@ exports.addProduct = async (req, res) => {
 
     if (errors.length > 0) {
       const categories = await Category.find();
-      return res.render("admin/addproduct", {
+      return res.status(400).render("admin/addproduct", {
         product: { name, description, price, stock, category, status },
         categories,
         errors,
@@ -79,34 +74,48 @@ exports.addProduct = async (req, res) => {
       });
     }
 
-    const imagePaths = imageUrls;
+    // Upload images to Cloudinary
+    let imageUrls;
+    try {
+      imageUrls = await uploadImage(uploadedFiles);
+    } catch (uploadError) {
+      console.error("Cloudinary upload error:", uploadError);
+      errors.push("Failed to upload images to Cloudinary");
+      const categories = await Category.find();
+      return res.status(500).render("admin/addproduct", {
+        product: { name, description, price, stock, category, status },
+        categories,
+        errors,
+        messages: { error: "Failed to upload images to Cloudinary", success: "" },
+      });
+    }
 
+    // Create and save product
     const product = new Product({
       productName: name.trim(),
       description: description.trim(),
       price: parseFloat(price),
       totalStock: parseInt(stock),
       category,
-      productImage: imagePaths,
+      productImage: imageUrls,
       status: status === "true",
     });
 
     await product.save();
     req.flash("success", "Product added successfully");
-    res.redirect("/admin/product");
+    return res.redirect("/admin/product");
   } catch (error) {
     console.error("Error adding product:", error);
     const categories = await Category.find();
-    const errorMessage =
-      error.message || "An error occurred while adding the product";
-    return res.render("admin/addproduct", {
+    return res.status(500).render("admin/addproduct", {
       product: req.body,
       categories,
-      errors: [errorMessage],
-      messages: { error: errorMessage, success: "" },
+      errors: [error.message || "An error occurred while adding the product"],
+      messages: { error: error.message || "An error occurred while adding the product", success: "" },
     });
   }
 };
+
 
 // Edit Product
 exports.editProduct = async (req, res) => {
@@ -294,13 +303,15 @@ exports.getProducts = async (req, res) => {
     let page = parseInt(req.query.page) || 1;
     const limit = 5;
     const searchQuery = req.query.query ? req.query.query.trim() : "";
+    const sortBy = req.query.sort || "updatedAt"; // Default to sorting by last modified
+    const sortOrder = req.query.order === "asc" ? 1 : -1; // Default to descending order
 
     // Validate page number
     if (page < 1 || isNaN(page)) {
       page = 1;
     }
 
-    console.log(`Page: ${page}, Search Query: ${searchQuery}`);
+    console.log(`Page: ${page}, Search Query: ${searchQuery}, Sort By: ${sortBy}, Sort Order: ${sortOrder}`);
 
     const query = searchQuery
       ? {
@@ -311,8 +322,13 @@ exports.getProducts = async (req, res) => {
         }
       : {};
 
+    // Define sort object
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder;
+
     const products = await Product.find(query)
       .populate("category")
+      .sort(sortOptions)
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -321,7 +337,9 @@ exports.getProducts = async (req, res) => {
 
     // Redirect to last page if page exceeds totalPages
     if (page > totalPages) {
-      return res.redirect(`/admin/product?page=${totalPages}${searchQuery ? '&query=' + encodeURIComponent(searchQuery) : ''}`);
+      return res.redirect(
+        `/admin/product?page=${totalPages}${searchQuery ? '&query=' + encodeURIComponent(searchQuery) : ''}&sort=${sortBy}&order=${req.query.order || 'desc'}`
+      );
     }
 
     console.log(`Total Products: ${totalProducts}, Total Pages: ${totalPages}, Products Fetched: ${products.length}`);
@@ -331,6 +349,8 @@ exports.getProducts = async (req, res) => {
       currentPage: page,
       totalPages,
       searchQuery,
+      sortBy,
+      sortOrder: req.query.order || "desc",
       messages: { error: req.flash("error"), success: req.flash("success") },
     });
   } catch (error) {
@@ -341,6 +361,8 @@ exports.getProducts = async (req, res) => {
       currentPage: 1,
       totalPages: 1,
       searchQuery: "",
+      sortBy: "updatedAt",
+      sortOrder: "desc",
       messages: { error: req.flash("error"), success: req.flash("success") },
     });
   }
@@ -406,3 +428,19 @@ exports.renderEditProduct = async (req, res) => {
     res.redirect("/admin/product");
   }
 };
+
+exports.deleteProduct = async(req,res) => {
+  try {
+     const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ error: 'product not found' });
+        }
+        product.isDeleted = true
+        await product.save()
+
+        res.json({message : 'product deleted successfully'})
+  } catch (error) {
+       console.error(error);
+        res.status(500).json({ error: 'An error occurred while deleting the product' });
+  }
+}

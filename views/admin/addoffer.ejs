@@ -17,6 +17,9 @@
   .form-control.error, select[multiple].error {
     border-color: #FFD700; /* Gold border for errors */
   }
+  .form-control.valid, select[multiple].valid {
+    border-color: #28a745; /* Green border for valid inputs */
+  }
   .text-danger {
     font-size: 0.875em;
     margin-top: 5px;
@@ -249,6 +252,20 @@ document.addEventListener('DOMContentLoaded', function() {
   const thirtyDaysLaterISO = new Date(thirtyDaysLater.getTime() - thirtyDaysLater.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   endDateInput.value = thirtyDaysLaterISO;
 
+  // Update endDate min when startDate changes
+  startDateInput.addEventListener('change', function() {
+    const startDateValue = new Date(this.value);
+    const todayDate = new Date(todayISO);
+    endDateInput.min = startDateValue > todayDate ? this.value : todayISO;
+    if (endDateInput.value) {
+      const endDateValue = new Date(endDateInput.value);
+      if (endDateValue <= startDateValue || endDateValue < todayDate) {
+        endDateInput.value = '';
+        validateField(endDateInput);
+      }
+    }
+  });
+
   // Toggle offer type sections
   offerTypeRadios.forEach(radio => {
     radio.addEventListener('change', function() {
@@ -306,7 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
   form.addEventListener('submit', function(event) {
     event.preventDefault();
     if (validateForm()) {
-      // Log form data for debugging
       const formData = new FormData(form);
       const data = {};
       for (let [key, value] of formData.entries()) {
@@ -335,15 +351,18 @@ document.addEventListener('DOMContentLoaded', function() {
   function validateField(field) {
     const errorElement = document.getElementById(field.id + 'Error');
     errorElement.innerHTML = '';
-    field.classList.remove('error');
+    field.classList.remove('error', 'valid');
 
+    let isValid = true;
     switch(field.id) {
       case 'offerName':
         const offerName = field.value.trim();
         if (!offerName) {
           showError(field, errorElement, 'Offer name is required');
+          isValid = false;
         } else if (offerName.length < 3 || offerName.length > 50) {
           showError(field, errorElement, 'Name must be 3-50 characters long');
+          isValid = false;
         }
         break;
 
@@ -351,8 +370,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const discount = parseFloat(field.value);
         if (!discount || isNaN(discount)) {
           showError(field, errorElement, 'Discount percentage is required');
+          isValid = false;
         } else if (discount < 1 || discount > 100) {
           showError(field, errorElement, 'Discount must be between 1-100%');
+          isValid = false;
         }
         break;
 
@@ -360,11 +381,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const startDate = field.value;
         if (!startDate) {
           showError(field, errorElement, 'Start date is required');
+          isValid = false;
         } else {
           const start = new Date(startDate);
           const todayDate = new Date(todayISO);
-          if (start < todayDate) {
-            showError(field, errorElement, 'Start date cannot be in the past');
+          if (isNaN(start.getTime())) {
+            showError(field, errorElement, 'Invalid start date format');
+            isValid = false;
+          } else if (start < todayDate) {
+            showError(field, errorElement, `Start date cannot be before ${new Date(todayISO).toLocaleString()}`);
+            isValid = false;
           }
         }
         break;
@@ -373,14 +399,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const endDate = field.value;
         if (!endDate) {
           showError(field, errorElement, 'End date is required');
+          isValid = false;
         } else {
           const end = new Date(endDate);
           const start = new Date(document.getElementById('startDate').value);
           const todayDate = new Date(todayISO);
-          if (end < todayDate) {
-            showError(field, errorElement, 'End date cannot be in the past');
+          const minDurationHours = 1;
+          const minDurationMs = minDurationHours * 60 * 60 * 1000;
+          if (isNaN(end.getTime())) {
+            showError(field, errorElement, 'Invalid end date format');
+            isValid = false;
+          } else if (end < todayDate) {
+            showError(field, errorElement, `End date cannot be before ${new Date(todayISO).toLocaleString()}`);
+            isValid = false;
           } else if (start && end <= start) {
             showError(field, errorElement, 'End date must be after start date');
+            isValid = false;
+          } else if (start && (end - start) < minDurationMs) {
+            showError(field, errorElement, `End date must be at least ${minDurationHours} hour(s) after start date`);
+            isValid = false;
           }
         }
         break;
@@ -389,6 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const productOfferType = document.querySelector('input[name="offerType"]:checked').value === 'product';
         if (productOfferType && field.selectedOptions.length === 0) {
           showError(field, errorElement, 'At least one product must be selected');
+          isValid = false;
         }
         break;
 
@@ -396,9 +434,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoryOfferType = document.querySelector('input[name="offerType"]:checked').value === 'category';
         if (categoryOfferType && field.selectedOptions.length === 0) {
           showError(field, errorElement, 'At least one category must be selected');
+          isValid = false;
         }
         break;
     }
+    if (isValid && !errorElement.innerHTML) {
+      field.classList.add('valid');
+    }
+    return isValid;
   }
 
   function validateForm() {
@@ -407,8 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     fields.forEach(fieldId => {
       const field = document.getElementById(fieldId);
-      validateField(field);
-      if (field.classList.contains('error')) {
+      if (!validateField(field)) {
         isValid = false;
       }
     });

@@ -1,41 +1,54 @@
 <%- include('../partials/admin/header') %>
 
 <style>
+    /* Define global font variables for consistency */
+    :root {
+        --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --color-primary: #000000; /* Black */
+        --color-accent: #FFD700; /* Gold */
+        --color-text: #333333; /* Dark gray for body text */
+        --color-muted: #666666; /* Muted gray for secondary text */
+    }
+
+    /* Flash Message Styling */
     .flash-message {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-        font-weight: 500;
-        font-family: 'Montserrat', sans-serif;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        border-radius: 0.25rem;
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400;
+        line-height: 1.5;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         animation: fadeIn 0.3s ease-in-out;
         position: fixed;
-        top: 20px;
-        right: 20px;
-        max-width: 300px;
+        top: 1.25rem;
+        right: 1.25rem;
+        max-width: 18.75rem;
         z-index: 1000;
     }
 
     .flash-message svg {
-        width: 24px;
-        height: 24px;
-        margin-right: 12px;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.75rem;
         flex-shrink: 0;
     }
 
     .error-message,
     .success-message {
-        background-color: #ffffff; /* White background */
-        color: #000000; /* Black text */
-        border: 1px solid #FFD700; /* Gold border */
+        background-color: #ffffff;
+        color: var(--color-text);
+        border: 1px solid var(--color-accent);
     }
 
     @keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(0.625rem);
         }
         to {
             opacity: 1;
@@ -43,29 +56,36 @@
         }
     }
 
+    /* Dashboard Table Styling */
     .dashboard-table {
         width: 100%;
         border-collapse: collapse;
-        margin: 25px 0;
-        border: 1px solid #000000;
-        font-family: 'Montserrat', sans-serif;
+        margin: 1.5rem 0;
+        border: 1px solid var(--color-primary);
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        line-height: 1.5;
     }
 
     .dashboard-table th {
-        padding: 15px;
+        padding: 0.9375rem;
         text-align: center;
-        background-color: #000000; /* Black background */
-        color: #FFD700; /* Gold text */
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
         font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.03em;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 
     .dashboard-table td {
-        padding: 12px;
+        padding: 0.75rem;
         text-align: center;
         border: 1px solid #e0e0e0;
-        color: #333;
+        color: var(--color-text);
+        font-weight: 400;
     }
 
     .dashboard-table tr:nth-child(even) {
@@ -76,26 +96,66 @@
         background-color: #f0f0f0;
     }
 
+    /* Badge Styling */
     .badge {
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-family: 'Montserrat', sans-serif;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-family: var(--font-heading);
+        font-size: 0.75rem; /* 12px */
         font-weight: 500;
+        line-height: 1.3;
     }
 
-    .badge-soft-success {
-        background-color: #000000; /* Black background */
-        color: #FFD700; /* Gold text */
-    }
-
-    .badge-soft-warning {
-        background-color: #000000; /* Black background */
-        color: #FFD700; /* Gold text */
-    }
-
+    .badge-soft-success,
+    .badge-soft-warning,
     .badge-soft-danger {
-        background-color: #000000; /* Black background */
-        color: #FFD700; /* Gold text */
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+    }
+
+    /* General Typography */
+    .content-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem; /* 24px */
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+        font-family: var(--font-heading);
+        font-size: 1.125rem; /* 18px */
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+
+    .content-main p,
+    .text-sm,
+    .text {
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400;
+        line-height: 1.6;
+        color: var(--color-muted);
+    }
+
+    .btn-group .btn {
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    /* Card Styling */
+    .card-body .text span {
+        font-family: var(--font-body);
+        font-size: 1rem; /* 16px */
+        font-weight: 500;
+        line-height: 1.4;
+        color: var(--color-primary);
     }
 </style>
 
@@ -106,7 +166,7 @@
       <line x1="12" y1="8" x2="12" y2="12"></line>
       <line x1="12" y1="16" x2="12.01" y2="16"></line>
     </svg>
-    <span style="font-family: 'Montserrat', sans-serif;"><%= error_msg %></span>
+    <span><%= error_msg %></span>
   </div>
 <% } %>
 
@@ -116,48 +176,48 @@
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
       <polyline points="22 4 12 14.01 9 11.01"></polyline>
     </svg>
-    <span style="font-family: 'Montserrat', sans-serif;"><%= success_msg %></span>
+    <span><%= success_msg %></span>
   </div>
 <% } %>
 
-<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
+<section class="content-main" style="background: #ffffff; padding: 1.25rem; min-height: 80vh;">
   <div class="content-header">
     <div>
-      <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Dashboard</h2>
-      <p style="color: #666; font-family: 'Montserrat', sans-serif;">Business Analytics - <%= filter.charAt(0).toUpperCase() + filter.slice(1) %> View</p>
+      <h2 class="content-title">Dashboard</h2>
+      <p>Business Analytics - <%= filter.charAt(0).toUpperCase() + filter.slice(1) %> View</p>
     </div>
-    <div class="btn-group" role="group" aria-label="Dashboard Controls" style="display: flex; gap: 5px;">
+    <div class="btn-group" role="group" aria-label="Dashboard Controls" style="display: flex; gap: 0.3125rem;">
       <a href="?filter=daily" 
          class="btn <%= filter === 'daily' ? 'active' : '' %>" 
-         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         style="background-color: var(--color-primary); color: var(--color-accent); padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; text-decoration: none; transition: all 0.3s;"
          onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
          onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
         Daily
       </a>
       <a href="?filter=weekly" 
          class="btn <%= filter === 'weekly' ? 'active' : '' %>" 
-         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         style="background-color: var(--color-primary); color: var(--color-accent); padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; text-decoration: none; transition: all 0.3s;"
          onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
          onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
         Weekly
       </a>
       <a href="?filter=monthly" 
          class="btn <%= filter === 'monthly' ? 'active' : '' %>" 
-         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         style="background-color: var(--color-primary); color: var(--color-accent); padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; text-decoration: none; transition: all 0.3s;"
          onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
          onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
         Monthly
       </a>
       <a href="?filter=yearly" 
          class="btn <%= filter === 'yearly' ? 'active' : '' %>" 
-         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         style="background-color: var(--color-primary); color: var(--color-accent); padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; text-decoration: none; transition: all 0.3s;"
          onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
          onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
         Yearly
       </a>
       <a href="/admin/sales/monthly" 
          class="btn" 
-         style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+         style="background-color: var(--color-primary); color: var(--color-accent); padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; text-decoration: none; transition: all 0.3s;"
          onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
          onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
         Generate Sales Report
@@ -168,57 +228,57 @@
   <!-- Stats Cards -->
   <div class="row">
     <div class="col-lg-3">
-      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="icontext">
-          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-            <i class="material-icons md-monetization_on" style="color: #FFD700;"></i>
+          <span class="icon icon-sm rounded-circle" style="background-color: var(--color-primary);">
+            <i class="material-icons md-monetization_on" style="color: var(--color-accent);"></i>
           </span>
           <div class="text">
-            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Revenue</h6>
-            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= revenue.toFixed(2) %></span>
-            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Based on <%= filter %> data</span>
+            <h6 class="mb-1 card-title">Revenue</h6>
+            <span><%= revenue.toFixed(2) %></span>
+            <span class="text-sm">Based on <%= filter %> data</span>
           </div>
         </article>
       </div>
     </div>
     <div class="col-lg-3">
-      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="icontext">
-          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-            <i class="material-icons md-local_shipping" style="color: #FFD700;"></i>
+          <span class="icon icon-sm rounded-circle" style="background-color: var(--color-primary);">
+            <i class="material-icons md-local_shipping" style="color: var(--color-accent);"></i>
           </span>
           <div class="text">
-            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Orders</h6>
-            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= orders %></span>
-            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Delivered orders</span>
+            <h6 class="mb-1 card-title">Orders</h6>
+            <span><%= orders %></span>
+            <span class="text-sm">Delivered orders</span>
           </div>
         </article>
       </div>
     </div>
     <div class="col-lg-3">
-      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="icontext">
-          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-            <i class="material-icons md-qr_code" style="color: #FFD700;"></i>
+          <span class="icon icon-sm rounded-circle" style="background-color: var(--color-primary);">
+            <i class="material-icons md-qr_code" style="color: var(--color-accent);"></i>
           </span>
           <div class="text">
-            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Products</h6>
-            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= products %></span>
-            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Active products</span>
+            <h6 class="mb-1 card-title">Products</h6>
+            <span><%= products %></span>
+            <span class="text-sm">Active products</span>
           </div>
         </article>
       </div>
     </div>
     <div class="col-lg-3">
-      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="icontext">
-          <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-            <i class="material-icons md-shopping_basket" style="color: #FFD700;"></i>
+          <span class="icon icon-sm rounded-circle" style="background-color: var(--color-primary);">
+            <i class="material-icons md-shopping_basket" style="color: var(--color-accent);"></i>
           </span>
           <div class="text">
-            <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Monthly Earning</h6>
-            <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= monthlyEarning.toFixed(2) %></span>
-            <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Current month</span>
+            <h6 class="mb-1 card-title">Monthly Earning</h6>
+            <span><%= monthlyEarning.toFixed(2) %></span>
+            <span class="text-sm">Current month</span>
           </div>
         </article>
       </div>
@@ -228,17 +288,17 @@
   <!-- Charts and Tables -->
   <div class="row">
     <div class="col-xl-8 col-lg-12">
-      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="card-body">
-          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Sale Statistics</h5>
+          <h5 class="card-title">Sale Statistics</h5>
           <canvas id="salesChart" height="120"></canvas>
         </article>
       </div>
 
       <!-- Best Selling Products -->
-      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="card-body">
-          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Top 10 Best Selling Products</h5>
+          <h5 class="card-title">Top 10 Best Selling Products</h5>
           <div class="table-responsive">
             <table class="dashboard-table">
               <thead>
@@ -251,9 +311,9 @@
               <tbody>
                 <% bestSellingProducts.forEach(product => { %>
                   <tr>
-                    <td style="color: #333;"><%= product.product?.productName || 'Unknown Product' %></td>
-                    <td style="color: #333;"><%= product.totalSold || 0 %></td>
-                    <td style="color: #333;"><%= product.totalRevenue?.toFixed(2) || '0.00' %></td>
+                    <td><%= product.product?.productName || 'Unknown Product' %></td>
+                    <td><%= product.totalSold || 0 %></td>
+                    <td><%= product.totalRevenue?.toFixed(2) || '0.00' %></td>
                   </tr>
                 <% }) %>
               </tbody>
@@ -263,9 +323,9 @@
       </div>
 
       <!-- Best Selling Categories -->
-      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid var(--color-primary); border-radius: 0.25rem;">
         <article class="card-body">
-          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Top 10 Best Selling Categories</h5>
+          <h5 class="card-title">Top 10 Best Selling Categories</h5>
           <div class="table-responsive">
             <table class="dashboard-table">
               <thead>
@@ -278,9 +338,9 @@
               <tbody>
                 <% bestSellingCategories.forEach(category => { %>
                   <tr>
-                    <td style="color: #333;"><%= category.category?.name || 'Unknown Category' %></td>
-                    <td style="color: #333;"><%= category.totalSold || 0 %></td>
-                    <td style="color: #333;"><%= category.totalRevenue?.toFixed(2) || '0.00' %></td>
+                    <td><%= category.category?.name || 'Unknown Category' %></td>
+                    <td><%= category.totalSold || 0 %></td>
+                    <td><%= category.totalRevenue?.toFixed(2) || '0.00' %></td>
                   </tr>
                 <% }) %>
               </tbody>
@@ -292,9 +352,9 @@
 
     <!-- Latest Orders -->
     <div class="col-xl-4 col-lg-12">
-      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+      <div class="card mb-4" style="background-color: #ffffff; border: 1px solid var,--color-primary); border-radius: 0.25rem;">
         <article class="card-body">
-          <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Latest Orders</h5>
+          <h5 class="card-title">Latest Orders</h5>
           <div class="table-responsive">
             <table class="dashboard-table">
               <thead>
@@ -308,9 +368,9 @@
               <tbody>
                 <% latestOrders.forEach(order => { %>
                   <tr>
-                    <td style="color: #333;"><%= order.orderNumber || 'N/A' %></td>
-                    <td style="color: #333;"><%= order.userId?.name || 'Unknown User' %></td>
-                    <td style="color: #333;"><%= order.finalAmount?.toFixed(2) || '0.00' %></td>
+                    <td><%= order.orderNumber || 'N/A' %></td>
+                    <td><%= order.userId?.name || 'Unknown User' %></td>
+                    <td><%= order.finalAmount?.toFixed(2) || '0.00' %></td>
                     <td>
                       <span class="badge badge-pill badge-soft-<%= order.orderStatus === 'Delivered' ? 'success' : order.orderStatus === 'Pending' ? 'warning' : 'danger' %>">
                         <%= order.orderStatus || 'N/A' %>
@@ -336,12 +396,10 @@
   // Format labels based on filter
   const formatLabel = (id) => {
     if (filter === 'yearly') {
-      // For yearly filter, convert "YYYY-MM" to "MMM YYYY" (e.g., "Jan 2025")
       const [year, month] = id.split('-');
       const date = new Date(year, parseInt(month) - 1);
       return date.toLocaleString('default', { month: 'short', year: 'numeric' });
     } else {
-      // For daily, weekly, monthly filters, convert "YYYY-MM-DD" to "MMM DD" (e.g., "May 01")
       const [year, month, day] = id.split('-');
       const date = new Date(year, parseInt(month) - 1, day);
       return date.toLocaleString('default', { month: 'short', day: '2-digit' });
@@ -356,8 +414,8 @@
       datasets: [{
         label: 'Sales Revenue',
         data: salesData.map(d => d.total || 0),
-        borderColor: '#FFD700', /* Gold */
-        backgroundColor: 'rgba(255, 215, 0, 0.2)', /* Gold with opacity */
+        borderColor: '#FFD700',
+        backgroundColor: 'rgba(255, 215, 0, 0.2)',
         fill: true,
         tension: 0.1
       }]

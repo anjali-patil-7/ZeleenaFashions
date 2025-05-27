@@ -1,83 +1,288 @@
 <%- include('../partials/admin/header') %>
 
-<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
+<style>
+    /* Define global font and color variables for consistency */
+    :root {
+        --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --color-primary: #000000; /* Black */
+        --color-accent: #FFD700; /* Gold */
+        --color-text: #333333; /* Dark gray for body text */
+        --color-muted: #666666; /* Muted gray for secondary text */
+    }
+
+    /* General Typography */
+    .content-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem; /* 24px */
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+        font-family: var(--font-heading);
+        font-size: 1.125rem; /* 18px */
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+
+    .content-main p,
+    .text-sm {
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400;
+        line-height: 1.6;
+        color: var(--color-muted);
+    }
+
+    /* Button Group */
+    .btn-group {
+        margin-bottom: 1.875rem;
+        display: flex;
+        gap: 0.3125rem;
+    }
+
+    .btn-group .btn,
+    .dropdown .btn {
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        padding: 0.625rem 1.25rem;
+        border: none;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+        transition: all 0.3s;
+    }
+
+    .btn-group .btn:hover,
+    .dropdown .btn:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    .btn-group .btn.active {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+
+    /* Dropdown Menu */
+    .dropdown-menu {
+        background-color: #ffffff;
+        border: 1px solid var(--color-primary);
+        padding: 1rem;
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+    }
+
+    .dropdown-menu .form-label {
+        color: var(--color-primary);
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    .dropdown-menu .form-control {
+        background-color: #ffffff;
+        border: 1px solid var(--color-primary);
+        color: var(--color-text);
+        padding: 0.625rem;
+        border-radius: 0.25rem;
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 400;
+        line-height: 1.5;
+    }
+
+    .dropdown-menu .btn {
+        width: 100%;
+    }
+
+    /* Stats Cards */
+    .card {
+        background-color: #ffffff;
+        border: 1px solid var(--color-primary);
+        border-radius: 0.25rem;
+    }
+
+    .card-body .text span {
+        font-family: var(--font-body);
+        font-size: 1rem; /* 16px */
+        font-weight: 500;
+        line-height: 1.4;
+        color: var(--color-primary);
+    }
+
+    .icontext .icon {
+        background-color: var(--color-primary);
+    }
+
+    .icontext .icon i {
+        color: var(--color-accent);
+    }
+
+    /* Error Message */
+    #errordate {
+        text-align: center;
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.5;
+        color: var(--color-text);
+        background-color: #ffffff;
+        border: 1px solid var(--color-accent);
+        padding: 0.625rem;
+        border-radius: 0.25rem;
+    }
+
+    /* Sales Table */
+    .sales-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        border: 1px solid var(--color-primary);
+        font-family: var(--font-body);
+        font-size: 0.875rem; /* 14px */
+        line-height: 1.5;
+    }
+
+    .sales-table th {
+        padding: 0.9375rem;
+        text-align: center;
+        background-color: var(--color-primary);
+        color: var(--color-accent);
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .sales-table td {
+        padding: 0.75rem;
+        text-align: center;
+        border: 1px solid #e0e0e0;
+        color: var(--color-text);
+        font-weight: 400;
+    }
+
+    .sales-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .sales-table tr:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* Pagination */
+    .pagination {
+        margin-top: 1.25rem;
+    }
+
+    .pagination .page-link {
+        color: var(--color-primary);
+        border: 1px solid var(--color-primary);
+        font-family: var(--font-heading);
+        font-size: 0.875rem; /* 14px */
+        font-weight: 500;
+        line-height: 1.4;
+        border-radius: 0.25rem;
+        transition: all 0.3s;
+    }
+
+    .pagination .page-link:hover {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-accent);
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: var(--color-muted);
+        border-color: var(--color-muted);
+        cursor: not-allowed;
+    }
+
+    /* No Data Message */
+    .no-data {
+        text-align: center;
+        font-family: var(--font-body);
+        font-size: 1rem; /* 16px */
+        font-weight: 500;
+        line-height: 1.5;
+        color: var(--color-muted);
+        margin-top: 1.875rem;
+    }
+</style>
+
+<section class="content-main" style="background: #ffffff; padding: 1.25rem; min-height: 80vh;">
     <div class="content-header">
         <div>
-            <h2 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600;">Sales Report</h2>
-            <p style="color: #666;">Detailed Sales Analytics</p>
+            <h2 class="content-title">Sales Report</h2>
+            <p>Detailed Sales Analytics</p>
         </div>
     </div>
 
     <!-- Button Group -->
-    <div class="btn-group" role="group" aria-label="Sales Report Controls" style="margin-bottom: 30px;">
+    <div class="btn-group" role="group" aria-label="Sales Report Controls">
         <a href="/admin/sales/daily?page=1" 
-           class="btn <%= page === 'daily' ? 'active' : '' %>" 
-           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+           class="btn <%= page === 'daily' ? 'active' : '' %>">
             Daily
         </a>
         <a href="/admin/sales/weekly?page=1" 
-           class="btn <%= page === 'weekly' ? 'active' : '' %>" 
-           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+           class="btn <%= page === 'weekly' ? 'active' : '' %>">
             Weekly
         </a>
         <a href="/admin/sales/monthly?page=1" 
-           class="btn <%= page === 'monthly' ? 'active' : '' %>" 
-           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+           class="btn <%= page === 'monthly' ? 'active' : '' %>">
             Monthly
         </a>
         <a href="/admin/sales/yearly?page=1" 
-           class="btn <%= page === 'yearly' ? 'active' : '' %>" 
-           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+           class="btn <%= page === 'yearly' ? 'active' : '' %>">
             Yearly
         </a>
         <div class="dropdown">
-            <button class="btn dropdown-toggle" 
+            <!-- <button class="btn dropdown-toggle" 
                     type="button" 
                     id="salesReportDropdown" 
                     data-bs-toggle="dropdown" 
-                    aria-expanded="false"
-                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                    aria-expanded="false">
                 Custom Date
-            </button>
-            <div class="dropdown-menu p-3" 
-                 aria-labelledby="salesReportDropdown" 
-                 style="background-color: #ffffff; border: 1px solid #000000; font-family: 'Montserrat', sans-serif;">
+            </button> -->
+            <div class="dropdown-menu" aria-labelledby="salesReportDropdown">
                 <form id="customDateForm" action="/admin/sales/customdate?page=1" method="post">
                     <div class="mb-2">
-                        <label class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">From Date</label>
+                        <label class="form-label">From Date</label>
                         <input type="date" 
                                id="fromDate" 
                                value="<%= fromDate || '' %>" 
                                name="fromDate" 
                                class="form-control" 
-                               required
-                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
+                               required>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">To Date</label>
+                        <label class="form-label">To Date</label>
                         <input type="date" 
                                id="toDate" 
                                name="toDate" 
                                value="<%= toDate || '' %>" 
                                class="form-control" 
-                               required
-                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
+                               required>
                     </div>
-                    <button type="submit" 
-                            class="btn w-100"
-                            style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                    <button type="submit" class="btn">
                         <i class="fas fa-filter me-2"></i>Filter
                     </button>
                 </form>
@@ -88,43 +293,43 @@
     <!-- Stats Cards -->
     <div class="row">
         <div class="col-lg-4">
-            <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+            <div class="card card-body mb-4">
                 <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-                        <i class="material-icons md-monetization_on" style="color: #FFD700;"></i>
+                    <span class="icon icon-sm rounded-circle">
+                        <i class="material-icons md-monetization_on"></i>
                     </span>
                     <div class="text">
-                        <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Total Revenue</h6>
-                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;">₹<%= TotalAmount.toFixed(2) %></span>
-                        <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Total sales amount</span>
+                        <h6 class="mb-1 card-title">Total Revenue</h6>
+                        <span>₹<%= TotalAmount.toFixed(2) %></span>
+                        <span class="text-sm">Total sales amount</span>
                     </div>
                 </article>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+            <div class="card card-body mb-4">
                 <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-                        <i class="material-icons md-local_shipping" style="color: #FFD700;"></i>
+                    <span class="icon icon-sm rounded-circle">
+                        <i class="material-icons md-local_shipping"></i>
                     </span>
                     <div class="text">
-                        <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Total Discount</h6>
-                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;">₹<%= TotalDiscountAmount.toFixed(2) %></span>
-                        <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Discount offered</span>
+                        <h6 class="mb-1 card-title">Total Discount</h6>
+                        <span>₹<%= TotalDiscountAmount.toFixed(2) %></span>
+                        <span class="text-sm">Discount offered</span>
                     </div>
                 </article>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card card-body mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+            <div class="card card-body mb-4">
                 <article class="icontext">
-                    <span class="icon icon-sm rounded-circle" style="background-color: #000000;">
-                        <i class="material-icons md-qr_code" style="color: #FFD700;"></i>
+                    <span class="icon icon-sm rounded-circle">
+                        <i class="material-icons md-qr_code"></i>
                     </span>
                     <div class="text">
-                        <h6 class="mb-1 card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Sales Count</h6>
-                        <span style="color: #000000; font-family: 'Montserrat', sans-serif;"><%= TotalSaleCount %></span>
-                        <span class="text-sm" style="color: #666; font-family: 'Montserrat', sans-serif;">Total orders</span>
+                        <h6 class="mb-1 card-title">Sales Count</h6>
+                        <span><%= TotalSaleCount %></span>
+                        <span class="text-sm">Total orders</span>
                     </div>
                 </article>
             </div>
@@ -134,9 +339,7 @@
     <!-- Error Message -->
     <div class="row mb-4">
         <div class="col-12">
-            <p id="errordate" 
-               class="text-center" 
-               style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500; background-color: #ffffff; border: 1px solid #FFD700; padding: 5px; border-radius: 4px; display: <%= typeof error !== 'undefined' && error ? 'block' : 'none' %>;">
+            <p id="errordate" style="display: <%= typeof error !== 'undefined' && error ? 'block' : 'none' %>;">
                 <% if (typeof error !== 'undefined' && error) { %>
                     <%= error %>
                 <% } %>
@@ -147,48 +350,45 @@
     <!-- Orders Table -->
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4" style="background-color: #ffffff; border: 1px solid #000000; border-radius: 4px;">
+            <div class="card mb-4">
                 <article class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Order Details</h5>
+                        <h5 class="card-title">Order Details</h5>
                         <div>
-                            <button id="downloadPdfBtn" 
-                                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s; margin-right: 5px;"
-                                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                            <button id="downloadPdfBtn">
                                 <i class="fas fa-download me-2"></i>Download PDF
                             </button>
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="sales-table" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-family: 'Montserrat', sans-serif;">
+                        <table class="sales-table">
                             <thead>
                                 <tr>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">SI No</th>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order Date</th>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Customer Name</th>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order ID</th>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Order Amount</th>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Discount</th>
-                                    <th style="padding: 15px; text-align: center; background-color: #000000; color: #FFD700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                                    <th>SI No</th>
+                                    <th>Order Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Order ID</th>
+                                    <th>Order Amount</th>
+                                    <th>Discount</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <% if (orders && orders.length > 0) { %>
                                     <% orders.forEach((order, i) => { %>
-                                        <tr style="background-color: <%= i % 2 === 0 ? '#f9f9f9' : '#ffffff' %>;">
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= i + 1 + (currentPage - 1) * perPage %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderDate %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.userId?.name || 'N/A' %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderNumber || order._id %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">₹<%= (order.orderAmount || 0).toFixed(2) %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
-                                            <td style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;"><%= order.orderStatus || 'N/A' %></td>
+                                        <tr>
+                                            <td><%= i + 1 + (currentPage - 1) * perPage %></td>
+                                            <td><%= order.orderDate %></td>
+                                            <td><%= order.userId?.name || 'N/A' %></td>
+                                            <td><%= order.orderNumber || order._id %></td>
+                                            <td>₹<%= (order.orderAmount || 0).toFixed(2) %></td>
+                                            <td>₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
+                                            <td><%= order.orderStatus || 'N/A' %></td>
                                         </tr>
                                     <% }) %>
                                 <% } else { %>
                                     <tr>
-                                        <td colspan="7" style="padding: 12px; text-align: center; border: 1px solid #e0e0e0; color: #333;">No orders found</td>
+                                        <td colspan="7" class="no-data">No orders found</td>
                                     </tr>
                                 <% } %>
                             </tbody>
@@ -196,18 +396,18 @@
                     </div>
                     <!-- Pagination -->
                     <% if (totalPages > 1) { %>
-                        <nav aria-label="Page navigation" style="margin-top: 20px;">
+                        <nav aria-label="Page navigation">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage - 1}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${currentPage - 1}` %>" style="color: #000000; border: 1px solid #000000;">Previous</a>
+                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage - 1}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${currentPage - 1}` %>">Previous</a>
                                 </li>
                                 <% for (let i = 1; i <= totalPages; i++) { %>
                                     <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                        <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${i}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${i}` %>" style="color: #000000; border: 1px solid #000000; <%= currentPage === i ? 'background-color: #FFD700; color: #000000;' : '' %>"><%= i %></a>
+                                        <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${i}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${i}` %>"><%= i %></a>
                                     </li>
                                 <% } %>
                                 <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage + 1}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${currentPage + 1}` %>" style="color: #000000; border: 1px solid #000000;">Next</a>
+                                    <a class="page-link" href="<%= page === 'customDate' ? `/admin/sales/customdate?page=${currentPage + 1}&fromDate=${encodeURIComponent(fromDate || '')}&toDate=${encodeURIComponent(toDate || '')}` : `/admin/sales/${page}?page=${currentPage + 1}` %>">Next</a>
                                 </li>
                             </ul>
                         </nav>
@@ -216,35 +416,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Styles -->
-    <style>
-        .sales-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 25px 0;
-            border: 1px solid #000000;
-            font-family: 'Montserrat', sans-serif;
-        }
-        
-        .sales-table tr:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .no-data {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 30px;
-            font-size: 18px;
-            color: #666;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .pagination .page-link:hover {
-            background-color: #FFD700;
-            color: #000000;
-        }
-    </style>
 </section>
 
 <%- include('../partials/admin/footer') %>
@@ -358,7 +529,6 @@ document.addEventListener('DOMContentLoaded', function () {
         downloadReport('pdf');
     });
 
-    // Handle custom date form submission
     customDateForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const fromDate = fromDateInput.value;
@@ -378,8 +548,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Update URL with query parameters instead of POST to preserve pagination
         window.location.href = `/admin/sales/customdate?page=1&fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
     });
 });
 </script>
+
+<%- include('../partials/admin/footer') %>

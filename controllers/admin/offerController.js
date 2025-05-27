@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Offer = require('../../models/offerSchema');
 const Product = require('../../models/productSchema');
-const Category = require('../../models/categorySchema'); 
+const Category = require('../../models/categorySchema');
 
 // List all offers with pagination and search
 exports.getOfferList = async (req, res) => {
@@ -11,16 +11,16 @@ exports.getOfferList = async (req, res) => {
         const skip = (page - 1) * limit;
         const searchQuery = req.query.query || '';
 
-        console.log('Search Query:', searchQuery); // Debug log
+        console.log('Search Query:', searchQuery);
 
         const query = searchQuery 
             ? { offerName: { $regex: searchQuery, $options: 'i' } }
             : {};
 
-        console.log('MongoDB Query:', query); // Debug log
+        console.log('MongoDB Query:', query);
 
         const totalOffers = await Offer.countDocuments(query);
-        console.log('Total Offers:', totalOffers); // Debug log
+        console.log('Total Offers:', totalOffers);
 
         const offers = await Offer.find(query)
             .populate('productId', 'productName')
@@ -29,7 +29,7 @@ exports.getOfferList = async (req, res) => {
             .limit(limit)
             .sort({ createdAt: -1 });
 
-        console.log('Offers:', offers); // Debug log
+        console.log('Offers:', offers);
 
         res.render('admin/offer', {
             offers,
@@ -77,32 +77,44 @@ exports.postAddOffer = async (req, res) => {
 
         // Input validation
         if (!offerName || offerName.length < 3 || offerName.length > 50) {
-            return res.status(400).json({ error: 'Offer name must be 3-50 characters long' });
+            req.flash('error', 'Offer name must be 3-50 characters long');
+            return res.redirect('/admin/addoffer');
         }
 
         const discountValue = parseFloat(discount);
         if (isNaN(discountValue) || discountValue < 1 || discountValue > 100) {
-            return res.status(400).json({ error: 'Discount must be between 1-100%' });
+            req.flash('error', 'Discount must be between 1-100%');
+            return res.redirect('/admin/addoffer');
         }
 
+        const now = new Date();
         const start = new Date(startDate);
         const end = new Date(endDate);
-        const now = new Date();
 
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json({ error: 'Invalid date format' });
+            req.flash('error', 'Invalid date format');
+            return res.redirect('/admin/addoffer');
         }
 
         if (start < now) {
-            return res.status(400).json({ error: 'Start date cannot be in the past' });
+            req.flash('error', 'Start date cannot be in the past');
+            return res.redirect('/admin/addoffer');
         }
 
+        const minDurationHours = 1;
+        const minDurationMs = minDurationHours * 60 * 60 * 1000;
         if (end <= start) {
-            return res.status(400).json({ error: 'End date must be after start date' });
+            req.flash('error', 'End date must be after start date');
+            return res.redirect('/admin/addoffer');
+        }
+        if ((end - start) < minDurationMs) {
+            req.flash('error', `End date must be at least ${minDurationHours} hour(s) after start date`);
+            return res.redirect('/admin/addoffer');
         }
 
         if (!['product', 'category'].includes(offerType)) {
-            return res.status(400).json({ error: 'Invalid offer type' });
+            req.flash('error', 'Invalid offer type');
+            return res.redirect('/admin/addoffer');
         }
 
         // Validate productIds or categoryIds based on offerType
@@ -110,26 +122,32 @@ exports.postAddOffer = async (req, res) => {
         let validatedCategoryIds = [];
 
         if (offerType === 'product') {
-            // Ensure productId is an array
             const productIds = Array.isArray(productId) ? productId : (productId ? [productId] : []);
             if (productIds.length === 0) {
-                return res.status(400).json({ error: 'At least one product must be selected' });
+                req.flash('error', 'At least one product must be selected');
+                return res.redirect('/admin/addoffer');
             }
-            // Verify all productIds exist
-            validatedProductIds = await Product.find({ _id: { $in: productIds } }).select('_id');
+            validatedProductIds = await Product.find({ 
+                _id: { $in: productIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
+                status: true 
+            }).select('_id');
             if (validatedProductIds.length !== productIds.length) {
-                return res.status(400).json({ error: 'One or more selected products are invalid' });
+                req.flash('error', 'One or more selected products are invalid or inactive');
+                return res.redirect('/admin/addoffer');
             }
         } else if (offerType === 'category') {
-            // Ensure categoryId is an array
             const categoryIds = Array.isArray(categoryId) ? categoryId : (categoryId ? [categoryId] : []);
             if (categoryIds.length === 0) {
-                return res.status(400).json({ error: 'At least one category must be selected' });
+                req.flash('error', 'At least one category must be selected');
+                return res.redirect('/admin/addoffer');
             }
-            // Verify all categoryIds exist
-            validatedCategoryIds = await Category.find({ _id: { $in: categoryIds } }).select('_id');
+            validatedCategoryIds = await Category.find({ 
+                _id: { $in: categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
+                status: true 
+            }).select('_id');
             if (validatedCategoryIds.length !== categoryIds.length) {
-                return res.status(400).json({ error: 'One or more selected categories are invalid' });
+                req.flash('error', 'One or more selected categories are invalid or inactive');
+                return res.redirect('/admin/addoffer');
             }
         }
 
@@ -145,10 +163,7 @@ exports.postAddOffer = async (req, res) => {
             status: true
         });
 
-        // Save offer to database
         await newOffer.save();
-
-        // Redirect to offers page with success message
         req.flash('success', 'Offer created successfully');
         res.redirect('/admin/offer');
 
@@ -163,6 +178,11 @@ exports.postAddOffer = async (req, res) => {
 exports.getEditOffer = async (req, res) => {
     try {
         const offerId = req.params.id;
+        if (!mongoose.Types.ObjectId.isValid(offerId)) {
+            req.flash('error', 'Invalid offer ID');
+            return res.redirect('/admin/offer');
+        }
+
         const offer = await Offer.findById(offerId)
             .populate('productId', 'productName')
             .populate('categoryId', 'name');
@@ -192,6 +212,11 @@ exports.getEditOffer = async (req, res) => {
 exports.postEditOffer = async (req, res) => {
     try {
         const offerId = req.params.id;
+        if (!mongoose.Types.ObjectId.isValid(offerId)) {
+            req.flash('error', 'Invalid offer ID');
+            return res.redirect('/admin/offer');
+        }
+
         const {
             offerName,
             discount,
@@ -208,56 +233,100 @@ exports.postEditOffer = async (req, res) => {
             return res.redirect(`/admin/editoffer/${offerId}`);
         }
 
-        if (!discount || discount < 1 || discount > 100) {
+        const discountValue = parseFloat(discount);
+        if (isNaN(discountValue) || discountValue < 1 || discountValue > 100) {
             req.flash('error', 'Discount must be between 1-100%');
             return res.redirect(`/admin/editoffer/${offerId}`);
         }
 
+        const now = new Date();
         const start = new Date(startDate);
         const end = new Date(endDate);
-        const today = new Date();
 
-        if (start < today) {
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            req.flash('error', 'Invalid date format');
+            return res.redirect(`/admin/editoffer/${offerId}`);
+        }
+
+        if (start < now) {
             req.flash('error', 'Start date cannot be in the past');
             return res.redirect(`/admin/editoffer/${offerId}`);
         }
 
+        const minDurationHours = 1;
+        const minDurationMs = minDurationHours * 60 * 60 * 1000;
         if (end <= start) {
             req.flash('error', 'End date must be after start date');
             return res.redirect(`/admin/editoffer/${offerId}`);
         }
-
-        // Convert productId/categoryId to arrays if they are strings
-        const productIds = productId ? (Array.isArray(productId) ? productId : [productId]) : [];
-        const categoryIds = categoryId ? (Array.isArray(categoryId) ? categoryId : [categoryId]) : [];
-
-        if (offerType === 'product' && productIds.length === 0) {
-            req.flash('error', 'At least one product must be selected');
+        if ((end - start) < minDurationMs) {
+            req.flash('error', `End date must be at least ${minDurationHours} hour(s) after start date`);
             return res.redirect(`/admin/editoffer/${offerId}`);
         }
 
-        if (offerType === 'category' && categoryIds.length === 0) {
-            req.flash('error', 'At least one category must be selected');
+        if (!['product', 'category'].includes(offerType)) {
+            req.flash('error', 'Invalid offer type');
             return res.redirect(`/admin/editoffer/${offerId}`);
         }
 
+        // Validate productIds or categoryIds based on offerType
+        let validatedProductIds = [];
+        let validatedCategoryIds = [];
+
+        if (offerType === 'product') {
+            const productIds = Array.isArray(productId) ? productId : (productId ? [productId] : []);
+            if (productIds.length === 0) {
+                req.flash('error', 'At least one product must be selected');
+                return res.redirect(`/admin/editoffer/${offerId}`);
+            }
+            validatedProductIds = await Product.find({ 
+                _id: { $in: productIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
+                status: true 
+            }).select('_id');
+            if (validatedProductIds.length !== productIds.length) {
+                req.flash('error', 'One or more selected products are invalid or inactive');
+                return res.redirect(`/admin/editoffer/${offerId}`);
+            }
+        } else if (offerType === 'category') {
+            const categoryIds = Array.isArray(categoryId) ? categoryId : (categoryId ? [categoryId] : []);
+            if (categoryIds.length === 0) {
+                req.flash('error', 'At least one category must be selected');
+                return res.redirect(`/admin/editoffer/${offerId}`);
+            }
+            validatedCategoryIds = await Category.find({ 
+                _id: { $in: categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
+                status: true 
+            }).select('_id');
+            if (validatedCategoryIds.length !== categoryIds.length) {
+                req.flash('error', 'One or more selected categories are invalid or inactive');
+                return res.redirect(`/admin/editoffer/${offerId}`);
+            }
+        }
+
+        // Update offer
         const updateData = {
             offerName,
-            discount: parseInt(discount),
+            discount: discountValue,
             startDate: start,
             endDate: end,
             offerType,
-            productId: offerType === 'product' ? productIds : [],
-            categoryId: offerType === 'category' ? categoryIds : []
+            productId: offerType === 'product' ? validatedProductIds.map(id => id._id) : [],
+            categoryId: offerType === 'category' ? validatedCategoryIds.map(id => id._id) : [],
+            updatedAt: new Date()
         };
 
-        await Offer.findByIdAndUpdate(offerId, updateData);
+        const updatedOffer = await Offer.findByIdAndUpdate(offerId, updateData, { new: true });
+        if (!updatedOffer) {
+            req.flash('error', 'Offer not found');
+            return res.redirect('/admin/offer');
+        }
+
         req.flash('success', 'Offer updated successfully');
         res.redirect('/admin/offer');
     } catch (error) {
         console.error('Error in postEditOffer:', error);
         req.flash('error', 'Error updating offer');
-        res.redirect(`/admin/editoffer/${req.params.id}`);
+        res.redirect(`/admin/editoffer/${offerId}`);
     }
 };
 
@@ -265,6 +334,10 @@ exports.postEditOffer = async (req, res) => {
 exports.blockOffer = async (req, res) => {
     try {
         const offerId = req.params.id;
+        if (!mongoose.Types.ObjectId.isValid(offerId)) {
+            return res.status(400).json({ success: false, message: 'Invalid offer ID' });
+        }
+
         const offer = await Offer.findById(offerId);
 
         if (!offer) {

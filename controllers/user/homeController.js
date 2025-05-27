@@ -46,7 +46,7 @@ const getBestOffer = async (product) => {
 exports.getHomePage = async (req, res) => {
     try {
         // Fetch categories (only active ones)
-        const categories = await Category.find({ status: true }).lean();
+        const categories = await Category.find({ status: true ,isDeleted: false }).lean();
         if (!categories.length) {
             console.log('No active categories found.');
         }

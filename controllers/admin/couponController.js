@@ -66,6 +66,12 @@ exports.postAddCoupon = async (req, res) => {
             return res.redirect('/admin/addcoupon');
         }
 
+        // Validate coupon code format
+        if (!/^[A-Z0-9]{6,15}$/.test(couponCode.trim())) {
+            req.flash('error', 'Coupon code must be 6-15 uppercase letters/numbers');
+            return res.redirect('/admin/addcoupon');
+        }
+
         // Check if coupon code already exists
         const existingCoupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
         if (existingCoupon) {
@@ -85,14 +91,63 @@ exports.postAddCoupon = async (req, res) => {
             return res.redirect('/admin/addcoupon');
         }
 
+        // Validate discount value
+        const discountValue = parseFloat(discount);
+        const minPriceValue = parseFloat(minimumPrice);
+        if (isNaN(discountValue) || discountValue <= 0) {
+            req.flash('error', 'Discount value must be greater than 0');
+            return res.redirect('/admin/addcoupon');
+        }
+        if (discountType === 'percentage' && (discountValue > 100)) {
+            req.flash('error', 'Percentage discount must be between 1-100');
+            return res.redirect('/admin/addcoupon');
+        }
+        if (discountType === 'flat' && discountValue > 10000) {
+            req.flash('error', 'Flat discount cannot exceed ₹10,000');
+            return res.redirect('/admin/addcoupon');
+        }
+        if (discountType === 'flat' && discountValue >= minPriceValue) {
+            req.flash('error', 'Flat discount must be less than the minimum purchase amount');
+            return res.redirect('/admin/addcoupon');
+        }
+
+        // Validate minimum price
+        if (isNaN(minPriceValue) || minPriceValue < 0) {
+            req.flash('error', 'Minimum purchase amount must be 0 or greater');
+            return res.redirect('/admin/addcoupon');
+        }
+        if (minPriceValue > 100000) {
+            req.flash('error', 'Minimum purchase amount cannot exceed ₹100,000');
+            return res.redirect('/admin/addcoupon');
+        }
+
+        // Validate max redemptions
+        const maxRedeemValue = parseInt(maxRedeem);
+        if (isNaN(maxRedeemValue) || maxRedeemValue < 1) {
+            req.flash('error', 'Maximum redemptions must be 1 or greater');
+            return res.redirect('/admin/addcoupon');
+        }
+        if (maxRedeemValue > 10000) {
+            req.flash('error', 'Maximum redemptions cannot exceed 10,000');
+            return res.redirect('/admin/addcoupon');
+        }
+
+        // Validate expiry date
+        const expiryDate = new Date(expiry);
+        const todayDate = new Date();
+        if (isNaN(expiryDate.getTime()) || expiryDate < todayDate) {
+            req.flash('error', 'Expiry date cannot be in the past');
+            return res.redirect('/admin/addcoupon');
+        }
+
         // Create new coupon
         const coupon = new Coupon({
             code: couponCode.toUpperCase(),
             discountType,
-            discount: parseFloat(discount),
-            minimumPrice: parseFloat(minimumPrice),
-            maxRedeem: parseInt(maxRedeem),
-            expiry: new Date(expiry),
+            discount: discountValue,
+            minimumPrice: minPriceValue,
+            maxRedeem: maxRedeemValue,
+            expiry: expiryDate,
             status: status === 'true',
             description: description || ''
         });
@@ -148,6 +203,12 @@ exports.postEditCoupon = async (req, res) => {
             return res.redirect(`/admin/editcoupon/${req.params.id}`);
         }
 
+        // Validate coupon code format
+        if (!/^[A-Z0-9]{6,15}$/.test(couponCode.trim())) {
+            req.flash('error', 'Coupon code must be 6-15 uppercase letters/numbers');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
         // Check if coupon code exists for another coupon
         const existingCoupon = await Coupon.findOne({
             code: couponCode.toUpperCase(),
@@ -171,16 +232,65 @@ exports.postEditCoupon = async (req, res) => {
             return res.redirect(`/admin/editcoupon/${req.params.id}`);
         }
 
+        // Validate discount value
+        const discountValue = parseFloat(discount);
+        const minPriceValue = parseFloat(minimumPrice);
+        if (isNaN(discountValue) || discountValue <= 5) {
+            req.flash('error', 'Discount value must be greater than 5');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+        if (discountType === 'percentage' && discountValue >= 90) {
+            req.flash('error', 'Percentage discount must be between 5-90');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+        if (discountType === 'flat' && discountValue > 10000) {
+            req.flash('error', 'Flat discount cannot exceed ₹10,000');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+        if (discountType === 'flat' && discountValue >= minPriceValue) {
+            req.flash('error', 'Flat discount must be less than the minimum purchase amount');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
+        // Validate minimum price
+        if (isNaN(minPriceValue) || minPriceValue < 0) {
+            req.flash('error', 'Minimum purchase amount must be 0 or greater');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+        if (minPriceValue > 100000) {
+            req.flash('error', 'Minimum purchase amount cannot exceed ₹100,000');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
+        // Validate max redemptions
+        const maxRedeemValue = parseInt(maxRedeem);
+        if (isNaN(maxRedeemValue) || maxRedeemValue < 1) {
+            req.flash('error', 'Maximum redemptions must be 1 or greater');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+        if (maxRedeemValue > 10000) {
+            req.flash('error', 'Maximum redemptions cannot exceed 10,000');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
+        // Validate expiry date
+        const expiryDate = new Date(expiry);
+        const todayDate = new Date();
+        if (isNaN(expiryDate.getTime()) || expiryDate < todayDate) {
+            req.flash('error', 'Expiry date cannot be in the past');
+            return res.redirect(`/admin/editcoupon/${req.params.id}`);
+        }
+
         // Update coupon
         const coupon = await Coupon.findByIdAndUpdate(
             req.params.id,
             {
                 code: couponCode.toUpperCase(),
                 discountType,
-                discount: parseFloat(discount),
-                minimumPrice: parseFloat(minimumPrice),
-                maxRedeem: parseInt(maxRedeem),
-                expiry: new Date(expiry),
+                discount: discountValue,
+                minimumPrice: minPriceValue,
+                maxRedeem: maxRedeemValue,
+                expiry: expiryDate,
                 status: status === 'true',
                 description: description || ''
             },

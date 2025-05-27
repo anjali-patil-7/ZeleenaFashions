@@ -2,30 +2,30 @@
 
 <style>
   .form-control, select[multiple] {
-    background-color: #ffffff; /* White background */
-    border: 1px solid #000000; /* Black border */
-    color: #000000; /* Black text */
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    color: #000000;
     font-family: 'Montserrat', sans-serif;
     border-radius: 4px;
     padding: 10px;
     font-size: 14px;
   }
   .form-control:focus, select[multiple]:focus {
-    border-color: #FFD700; /* Gold border on focus */
-    box-shadow: none;
+    border-color: #FFD700;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
   }
   .form-control.error, select[multiple].error {
-    border-color: #FFD700; /* Gold border for errors */
+    border-color: #FFD700;
   }
   .text-danger {
     font-size: 0.875em;
     margin-top: 5px;
-    color: #000000; /* Black text */
+    color: #000000;
     font-family: 'Montserrat', sans-serif;
   }
   .form-text {
     font-size: 12px;
-    color: #000000; /* Black text */
+    color: #000000;
     font-family: 'Montserrat', sans-serif;
     margin-top: 5px;
   }
@@ -33,9 +33,13 @@
     margin-right: 8px;
   }
   .radio-label {
-    color: #000000; /* Black text */
+    color: #000000;
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
+  }
+  select[multiple] option:checked {
+    background-color: #FFD700;
+    color: #000000;
   }
 </style>
 
@@ -97,10 +101,10 @@
         <h4 class="form-section-title" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #000000; font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Select Products</h4>
         <div class="form-group">
           <label for="productId" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Products</label>
-          <select multiple class="form-control" id="productId" name="productId">
+          <select multiple class="form-control" id="productId" name="productId[]">
             <% products.forEach(product => { %>
-              <option value="<%= product._id %>" 
-                      <%= offer.productId && offer.productId.some(p => p._id.toString() === product._id.toString()) ? 'selected' : '' %>>
+              <option value="<%= product._id.toString() %>"
+                      <%= (offer.productId || []).some(p => (p._id || p).toString() === product._id.toString()) ? 'selected' : '' %>>
                 <%= product.productName %>
               </option>
             <% }) %>
@@ -114,10 +118,10 @@
         <h4 class="form-section-title" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #000000; font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Select Categories</h4>
         <div class="form-group">
           <label for="categoryId" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Categories</label>
-          <select multiple class="form-control" id="categoryId" name="categoryId">
+          <select multiple class="form-control" id="categoryId" name="categoryId[]">
             <% categories.forEach(category => { %>
-              <option value="<%= category._id %>"
-                      <%= offer.categoryId && offer.categoryId.some(c => c._id.toString() === category._id.toString()) ? 'selected' : '' %>>
+              <option value="<%= category._id.toString() %>"
+                      <%= (offer.categoryId || []).some(c => (c._id || c).toString() === category._id.toString()) ? 'selected' : '' %>>
                 <%= category.name %>
               </option>
             <% }) %>
@@ -152,10 +156,47 @@ document.addEventListener('DOMContentLoaded', function() {
   const offerTypeRadios = document.querySelectorAll('input[name="offerType"]');
   const productSection = document.getElementById('productSection');
   const categorySection = document.getElementById('categorySection');
+  const productSelect = document.getElementById('productId');
+  const categorySelect = document.getElementById('categoryId');
 
   // Set minimum dates
   startDateInput.min = todayISO;
   endDateInput.min = todayISO;
+
+  // Function to update selected option styles
+  function updateSelectedStyles(selectElement) {
+    selectElement.querySelectorAll('option').forEach(option => {
+      if (option.selected) {
+        option.style.backgroundColor = '#FFD700';
+        option.style.color = '#000000';
+      } else {
+        option.style.backgroundColor = '';
+        option.style.color = '';
+      }
+    });
+  }
+
+  // Initialize selected options
+  function initializeSelectedOptions() {
+    const offerType = document.querySelector('input[name="offerType"]:checked').value;
+    updateSelectedStyles(productSelect);
+    updateSelectedStyles(categorySelect);
+
+    // Validate initial selections
+    if (offerType === 'product' && productSelect.selectedOptions.length === 0) {
+      showError(productSelect, document.getElementById('productIdError'), 'At least one product must be selected');
+    } else {
+      document.getElementById('productIdError').innerHTML = '';
+      productSelect.classList.remove('error');
+    }
+
+    if (offerType === 'category' && categorySelect.selectedOptions.length === 0) {
+      showError(categorySelect, document.getElementById('categoryIdError'), 'At least one category must be selected');
+    } else {
+      document.getElementById('categoryIdError').innerHTML = '';
+      categorySelect.classList.remove('error');
+    }
+  }
 
   // Toggle offer type sections
   offerTypeRadios.forEach(radio => {
@@ -163,11 +204,28 @@ document.addEventListener('DOMContentLoaded', function() {
       if (this.value === 'product') {
         productSection.classList.remove('hidden');
         categorySection.classList.add('hidden');
+        validateField(productSelect);
+        document.getElementById('categoryIdError').innerHTML = '';
+        categorySelect.classList.remove('error');
       } else if (this.value === 'category') {
         productSection.classList.add('hidden');
         categorySection.classList.remove('hidden');
+        validateField(categorySelect);
+        document.getElementById('productIdError').innerHTML = '';
+        productSelect.classList.remove('error');
       }
     });
+  });
+
+  // Dynamic styling for select multiple
+  productSelect.addEventListener('change', function() {
+    updateSelectedStyles(this);
+    validateField(this);
+  });
+
+  categorySelect.addEventListener('change', function() {
+    updateSelectedStyles(this);
+    validateField(this);
   });
 
   // Form submission handler
@@ -182,6 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const inputs = document.querySelectorAll('.form-control');
   inputs.forEach(input => {
     input.addEventListener('input', function() {
+      validateField(this);
+    });
+    input.addEventListener('change', function() {
       validateField(this);
     });
   });
@@ -274,5 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
     errorElement.innerHTML = message;
     field.classList.add('error');
   }
+
+  // Initialize on page load
+  initializeSelectedOptions();
 });
 </script>

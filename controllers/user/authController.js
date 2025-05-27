@@ -1,33 +1,33 @@
-const User = require('../../models/userSchema');
-const OTP = require('../../models/otpSchema');
-const transporter = require('../../config/nodemailer');
-const passport = require('../../config/passport');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const User = require("../../models/userSchema");
+const OTP = require("../../models/otpSchema");
+const transporter = require("../../config/nodemailer");
+const passport = require("../../config/passport");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Render the signup page
 exports.getSignup = (req, res) => {
   res.locals.session = req.session || {};
   res.locals.session.isAuth = req.session.isAuth || false;
-  res.render('user/register', {
+  res.render("user/register", {
     errors: [],
     input: {},
-    error_msg: req.flash('error_msg') || '',
-    success_msg: req.flash('success_msg') || '',
+    error_msg: req.flash("error_msg") || "",
+    success_msg: req.flash("success_msg") || "",
     session: res.locals.session,
   });
 };
 
 // Render the login page
 exports.getLogin = (req, res) => {
-    res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
-    console.log('getLogin: Flash error_msg:', req.flash('error_msg')); // Debug
-    res.render('user/login', {
-      error_msg: req.flash('error_msg') || '',
-      success_msg: req.flash('success_msg') || '',
-      session: res.locals.session,
-    });
+  res.locals.session = req.session || {};
+  res.locals.session.isAuth = req.session.isAuth || false;
+  console.log("getLogin: Flash error_msg:", req.flash("error_msg")); // Debug
+  res.render("user/login", {
+    error_msg: req.flash("error_msg") || "",
+    success_msg: req.flash("success_msg") || "",
+    session: res.locals.session,
+  });
 };
 
 // Handle signup form submission
@@ -38,61 +38,83 @@ exports.postSignup = async (req, res) => {
   try {
     // Name validation
     if (!userName) {
-      errors.push('Name is required');
+      errors.push("Name is required");
+    } else if (/^\s/.test(userName)) {
+      errors.push("Name should not start with a space");
     } else if (userName.trim().length < 3) {
-      errors.push('Name must be at least 3 characters long');
-    } else if (!/^[A-Za-z\s]+$/.test(userName)) {
-      errors.push('Name can only contain letters and spaces');
+      errors.push("Name must be at least 3 characters long");
+    } else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(userName.trim())) {
+      errors.push(
+        "Name can only contain letters and single spaces between words"
+      );
     }
 
     // Email validation
     if (!email) {
-      errors.push('Email is required');
+      errors.push("Email is required");
+    } else if (email.startsWith(" ")) {
+      errors.push("Email must not start with a space");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push('Please enter a valid email address');
+      errors.push("Please enter a valid email address");
     }
 
     // Phone validation
     if (!phone) {
-      errors.push('Phone number is required');
-    } else if (!/^\d{10}$/.test(phone)) {
-      errors.push('Phone number must be exactly 10 digits');
+      errors.push("Phone number is required");
+    } else if (!/^[6-9]\d{9}$/.test(phone)) {
+      errors.push(
+        "Phone number must be 10 digits and start with 6, 7, 8, or 9"
+      );
+    } else if (/^(\d)\1{9}$/.test(phone)) {
+      errors.push("Phone number cannot have all repeating digits");
+    } else if (/\s/.test(phone)) {
+      errors.push("Phone number must not contain any spaces");
     }
 
     // Password validation
     if (!password) {
-      errors.push('Password is required');
+      errors.push("Password is required");
     } else if (password.length < 6) {
-      errors.push('Password must be at least 6 characters long');
+      errors.push("Password must be at least 6 characters long");
+    } else if (!/[A-Z]/.test(password)) {
+      errors.push("Password must contain at least one uppercase letter");
+    } else if (!/[a-z]/.test(password)) {
+      errors.push("Password must contain at least one lowercase letter");
+    } else if (!/\d/.test(password)) {
+      errors.push("Password must contain at least one number");
+    } else if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+      errors.push("Password must contain at least one special character");
+    } else if (/\s/.test(password)) {
+      errors.push("Password must not contain any spaces");
     }
 
     // Confirm password validation
     if (!confirmPassword) {
-      errors.push('Please confirm your password');
+      errors.push("Please confirm your password");
     } else if (password !== confirmPassword) {
-      errors.push('Passwords do not match');
+      errors.push("Passwords do not match");
     }
 
     // Check for existing email or phone
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      errors.push('Email is already registered');
+      errors.push("Email is already registered");
     }
 
     const existingPhone = await User.findOne({ phone });
     if (existingPhone) {
-      errors.push('Phone number is already registered');
+      errors.push("Phone number is already registered");
     }
 
     // If there are errors, render the form with error messages
     if (errors.length > 0) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/register', {
+      return res.render("user/register", {
         errors,
         input: { userName, email, phone },
-        error_msg: '',
-        success_msg: '',
+        error_msg: "",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -107,13 +129,13 @@ exports.postSignup = async (req, res) => {
 
     // Generate and store OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('OTP>>>>>>>>>>', otp);
+    console.log("OTP>>>>>>>>>>", otp);
     await OTP.create({ email, otp });
 
     // Send OTP email
     await transporter.sendMail({
       to: email,
-      subject: 'Zeleena Fashions - OTP for Signup',
+      subject: "Zeleena Fashions - OTP for Signup",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Zeleena Fashions</h2>
@@ -127,21 +149,21 @@ exports.postSignup = async (req, res) => {
 
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
-    return res.render('user/otp', {
-      error_msg: '',
-      success_msg: 'OTP sent to your email!',
+    return res.render("user/otp", {
+      error_msg: "",
+      success_msg: "OTP sent to your email!",
       session: res.locals.session,
     });
   } catch (err) {
-    console.error('Signup error:', err);
-    errors.push('An unexpected error occurred. Please try again.');
+    console.error("Signup error:", err);
+    errors.push("An unexpected error occurred. Please try again.");
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
-    return res.render('user/register', {
+    return res.render("user/register", {
       errors,
       input: { userName, email, phone },
-      error_msg: '',
-      success_msg: '',
+      error_msg: "",
+      success_msg: "",
       session: res.locals.session,
     });
   }
@@ -155,30 +177,30 @@ exports.verifyOTP = async (req, res) => {
     const signupData = req.session.signupData;
     if (!signupData) {
       return res.json({
-        status: 'error',
-        message: 'Session expired. Please try registering again.',
+        status: "error",
+        message: "Session expired. Please try registering again.",
       });
     }
 
     if (!otp) {
       return res.json({
-        status: 'error',
-        message: 'OTP is required',
+        status: "error",
+        message: "OTP is required",
       });
     }
 
     if (otp.length !== 6 || isNaN(otp)) {
       return res.json({
-        status: 'error',
-        message: 'Please enter a valid 6-digit OTP',
+        status: "error",
+        message: "Please enter a valid 6-digit OTP",
       });
     }
 
     const otpRecord = await OTP.findOne({ email: signupData.email, otp });
     if (!otpRecord) {
       return res.json({
-        status: 'error',
-        message: 'Wrong OTP entered. Please try again.',
+        status: "error",
+        message: "Wrong OTP entered. Please try again.",
       });
     }
 
@@ -188,8 +210,8 @@ exports.verifyOTP = async (req, res) => {
 
     if (timeDifference > 60) {
       return res.json({
-        status: 'error',
-        message: 'OTP has expired. Please request a new one.',
+        status: "error",
+        message: "OTP has expired. Please request a new one.",
       });
     }
 
@@ -206,12 +228,12 @@ exports.verifyOTP = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -219,14 +241,14 @@ exports.verifyOTP = async (req, res) => {
     delete req.session.signupData;
 
     return res.json({
-      status: 'success',
-      message: 'Registration successful!',
+      status: "success",
+      message: "Registration successful!",
     });
   } catch (err) {
-    console.error('OTP verification error:', err);
+    console.error("OTP verification error:", err);
     return res.json({
-      status: 'error',
-      message: 'An unexpected error occurred.',
+      status: "error",
+      message: "An unexpected error occurred.",
     });
   }
 };
@@ -237,19 +259,19 @@ exports.resendOTP = async (req, res) => {
     const signupData = req.session.signupData;
     if (!signupData) {
       return res.json({
-        status: 'error',
-        message: 'Session expired. Please try registering again.',
+        status: "error",
+        message: "Session expired. Please try registering again.",
       });
     }
 
     const otp = Math.floor(100000 + Math.random() * 600000).toString();
-    console.log('Otp>>>>>>', otp);
+    console.log("Otp>>>>>>", otp);
     await OTP.deleteMany({ email: signupData.email });
     await OTP.create({ email: signupData.email, otp });
 
     await transporter.sendMail({
       to: signupData.email,
-      subject: 'Zeleena Fashions - OTP for Signup',
+      subject: "Zeleena Fashions - OTP for Signup",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Zeleena Fashions</h2>
@@ -262,14 +284,14 @@ exports.resendOTP = async (req, res) => {
     });
 
     return res.json({
-      status: 'success',
-      message: 'OTP resent successfully',
+      status: "success",
+      message: "OTP resent successfully",
     });
   } catch (err) {
-    console.error('Resend OTP error:', err);
+    console.error("Resend OTP error:", err);
     return res.json({
-      status: 'error',
-      message: 'Failed to resend OTP.',
+      status: "error",
+      message: "Failed to resend OTP.",
     });
   }
 };
@@ -281,80 +303,83 @@ exports.postLogin = async (req, res) => {
   try {
     // Email validation
     if (!email) {
-      req.flash('error_msg', 'Email is required');
+      req.flash("error_msg", "Email is required");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      req.flash('error_msg', 'Please enter a valid email address');
+      req.flash("error_msg", "Please enter a valid email address");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Password validation
     if (!password) {
-      req.flash('error_msg', 'Password is required');
+      req.flash("error_msg", "Password is required");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      req.flash('error_msg', 'Invalid email or password');
+      req.flash("error_msg", "Invalid email or password");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Check if user is blocked
     if (user.isBlocked) {
-      req.flash('error_msg', 'Your account is blocked. Please contact support.');
+      req.flash(
+        "error_msg",
+        "Your account is blocked. Please contact support."
+      );
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Check if user is verified
     if (!user.isVerified) {
-      req.flash('error_msg', 'Please verify your account with OTP.');
+      req.flash("error_msg", "Please verify your account with OTP.");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Check if password is set (for Google auth users)
     if (!user.password) {
-      req.flash('error_msg', 'Please use Google login for this account.');
+      req.flash("error_msg", "Please use Google login for this account.");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Compare password using bcrypt
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      req.flash('error_msg', 'Invalid email or password');
+      req.flash("error_msg", "Invalid email or password");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect('/login');
+      return res.redirect("/login");
     }
 
     // Generate JWT token
     const token = jwt.sign(
       { id: user._id, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
     // Set token in cookie
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -363,48 +388,48 @@ exports.postLogin = async (req, res) => {
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth;
 
-    return res.redirect('/?success_msg=Login+successful!');
+    return res.redirect("/?success_msg=Login+successful!");
   } catch (err) {
-    console.error('Login error:', err);
-    req.flash('error_msg', 'An unexpected error occurred. Please try again.');
+    console.error("Login error:", err);
+    req.flash("error_msg", "An unexpected error occurred. Please try again.");
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
-    return res.redirect('/login');
+    return res.redirect("/login");
   }
 };
 
 // Handle Google authentication
-exports.googleAuth = passport.authenticate('google', {
-  scope: ['profile', 'email'],
+exports.googleAuth = passport.authenticate("google", {
+  scope: ["profile", "email"],
 });
 
 // Handle Google authentication callback
 exports.googleCallback = async (req, res, next) => {
-  passport.authenticate('google', {
-    failureRedirect: '/login',
+  passport.authenticate("google", {
+    failureRedirect: "/login",
     failureMessage: true,
   })(req, res, async () => {
     try {
       const user = req.user;
       if (!user) {
-        req.flash('error_msg', 'Google authentication failed.');
-        return res.redirect('/login');
+        req.flash("error_msg", "Google authentication failed.");
+        return res.redirect("/login");
       }
 
       if (user.isBlocked) {
-        req.flash('error_msg', 'Your account is blocked.');
-        return res.redirect('/login');
+        req.flash("error_msg", "Your account is blocked.");
+        return res.redirect("/login");
       }
 
       const token = jwt.sign(
         { id: user._id, isAdmin: user.isAdmin },
         process.env.JWT_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: "1d" }
       );
 
-      res.cookie('token', token, {
+      res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === "production",
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -412,12 +437,12 @@ exports.googleCallback = async (req, res, next) => {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth;
 
-      req.flash('success_msg', 'Google login successful!');
-      return res.redirect('/');
+      req.flash("success_msg", "Google login successful!");
+      return res.redirect("/");
     } catch (err) {
-      console.error('Google callback error:', err);
-      req.flash('error_msg', 'An unexpected error occurred.');
-      return res.redirect('/login');
+      console.error("Google callback error:", err);
+      req.flash("error_msg", "An unexpected error occurred.");
+      return res.redirect("/login");
     }
   });
 };
@@ -426,26 +451,26 @@ exports.googleCallback = async (req, res, next) => {
 exports.logout = (req, res) => {
   try {
     // Clear the token cookie
-    res.clearCookie('token', {
+    res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
     });
 
     // Destroy the session
     req.session.destroy((err) => {
       if (err) {
-        console.error('Session destruction error:', err);
-        req.flash('error_msg', 'Failed to log out. Please try again.');
-        return res.redirect('/profile');
+        console.error("Session destruction error:", err);
+        req.flash("error_msg", "Failed to log out. Please try again.");
+        return res.redirect("/profile");
       }
 
       // Redirect to login page with success message
-      res.redirect('/login');
+      res.redirect("/login");
     });
   } catch (err) {
-    console.error('Logout error:', err);
-    req.flash('error_msg', 'An unexpected error occurred.');
-    res.redirect('/profile');
+    console.error("Logout error:", err);
+    req.flash("error_msg", "An unexpected error occurred.");
+    res.redirect("/profile");
   }
 };
 
@@ -453,9 +478,9 @@ exports.logout = (req, res) => {
 exports.getForgotPassword = (req, res) => {
   res.locals.session = req.session || {};
   res.locals.session.isAuth = req.session.isAuth || false;
-  res.render('user/forgot', {
-    error_msg: req.flash('error_msg') || '',
-    success_msg: req.flash('success_msg') || '',
+  res.render("user/forgot", {
+    error_msg: req.flash("error_msg") || "",
+    success_msg: req.flash("success_msg") || "",
     session: res.locals.session,
   });
 };
@@ -463,15 +488,15 @@ exports.getForgotPassword = (req, res) => {
 // Handle forgot password form submission
 exports.postForgotPassword = async (req, res) => {
   const { email } = req.body;
-  console.log('forget email>>>>', req.body);
+  console.log("forget email>>>>", req.body);
   try {
     // Email validation
     if (!email) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/forgot', {
-        error_msg: 'Email is required',
-        success_msg: '',
+      return res.render("user/forgot", {
+        error_msg: "Email is required",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -479,9 +504,9 @@ exports.postForgotPassword = async (req, res) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/forgot', {
-        error_msg: 'Please enter a valid email address',
-        success_msg: '',
+      return res.render("user/forgot", {
+        error_msg: "Please enter a valid email address",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -491,9 +516,9 @@ exports.postForgotPassword = async (req, res) => {
     if (!user) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/forgot', {
-        error_msg: 'No account found with this email',
-        success_msg: '',
+      return res.render("user/forgot", {
+        error_msg: "No account found with this email",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -502,9 +527,9 @@ exports.postForgotPassword = async (req, res) => {
     if (user.isBlocked) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/forgot', {
-        error_msg: 'Your account is blocked.',
-        success_msg: '',
+      return res.render("user/forgot", {
+        error_msg: "Your account is blocked.",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -514,13 +539,13 @@ exports.postForgotPassword = async (req, res) => {
 
     // Generate and store OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Otp>>>>>>', otp);
+    console.log("Otp>>>>>>", otp);
     await OTP.create({ email, otp });
 
     // Send OTP email
     await transporter.sendMail({
       to: email,
-      subject: 'Zeleena Fashions - OTP for Password Reset',
+      subject: "Zeleena Fashions - OTP for Password Reset",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Zeleena Fashions</h2>
@@ -534,18 +559,18 @@ exports.postForgotPassword = async (req, res) => {
 
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
-    return res.render('user/forgot-otp', {
-      error_msg: '',
-      success_msg: 'OTP sent to your email!',
+    return res.render("user/forgot-otp", {
+      error_msg: "",
+      success_msg: "OTP sent to your email!",
       session: res.locals.session,
     });
   } catch (err) {
-    console.error('Forgot password error:', err);
+    console.error("Forgot password error:", err);
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
-    return res.render('user/forgot', {
-      error_msg: 'An unexpected error occurred. Please try again.',
-      success_msg: '',
+    return res.render("user/forgot", {
+      error_msg: "An unexpected error occurred. Please try again.",
+      success_msg: "",
       session: res.locals.session,
     });
   }
@@ -558,30 +583,33 @@ exports.verifyForgotPasswordOTP = async (req, res) => {
     const forgotPasswordData = req.session.forgotPasswordData;
     if (!forgotPasswordData) {
       return res.json({
-        status: 'error',
-        message: 'Session expired. Please try resetting your password again.',
+        status: "error",
+        message: "Session expired. Please try resetting your password again.",
       });
     }
 
     if (!otp) {
       return res.json({
-        status: 'error',
-        message: 'OTP is required',
+        status: "error",
+        message: "OTP is required",
       });
     }
 
     if (otp.length !== 6 || isNaN(otp)) {
       return res.json({
-        status: 'error',
-        message: 'Please enter a valid 6-digit OTP',
+        status: "error",
+        message: "Please enter a valid 6-digit OTP",
       });
     }
 
-    const otpRecord = await OTP.findOne({ email: forgotPasswordData.email, otp });
+    const otpRecord = await OTP.findOne({
+      email: forgotPasswordData.email,
+      otp,
+    });
     if (!otpRecord) {
       return res.json({
-        status: 'error',
-        message: 'Wrong OTP entered. Please try again.',
+        status: "error",
+        message: "Wrong OTP entered. Please try again.",
       });
     }
 
@@ -591,22 +619,22 @@ exports.verifyForgotPasswordOTP = async (req, res) => {
 
     if (timeDifference > 60) {
       return res.json({
-        status: 'error',
-        message: 'OTP has expired. Please request a new one.',
+        status: "error",
+        message: "OTP has expired. Please request a new one.",
       });
     }
 
     // OTP is valid
     return res.json({
-      status: 'success',
-      message: 'OTP verified successfully.',
-      redirect: '/reset-password',
+      status: "success",
+      message: "OTP verified successfully.",
+      redirect: "/reset-password",
     });
   } catch (err) {
-    console.error('Forgot password OTP verification error:', err);
+    console.error("Forgot password OTP verification error:", err);
     return res.json({
-      status: 'error',
-      message: 'An unexpected error occurred.',
+      status: "error",
+      message: "An unexpected error occurred.",
     });
   }
 };
@@ -620,9 +648,9 @@ exports.resetPassword = async (req, res) => {
     if (!forgotPasswordData) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Session expired. Please try resetting your password again.',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Session expired. Please try resetting your password again.",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -631,9 +659,9 @@ exports.resetPassword = async (req, res) => {
     if (!newPassword) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'New password is required',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "New password is required",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -641,9 +669,9 @@ exports.resetPassword = async (req, res) => {
     if (newPassword.length < 8) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Password must be at least 8 characters long',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Password must be at least 8 characters long",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -651,9 +679,9 @@ exports.resetPassword = async (req, res) => {
     if (!/[A-Z]/.test(newPassword)) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Password must contain at least one uppercase letter',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Password must contain at least one uppercase letter",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -661,9 +689,9 @@ exports.resetPassword = async (req, res) => {
     if (!/[a-z]/.test(newPassword)) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Password must contain at least one lowercase letter',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Password must contain at least one lowercase letter",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -671,9 +699,9 @@ exports.resetPassword = async (req, res) => {
     if (!/[0-9]/.test(newPassword)) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Password must contain at least one number',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Password must contain at least one number",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -681,9 +709,9 @@ exports.resetPassword = async (req, res) => {
     if (!/[^A-Za-z0-9]/.test(newPassword)) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Password must contain at least one special character',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Password must contain at least one special character",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -691,9 +719,9 @@ exports.resetPassword = async (req, res) => {
     if (!confirmPassword) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Please confirm your password',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Please confirm your password",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -701,9 +729,9 @@ exports.resetPassword = async (req, res) => {
     if (newPassword !== confirmPassword) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'Passwords do not match',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "Passwords do not match",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -713,9 +741,9 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
-      return res.render('user/reset-password', {
-        error_msg: 'User not found.',
-        success_msg: '',
+      return res.render("user/reset-password", {
+        error_msg: "User not found.",
+        success_msg: "",
         session: res.locals.session,
       });
     }
@@ -729,14 +757,14 @@ exports.resetPassword = async (req, res) => {
     delete req.session.forgotPasswordData;
 
     // Redirect to login with success message
-    res.redirect('/login?success_msg=Password+reset+successfully!');
+    res.redirect("/login?success_msg=Password+reset+successfully!");
   } catch (err) {
-    console.error('Reset password error:', err);
+    console.error("Reset password error:", err);
     res.locals.session = req.session || {};
     res.locals.session.isAuth = req.session.isAuth || false;
-    return res.render('user/reset-password', {
-      error_msg: 'An unexpected error occurred. Please try again.',
-      success_msg: '',
+    return res.render("user/reset-password", {
+      error_msg: "An unexpected error occurred. Please try again.",
+      success_msg: "",
       session: res.locals.session,
     });
   }
@@ -748,19 +776,19 @@ exports.resendForgotPasswordOTP = async (req, res) => {
     const forgotPasswordData = req.session.forgotPasswordData;
     if (!forgotPasswordData) {
       return res.json({
-        status: 'error',
-        message: 'Session expired. Please try resetting your password again.',
+        status: "error",
+        message: "Session expired. Please try resetting your password again.",
       });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('forgotOtp>>>>>>', otp);
+    console.log("forgotOtp>>>>>>", otp);
     await OTP.deleteMany({ email: forgotPasswordData.email });
     await OTP.create({ email: forgotPasswordData.email, otp });
 
     await transporter.sendMail({
       to: forgotPasswordData.email,
-      subject: 'Zeleena Fashions - OTP for Password Reset',
+      subject: "Zeleena Fashions - OTP for Password Reset",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Zeleena Fashions</h2>
@@ -773,14 +801,14 @@ exports.resendForgotPasswordOTP = async (req, res) => {
     });
 
     return res.json({
-      status: 'success',
-      message: 'OTP resent successfully',
+      status: "success",
+      message: "OTP resent successfully",
     });
   } catch (err) {
-    console.error('Resend forgot password OTP error:', err);
+    console.error("Resend forgot password OTP error:", err);
     return res.json({
-      status: 'error',
-      message: 'Failed to resend OTP.',
+      status: "error",
+      message: "Failed to resend OTP.",
     });
   }
 };
@@ -792,21 +820,21 @@ exports.changePassword = async (req, res) => {
     if (!new_password || !confirm_password) {
       return res.json({
         success: false,
-        message: 'New password and confirm password are required',
+        message: "New password and confirm password are required",
       });
     }
     // Validate new password length
     if (new_password.length < 6) {
       return res.json({
         success: false,
-        message: 'New password must be at least 6 characters long',
+        message: "New password must be at least 6 characters long",
       });
     }
     // Check if new password and confirm password match
     if (new_password !== confirm_password) {
       return res.json({
         success: false,
-        message: 'New password and confirm password do not match',
+        message: "New password and confirm password do not match",
       });
     }
     // Get authenticated user
@@ -816,14 +844,14 @@ exports.changePassword = async (req, res) => {
     if (!user) {
       return res.json({
         success: false,
-        message: 'User not found',
+        message: "User not found",
       });
     }
     if (user.password) {
       if (!current_password) {
         return res.json({
           success: false,
-          message: 'Current password is required',
+          message: "Current password is required",
         });
       }
       // Verify current password
@@ -831,7 +859,7 @@ exports.changePassword = async (req, res) => {
       if (!isMatch) {
         return res.json({
           success: false,
-          message: 'Current password is incorrect',
+          message: "Current password is incorrect",
         });
       }
       // Check if new password is different from current password
@@ -839,7 +867,7 @@ exports.changePassword = async (req, res) => {
       if (isSamePassword) {
         return res.json({
           success: false,
-          message: 'New password must be different from current password',
+          message: "New password must be different from current password",
         });
       }
     } else {
@@ -847,7 +875,8 @@ exports.changePassword = async (req, res) => {
       if (current_password) {
         return res.json({
           success: false,
-          message: 'No current password exists for this account. Leave the current password field empty',
+          message:
+            "No current password exists for this account. Leave the current password field empty",
         });
       }
     }
@@ -860,13 +889,13 @@ exports.changePassword = async (req, res) => {
     // Send success response
     return res.json({
       success: true,
-      message: 'Password changed successfully',
+      message: "Password changed successfully",
     });
   } catch (err) {
-    console.error('Change password error:', err);
+    console.error("Change password error:", err);
     return res.json({
       success: false,
-      message: 'An unexpected error occurred. Please try again',
+      message: "An unexpected error occurred. Please try again",
     });
   }
 };

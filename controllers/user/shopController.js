@@ -129,16 +129,16 @@ exports.getShopPage = async (req, res) => {
         sortOption = { createdAt: -1 };
     }
 
-    const categories = await Category.find({ status: true }).lean();
+    const categories = await Category.find({ status: true, isDeleted:false, }).lean();
     
     // Build query
     let query = { status: true };
     
     // Add search functionality
     if (search && search.trim()) {
-      const firstLetter = search.trim().charAt(0);
-      query.productName = { $regex: `^${firstLetter}`, $options: 'i' };
-    }
+  query.productName = { $regex: search.trim(), $options: 'i' };
+}
+
     
     // Add price range filter (based on final price after offers)
     query.price = { $gte: minPrice, $lte: maxPrice };
