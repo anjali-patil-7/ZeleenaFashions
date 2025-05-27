@@ -1,6 +1,6 @@
 const Address = require('../../models/addressSchema');
 const { body, validationResult } = require('express-validator');
-const validator = require('validator'); // Ensure validator is imported
+const validator = require('validator');
 
 // Get all addresses for the user
 exports.getAddresses = async (req, res) => {
@@ -22,16 +22,77 @@ exports.getAddresses = async (req, res) => {
 
 // Validation middleware for creating address
 const validateAddress = [
-    body('name').trim().isLength({ min: 3 }).withMessage('Name must be at least 3 characters'),
-    body('email').trim().isEmail().withMessage('Invalid email address'),
-    body('mobile').trim().isLength({ min: 10, max: 10 }).matches(/^\d{10}$/).withMessage('Invalid mobile number (must be 10 digits)'),
-    body('pincode').trim().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/).withMessage('Invalid pincode (must be 6 digits)'),
-    body('houseName').trim().notEmpty().withMessage('House name/number is required'),
-    body('street').trim().notEmpty().withMessage('Street/road is required'),
-    body('city').trim().notEmpty().withMessage('City is required'),
-    body('state').trim().notEmpty().withMessage('State is required'),
-    body('country').trim().notEmpty().withMessage('Country is required'),
-    body('saveAs').isIn(['Home', 'Work', 'Other']).withMessage('Invalid address type'),
+    body('name')
+        .trim()
+        .isLength({ min: 3 })
+        .withMessage('Name must be at least 3 characters')
+        .matches(/^[a-zA-Z\s]+$/)
+        .withMessage('Name must contain only alphabets and spaces')
+        .not()
+        .matches(/^\s/)
+        .withMessage('Name cannot start with a space'),
+    body('email')
+        .trim()
+        .isEmail()
+        .withMessage('Invalid email address')
+        .not()
+        .matches(/^\s/)
+        .withMessage('Email cannot start with a space'),
+    body('mobile')
+        .trim()
+        .matches(/^[6-9]\d{9}$/)
+        .withMessage('Mobile number must start with 6, 7, 8, or 9 and be 10 digits')
+        .custom((value) => {
+            const digitSet = new Set(value.split(''));
+            return digitSet.size === value.length;
+        })
+        .withMessage('Mobile number cannot have repeating digits'),
+    body('pincode')
+        .trim()
+        .isLength({ min: 6, max: 6 })
+        .matches(/^\d{6}$/)
+        .withMessage('Invalid pincode (must be 6 digits)')
+        .not()
+        .matches(/^\s/)
+        .withMessage('Pincode cannot start with a space'),
+    body('houseName')
+        .trim()
+        .notEmpty()
+        .withMessage('House name/number is required')
+        .not()
+        .matches(/^\s/)
+        .withMessage('House name/number cannot start with a space'),
+    body('street')
+        .trim()
+        .notEmpty()
+        .withMessage('Street/road is required')
+        .not()
+        .matches(/^\s/)
+        .withMessage('Street/road cannot start with a space'),
+    body('city')
+        .trim()
+        .notEmpty()
+        .withMessage('City is required')
+        .not()
+        .matches(/^\s/)
+        .withMessage('City cannot start with a space'),
+    body('state')
+        .trim()
+        .notEmpty()
+        .withMessage('State is required')
+        .not()
+        .matches(/^\s/)
+        .withMessage('State cannot start with a space'),
+    body('country')
+        .trim()
+        .notEmpty()
+        .withMessage('Country is required')
+        .not()
+        .matches(/^\s/)
+        .withMessage('Country cannot start with a space'),
+    body('saveAs')
+        .isIn(['Home', 'Work', 'Other'])
+        .withMessage('Invalid address type'),
 ];
 
 // Create address
@@ -153,10 +214,9 @@ exports.setDefaultAddress = async (req, res) => {
 // Get edit address form
 exports.getEditAddress = async (req, res) => {
     try {
-        const addressId = req.params.id; // Use 'id' to match the route parameter
+        const addressId = req.params.id;
         const userId = req.user.id;
 
-        // Find the address by ID and ensure it belongs to the user
         const address = await Address.findOne({ _id: addressId, userId: userId }).lean();
 
         if (!address) {
@@ -182,7 +242,7 @@ exports.getEditAddress = async (req, res) => {
 // Update address
 exports.updateAddress = async (req, res) => {
     try {
-        const addressId = req.params.id; // Use 'id' to match the route parameter
+        const addressId = req.params.id;
         const userId = req.user.id;
         const {
             name,
@@ -202,32 +262,32 @@ exports.updateAddress = async (req, res) => {
         let errors = [];
 
         // Validate inputs
-        if (!name || name.trim().length < 3) {
-            errors.push('Name is required and should be at least 3 characters.');
+        if (!name || name.trim().length < 3 || !/^[a-zA-Z\s]+$/.test(name) || /^\s/.test(name)) {
+            errors.push('Name is required, should be at least 3 characters, contain only alphabets and spaces, and not start with a space.');
         }
-        if (!mobile || !validator.isMobilePhone(mobile, 'any', { strictMode: false })) {
-            errors.push('Please enter a valid mobile number (10 digits).');
+        if (!mobile || !/^[6-9]\d{9}$/.test(mobile) || new Set(mobile.split('')).size !== mobile.length) {
+            errors.push('Mobile number must start with 6, 7, 8, or 9, be 10 digits, and have no repeating digits.');
         }
-        if (!email || !validator.isEmail(email)) {
-            errors.push('Please enter a valid email address.');
+        if (!email || !validator.isEmail(email) || /^\s/.test(email)) {
+            errors.push('Please enter a valid email address that does not start with a space.');
         }
-        if (!pincode || !/^\d{6}$/.test(pincode)) {
-            errors.push('Please enter a valid pincode (6 digits).');
+        if (!pincode || !/^\d{6}$/.test(pincode) || /^\s/.test(pincode)) {
+            errors.push('Please enter a valid pincode (6 digits) that does not start with a space.');
         }
-        if (!houseName || houseName.trim() === '') {
-            errors.push('House name/number is required.');
+        if (!houseName || houseName.trim() === '' || /^\s/.test(houseName)) {
+            errors.push('House name/number is required and cannot start with a space.');
         }
-        if (!street || street.trim() === '') {
-            errors.push('Street/road is required.');
+        if (!street || street.trim() === '' || /^\s/.test(street)) {
+            errors.push('Street/road is required and cannot start with a space.');
         }
-        if (!city || city.trim() === '') {
-            errors.push('City is required.');
+        if (!city || city.trim() === '' || /^\s/.test(city)) {
+            errors.push('City is required and cannot start with a space.');
         }
-        if (!state || state.trim() === '') {
-            errors.push('State is required.');
+        if (!state || state.trim() === '' || /^\s/.test(state)) {
+            errors.push('State is required and cannot start with a space.');
         }
-        if (!country || country.trim() === '') {
-            errors.push('Country is required.');
+        if (!country || country.trim() === '' || /^\s/.test(country)) {
+            errors.push('Country is required and cannot start with a space.');
         }
         if (!saveAs || !['Home', 'Work', 'Other'].includes(saveAs)) {
             errors.push('Please select a valid address type.');
@@ -250,7 +310,7 @@ exports.updateAddress = async (req, res) => {
 
         if (!address) {
             req.flash('error', 'Address not found or you do not have permission to edit this address');
-            return res.redirect('/address');
+            return res.redirect('/ures');
         }
 
         // Update address fields
@@ -292,31 +352,35 @@ exports.updateAddress = async (req, res) => {
     }
 };
 
-//**Delete address */
-exports.deleteAddress = async(req,res)=>{
-  try{
-    const addressId = req.params.id;
-    const userId = req.user._id
-    //find the address by id and enusre it belong to it
-    const address = await Address.findOne({_id:addressId, user:userId})
+// Delete address
+exports.deleteAddress = async (req, res) => {
+    try {
+        const addressId = req.params.id;
+        const userId = req.user.id;
 
-    if(!address){
-      return res.status(404).flash('error','Address not found or you do not have permission to delete it')
-      redirect('/address')
+        // Find the address by id and ensure it belongs to the user
+        const address = await Address.findOne({ _id: addressId, userId: userId });
+
+        if (!address) {
+            req.flash('error', 'Address not found or you do not have permission to delete it');
+            return res.redirect('/address');
+        }
+
+        // Prevent deletion of default address
+        if (address.isDefault) {
+            req.flash('error', 'Cannot delete the default address. Set another address as default first.');
+            return res.redirect('/address');
+        }
+
+        // Delete the address
+        await Address.findByIdAndDelete(addressId);
+
+        // Flash success message and redirect
+        req.flash('success', 'Address deleted successfully');
+        res.redirect('/address');
+    } catch (error) {
+        console.error('Error deleting address:', error);
+        req.flash('error', 'An error occurred while deleting the address.');
+        res.redirect('/address');
     }
-    //prevent deletion of default address
-    if(address.isDefault){
-      return res.status(400).flash('error','cannot delete the default address. set another address as default first.').redirect('/address')
-    }
-    //dlete the address
-    await Address.findByIdAndDelete(addressId)
-    
-    //flas success message and redirect
-    req.flash('success','Address deleted successfully')
-    res.redirect('/address')
-  }catch(error){
-    console.error('Error deleteing address:',error)
-    req.flash('error','An error occured while deleteing and address.')
-    res.redirect('/address')
-  }
-}
+};

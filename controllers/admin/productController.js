@@ -4,13 +4,14 @@ const path = require("path");
 const fs = require("fs");
 const { uploadImage } = require("../../config/cloudinary");
 
-// productController.js
+// Add Product
 exports.addProduct = async (req, res) => {
   try {
     const { name, description, price, stock, category, status } = req.body;
-    const files = req.files; // Files come as an object: { image1, image2, image3 }
+    const files = req.files || [];
 
-    // Validation
+    const imageUrls = await uploadImage(files);
+
     const errors = [];
     if (!name || name.trim().length < 2 || name.trim().length > 100) {
       errors.push("Product name must be 2-100 characters long");
@@ -23,17 +24,29 @@ exports.addProduct = async (req, res) => {
     } else {
       const trimmedDescription = description.trim();
       if (trimmedDescription.length < 10 || trimmedDescription.length > 1000) {
-        errors.push("Description must be 10-1000 characters long");
+        errors.push("Description must be 10–1000 characters long");
       } else if (!/^[a-zA-Z0-9\s,.]+$/.test(trimmedDescription)) {
-        errors.push("Description can only contain letters, numbers, spaces, periods, and commas");
+        errors.push(
+          "Description can only contain letters, numbers, spaces, periods, and commas"
+        );
       }
     }
 
-    if (!price || isNaN(price) || parseFloat(price) <= 0 || parseFloat(price) > 1000000) {
+    if (
+      !price ||
+      isNaN(price) ||
+      parseFloat(price) <= 0 ||
+      parseFloat(price) > 1000000
+    ) {
       errors.push("Price must be between 0.01 and 1,000,000");
     }
 
-    if (!stock || isNaN(stock) || parseInt(stock) < 0 || parseInt(stock) > 10000) {
+    if (
+      !stock ||
+      isNaN(stock) ||
+      parseInt(stock) < 0 ||
+      parseInt(stock) > 10000
+    ) {
       errors.push("Stock must be between 0 and 10,000");
     }
 
@@ -41,24 +54,16 @@ exports.addProduct = async (req, res) => {
       errors.push("Category is required");
     }
 
-    // Validate images
-    const imageKeys = ["image1", "image2", "image3"];
-    const uploadedFiles = imageKeys
-      .map((key) => files[key])
-      .filter(Boolean)
-      .map((file) => file[0]); // Multer fields provide arrays
-    const validExtensions = ["image/jpeg", "image/jpg", "image/png"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (uploadedFiles.length !== 3) {
-      errors.push(`Exactly 3 images are required, received ${uploadedFiles.length}`);
+    if (files.length !== 3) {
+      errors.push(`Exactly 3 images are required, received ${files.length}`);
     } else {
-      uploadedFiles.forEach((file, index) => {
-        if (!file) {
-          errors.push(`Image ${index + 1} is missing`);
-        } else if (!validExtensions.includes(file.mimetype)) {
+      const validExtensions = ["image/jpeg", "image/jpg", "image/png"];
+      const maxSize = 5 * 1024 * 1024;
+      files.forEach((file, index) => {
+        if (!validExtensions.includes(file.mimetype)) {
           errors.push(`Image ${index + 1} must be JPG, JPEG, or PNG`);
-        } else if (file.size > maxSize) {
+        }
+        if (file.size > maxSize) {
           errors.push(`Image ${index + 1} must be less than 5MB`);
         }
       });
@@ -66,7 +71,7 @@ exports.addProduct = async (req, res) => {
 
     if (errors.length > 0) {
       const categories = await Category.find();
-      return res.status(400).render("admin/addproduct", {
+      return res.render("admin/addproduct", {
         product: { name, description, price, stock, category, status },
         categories,
         errors,
@@ -74,48 +79,34 @@ exports.addProduct = async (req, res) => {
       });
     }
 
-    // Upload images to Cloudinary
-    let imageUrls;
-    try {
-      imageUrls = await uploadImage(uploadedFiles);
-    } catch (uploadError) {
-      console.error("Cloudinary upload error:", uploadError);
-      errors.push("Failed to upload images to Cloudinary");
-      const categories = await Category.find();
-      return res.status(500).render("admin/addproduct", {
-        product: { name, description, price, stock, category, status },
-        categories,
-        errors,
-        messages: { error: "Failed to upload images to Cloudinary", success: "" },
-      });
-    }
+    const imagePaths = imageUrls;
 
-    // Create and save product
     const product = new Product({
       productName: name.trim(),
       description: description.trim(),
       price: parseFloat(price),
       totalStock: parseInt(stock),
       category,
-      productImage: imageUrls,
+      productImage: imagePaths,
       status: status === "true",
     });
 
     await product.save();
     req.flash("success", "Product added successfully");
-    return res.redirect("/admin/product");
+    res.redirect("/admin/product");
   } catch (error) {
     console.error("Error adding product:", error);
     const categories = await Category.find();
-    return res.status(500).render("admin/addproduct", {
+    const errorMessage =
+      error.message || "An error occurred while adding the product";
+    return res.render("admin/addproduct", {
       product: req.body,
       categories,
-      errors: [error.message || "An error occurred while adding the product"],
-      messages: { error: error.message || "An error occurred while adding the product", success: "" },
+      errors: [errorMessage],
+      messages: { error: errorMessage, success: "" },
     });
   }
 };
-
 
 // Edit Product
 exports.editProduct = async (req, res) => {
@@ -429,18 +420,17 @@ exports.renderEditProduct = async (req, res) => {
   }
 };
 
-exports.deleteProduct = async(req,res) => {
+exports.deleteProduct = async (req, res) => {
   try {
-     const product = await Product.findById(req.params.id);
-        if (!product) {
-            return res.status(404).json({ error: 'product not found' });
-        }
-        product.isDeleted = true
-        await product.save()
-
-        res.json({message : 'product deleted successfully'})
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    product.isDeleted = true;
+    await product.save();
+    res.json({ message: 'Product deleted successfully' });
   } catch (error) {
-       console.error(error);
-        res.status(500).json({ error: 'An error occurred while deleting the product' });
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while deleting the product' });
   }
-}
+};

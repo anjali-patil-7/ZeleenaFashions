@@ -235,7 +235,7 @@ exports.getShopByFilter = async (req, res) => {
       return res.redirect('/shop');
     }
 
-    const categories = await Category.find({ status: true }).lean();
+    const categories = await Category.find({ status: true ,isDeleted:false}).lean();
     
     // Build query
     let query = {

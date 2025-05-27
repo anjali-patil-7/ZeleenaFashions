@@ -206,40 +206,45 @@
     // Validation rules matching backend
     const validationRules = {
       name: {
-        validate: (value) => value && value.trim().length >= 3,
-        error: 'Name must be at least 3 characters',
+        validate: (value) => value && /^[a-zA-Z\s]+$/.test(value) && !/^\s/.test(value) && value.trim().length >= 3,
+        error: 'Name must be at least 3 characters, contain only alphabets and spaces, and not start with a space',
       },
       email: {
-        validate: (value) => value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-        error: 'Invalid email address',
+        validate: (value) => value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !/^\s/.test(value),
+        error: 'Invalid email address or starts with a space',
       },
       mobile: {
-        validate: (value) => value && /^\d{10}$/.test(value),
-        error: 'Invalid mobile number (must be 10 digits)',
+        validate: (value) => {
+          if (!value || !/^[6-9]\d{9}$/.test(value)) return false;
+          // Check for repeating digits
+          const digitSet = new Set(value.split(''));
+          return digitSet.size === value.length;
+        },
+        error: 'Mobile number must start with 6, 7, 8, or 9, be 10 digits, and have no repeating digits',
       },
       pincode: {
-        validate: (value) => value && /^\d{6}$/.test(value),
-        error: 'Invalid pincode (must be 6 digits)',
+        validate: (value) => value && /^\d{6}$/.test(value) && !/^\s/.test(value),
+        error: 'Invalid pincode (must be 6 digits and not start with a space)',
       },
       houseName: {
-        validate: (value) => value && value.trim().length > 0,
-        error: 'House name/number is required',
+        validate: (value) => value && value.trim().length > 0 && !/^\s/.test(value),
+        error: 'House name/number is required and cannot start with a space',
       },
       street: {
-        validate: (value) => value && value.trim().length > 0,
-        error: 'Street/road is required',
+        validate: (value) => value && value.trim().length > 0 && !/^\s/.test(value),
+        error: 'Street/road is required and cannot start with a space',
       },
       city: {
-        validate: (value) => value && value.trim().length > 0,
-        error: 'City is required',
+        validate: (value) => value && value.trim().length > 0 && !/^\s/.test(value),
+        error: 'City is required and cannot start with a space',
       },
       state: {
-        validate: (value) => value && value.trim().length > 0,
-        error: 'State is required',
+        validate: (value) => value && value.trim().length > 0 && !/^\s/.test(value),
+        error: 'State is required and cannot start with a space',
       },
       country: {
-        validate: (value) => value && value.trim().length > 0,
-        error: 'Country is required',
+        validate: (value) => value && value.trim().length > 0 && !/^\s/.test(value),
+        error: 'Country is required and cannot start with a space',
       },
       saveAs: {
         validate: (value) => value && ['Home', 'Work', 'Other'].includes(value),

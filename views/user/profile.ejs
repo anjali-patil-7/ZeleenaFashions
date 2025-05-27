@@ -16,7 +16,6 @@
 
 <!-- Begin Hiraola's Page Content Area -->
 <main class="page-content">
-    <!-- Begin Hiraola's Account Page Area -->
     <div class="account-page-area">
         <div class="container">
             <div class="row">
@@ -32,7 +31,7 @@
                             <a class="nav-link" id="account-address-tab" href="/address" aria-controls="account-address" aria-selected="false">Addresses</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="account-address-tab" href="/walletHistory" aria-controls="account-address" aria-selected="false">Wallet</a>
+                            <a class="nav-link" id="account-wallet-tab" href="/walletHistory" aria-controls="account-wallet" aria-selected="false">Wallet</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="account-details-tab" href="/changepassword" aria-controls="account-details" aria-selected="false">Change Password</a>
@@ -50,14 +49,14 @@
                                 <h2>Personal Information</h2>
                                 <button class="edit-btn" onclick="toggleEdit()" id="editBtn">Edit Details</button>
                             </div>
-                    
+
                             <!-- View Mode -->
                             <div id="viewMode">
                                 <div class="info-row">
                                     <span class="info-label">Name:</span>
                                     <span><%= user ? user.userName : 'Guest' %></span>
-                                  </div>
-                                  <div class="info-row">
+                                </div>
+                                <div class="info-row">
                                     <span class="info-label">Phone number:</span>
                                     <span><%= user && user.phone ? user.phone : 'Not provided' %></span>
                                 </div>
@@ -66,7 +65,7 @@
                                     <span><%= user.email %></span>
                                 </div>
                             </div>
-                    
+
                             <!-- Edit Mode -->
                             <form id="editMode" style="display: none;" onsubmit="updateProfile(event)">
                                 <div class="form-group">
@@ -81,7 +80,7 @@
                                     <label>Email address:</label>
                                     <input type="text" value="<%= user.email %>" readonly>
                                 </div>
-                            
+
                                 <div class="button-group">
                                     <button type="submit" class="edit-btn">Save Changes</button>
                                     <button type="button" onclick="toggleEdit()" style="background-color: #695223;">Cancel</button>
@@ -90,167 +89,19 @@
                         </div>
 
                         <br><br>
-                    
+
                         <!-- Welcome Section -->
                         <div class="welcome-section">
                             <p>Hello <strong><%= user.userName %></strong> (not <%= user.userName %>? <a href="/logout">Logout</a>)</p>
                             <p>From your account dashboard you can view your recent orders, manage your shipping and
-                                billing addresses and <a href="javascript:void(0)" onclick="toggleEdit()">edit your password and account
+                                billing addresses and <a href="javascript:void(0)" onclick="toggleEdit()">edit your account
                                 details</a>.</p>
                         </div>
                     </div>
-                    
-                    <style>
-                        /* Personal Information Section Styles */
-                        .personal-info {
-                            border: 1px solid #e0e0e0;
-                            padding: 20px;
-                            margin-bottom: 20px;
-                            border-radius: 8px;
-                            background-color: #ffffff;
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                        }
-                    
-                        .info-header {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            margin-bottom: 20px;
-                        }
-                    
-                        .info-header h2 {
-                            font-size: 24px;
-                            color: #333333;
-                            margin: 0;
-                        }
-                    
-                        .edit-btn {
-                            background-color: #595959;
-                            color: white;
-                            border: none;
-                            padding: 8px 20px;
-                            border-radius: 4px;
-                            cursor: pointer;
-                            font-size: 14px;
-                            transition: background-color 0.3s ease;
-                        }
-                    
-                        .edit-btn:hover {
-                            background-color: #1d2951;
-                        }
-                    
-                        .info-row {
-                            display: flex;
-                            margin-bottom: 15px;
-                            padding: 10px 0;
-                            border-bottom: 1px solid #f0f0f0;
-                        }
-                    
-                        .info-row:last-child {
-                            border-bottom: none;
-                        }
-                    
-                        .info-label {
-                            width: 150px;
-                            font-weight: 600;
-                            color: #555555;
-                        }
-                    
-                        .info-row span {
-                            color: #333333;
-                        }
-                    
-                        /* Edit Mode Styles */
-                        .form-group {
-                            margin-bottom: 20px;
-                        }
-                    
-                        .form-group label {
-                            display: block;
-                            font-weight: 600;
-                            color: #555555;
-                            margin-bottom: 5px;
-                        }
-                    
-                        .form-group input {
-                            width: 100%;
-                            padding: 10px;
-                            border: 1px solid #e0e0e0;
-                            border-radius: 4px;
-                            font-size: 14px;
-                            color: #333333;
-                            transition: border-color 0.3s ease;
-                        }
-                    
-                        .form-group input:focus {
-                            border-color: #1d2951;
-                            outline: none;
-                        }
-                    
-                        .button-group {
-                            display: flex;
-                            gap:10px;
-                            margin-top: 20px;
-                        }
-                    
-                        .button-group button {
-                            padding: 8px 20px;
-                            border: none;
-                            border-radius: 4px;
-                            cursor: pointer;
-                            font-size: 14px;
-                            transition: background-color 0.3s ease;
-                        }
-                    
-                        .button-group button[type="submit"] {
-                            background-color: #595959;
-                            color: white;
-                        }
-                    
-                        .button-group button[type="submit"]:hover {
-                            background-color: #1d2951;
-                        }
-                    
-                        .button-group button[type="button"] {
-                            background-color: #1d2951;
-                            color: white;
-                        }
-                    
-                        .button-group button[type="button"]:hover {
-                            background-color: #595959;
-                        }
-                    
-                        /* Welcome Section Styles */
-                        .welcome-section {
-                            border: 1px solid #e0e0e0;
-                            padding: 20px;
-                            border-radius: 8px;
-                            background-color: #ffffff;
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                        }
-                    
-                        .welcome-section p {
-                            font-size: 16px;
-                            color: #2c2828;
-                            margin: 0 0 15px 0;
-                        }
-                    
-                        .welcome-section p strong {
-                            color: #333333;
-                        }
-                    
-                        .welcome-section a {
-                            color: #0d31ff;
-                            text-decoration: none;
-                            transition: color 0.3s ease;
-                        }
-                    
-                        .welcome-section a:hover {
-                            color: #1d2951;
-                        }
-                    </style>
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- Hiraola's Account Page Area End Here -->
 </main>
 <!-- Hiraola's Page Content Area End Here -->
 
@@ -264,7 +115,7 @@ async function updateProfile(event) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
-    // Validation
+    // Client-side validation
     if (!validateForm(data)) {
         return;
     }
@@ -289,15 +140,6 @@ async function updateProfile(event) {
             }).then(() => {
                 window.location.reload();
             });
-        } else if (result.status === 'verify') {
-            Swal.fire({
-                icon: 'info',
-                title: 'Verification Required',
-                text: result.message,
-                confirmButtonColor: '#595959'
-            }).then(() => {
-                window.location.href = '/verify-email-update';
-            });
         } else {
             Swal.fire({
                 icon: 'error',
@@ -317,37 +159,37 @@ async function updateProfile(event) {
 }
 
 function validateForm(data) {
-    // Name validation
-    const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+    // Name validation: Must start with a letter, 2-50 characters, only letters and spaces
+    const nameRegex = /^[a-zA-Z][a-zA-Z\s]{1,49}$/;
     if (!nameRegex.test(data.userName)) {
         Swal.fire({
             icon: 'error',
             title: 'Invalid Name',
-            text: 'Name should be 2-50 characters long and contain only letters and spaces',
+            text: 'Name must start with a letter, be 2-50 characters long, and contain only letters and spaces.',
             confirmButtonColor: '#595959'
         });
         return false;
     }
 
-    // Phone validation
+    // Phone validation: Exactly 10 digits
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(data.phone)) {
         Swal.fire({
             icon: 'error',
             title: 'Invalid Phone Number',
-            text: 'Phone number should be exactly 10 digits',
+            text: 'Phone number must be exactly 10 digits.',
             confirmButtonColor: '#595959'
         });
         return false;
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
+    // Check for repeated digits (at least 5 unique digits)
+    const uniqueDigits = new Set(data.phone.split(''));
+    if (uniqueDigits.size < 5) {
         Swal.fire({
             icon: 'error',
-            title: 'Invalid Email',
-            text: 'Please enter a valid email address',
+            title: 'Invalid Phone Number',
+            text: 'Phone number contains too many repeated digits.',
             confirmButtonColor: '#595959'
         });
         return false;
@@ -372,7 +214,6 @@ function toggleEdit() {
     }
 }
 
-// Logout confirmation
 function logout() {
     Swal.fire({
         title: `Are you sure?`,
@@ -390,3 +231,153 @@ function logout() {
     });
 }
 </script>
+
+<style>
+    /* Personal Information Section Styles */
+    .personal-info {
+        border: 1px solid #e0e0e0;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .info-header h2 {
+        font-size: 24px;
+        color: #333333;
+        margin: 0;
+    }
+
+    .edit-btn {
+        background-color: #595959;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .edit-btn:hover {
+        background-color: #1d2951;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 15px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        width: 150px;
+        font-weight: 600;
+        color: #555555;
+    }
+
+    .info-row span {
+        color: #333333;
+    }
+
+    /* Edit Mode Styles */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #555555;
+        margin-bottom: 5px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #333333;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus {
+        border-color: #1d2951;
+        outline: none;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .button-group button {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .button-group button[type="submit"] {
+        background-color: #595959;
+        color: white;
+    }
+
+    .button-group button[type="submit"]:hover {
+        background-color: #1d2951;
+    }
+
+    .button-group button[type="button"] {
+        background-color: #695223;
+        color: white;
+    }
+
+    .button-group button[type="button"]:hover {
+        background-color: #595959;
+    }
+
+    /* Welcome Section Styles */
+    .welcome-section {
+        border: 1px solid #e0e0e0;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .welcome-section p {
+        font-size: 16px;
+        color: #2c2828;
+        margin: 0 0 15px 0;
+    }
+
+    .welcome-section p strong {
+        color: #333333;
+    }
+
+    .welcome-section a {
+        color: #0d31ff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .welcome-section a:hover {
+        color: #1d2951;
+    }
+</style>

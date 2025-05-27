@@ -1,20 +1,18 @@
 <%- include('../partials/admin/header') %>
 
 <style>
-    /* Define global font and color variables for consistency */
     :root {
         --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        --color-primary: #000000; /* Black */
-        --color-accent: #FFD700; /* Gold */
-        --color-text: #333333; /* Dark gray for body text */
-        --color-muted: #666666; /* Muted gray for secondary text */
+        --color-primary: #000000;
+        --color-accent: #FFD700;
+        --color-text: #333333;
+        --color-muted: #666666;
     }
 
-    /* General Typography */
     .content-title {
         font-family: var(--font-heading);
-        font-size: 1.5rem; /* 24px */
+        font-size: 1.5rem;
         font-weight: 700;
         line-height: 1.3;
         color: var(--color-primary);
@@ -24,13 +22,12 @@
     .content-main p,
     .no-data {
         font-family: var(--font-body);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 400;
         line-height: 1.6;
         color: var(--color-muted);
     }
 
-    /* Content Header */
     .content-header {
         display: flex;
         justify-content: space-between;
@@ -46,7 +43,7 @@
         border-radius: 0.25rem;
         text-decoration: none;
         font-family: var(--font-heading);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 500;
         line-height: 1.4;
         transition: all 0.3s;
@@ -57,14 +54,13 @@
         color: var(--color-primary);
     }
 
-    /* Search Container */
     .search-container {
         margin-bottom: 1.875rem;
     }
 
     .search-container form {
         display: flex;
-        max-width: 31.25rem; /* 500px */
+        max-width: 31.25rem;
     }
 
     .search-container input {
@@ -73,7 +69,7 @@
         border: 1px solid var(--color-primary);
         border-radius: 0.25rem 0 0 0.25rem;
         font-family: var(--font-body);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 400;
         line-height: 1.5;
         color: var(--color-text);
@@ -91,7 +87,7 @@
         border-radius: 0 0.25rem 0.25rem 0;
         cursor: pointer;
         font-family: var(--font-heading);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 500;
         line-height: 1.4;
         transition: all 0.3s;
@@ -112,7 +108,7 @@
         display: flex;
         align-items: center;
         font-family: var(--font-heading);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 500;
         line-height: 1.4;
         transition: all 0.3s;
@@ -123,14 +119,13 @@
         color: var(--color-primary);
     }
 
-    /* Products Table */
     .products-table {
         width: 100%;
         border-collapse: collapse;
         margin: 1.5rem 0;
         border: 1px solid var(--color-primary);
         font-family: var(--font-body);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         line-height: 1.5;
     }
 
@@ -140,7 +135,7 @@
         background-color: var(--color-primary);
         color: var(--color-accent);
         font-family: var(--font-heading);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 600;
         line-height: 1.3;
         letter-spacing: 0.03em;
@@ -163,7 +158,6 @@
         background-color: #f0f0f0;
     }
 
-    /* Action Buttons */
     .action-buttons {
         display: flex;
         gap: 0.3125rem;
@@ -180,7 +174,7 @@
         text-decoration: none;
         display: inline-block;
         font-family: var(--font-heading);
-        font-size: 0.75rem; /* 12px */
+        font-size: 0.75rem;
         font-weight: 500;
         line-height: 1.3;
         transition: all 0.3s;
@@ -191,7 +185,6 @@
         color: var(--color-primary);
     }
 
-    /* Pagination */
     .pagination {
         margin-top: 1.875rem;
         display: flex;
@@ -206,7 +199,7 @@
         text-decoration: none;
         color: var(--color-primary);
         font-family: var(--font-heading);
-        font-size: 0.875rem; /* 14px */
+        font-size: 0.875rem;
         font-weight: 500;
         line-height: 1.4;
         border-radius: 0.25rem;
@@ -224,14 +217,12 @@
         font-weight: 600;
     }
 
-    /* No Data Message */
     .no-data {
         text-align: center;
         font-weight: 500;
-        font-size: 1rem; /* 16px */
+        font-size: 1rem;
     }
 
-    /* Spinner */
     .spinner {
         display: inline-block;
         width: 1.125rem;
@@ -246,9 +237,8 @@
         to { transform: rotate(360deg); }
     }
 
-    /* Product Image */
     .product-image {
-        max-width: 3.125rem; /* 50px */
+        max-width: 3.125rem;
         max-height: 3.125rem;
         display: block;
         margin: 0 auto;
@@ -262,21 +252,20 @@
         margin: 0 auto;
         color: var(--color-muted);
         font-family: var(--font-body);
-        font-size: 0.75rem; /* 12px */
+        font-size: 0.75rem;
     }
 
-    /* SweetAlert2 Custom Styles */
     .gold-swal {
         border: 2px solid var(--color-accent) !important;
         font-family: var(--font-body) !important;
-        font-size: 0.875rem !important; /* 14px */
+        font-size: 0.875rem !important;
     }
 
     .gold-confirm-btn {
         background-color: var(--color-primary) !important;
         color: var(--color-accent) !important;
         font-family: var(--font-heading) !important;
-        font-size: 0.875rem !important; /* 14px */
+        font-size: 0.875rem !important;
         font-weight: 500 !important;
     }
 </style>
@@ -290,7 +279,6 @@
         <a href="/admin/addproduct" class="add-category-btn">+ Add Product</a>
     </div>
 
-    <!-- Search Container -->
     <div class="search-container">
         <form action="/admin/product" method="GET">
             <div style="display: flex; max-width: 31.25rem;">
@@ -383,6 +371,7 @@
                     startPage = Math.max(1, endPage - maxPagesToShow + 1);
                 }
             %>
+
             <% if (startPage > 1) { %>
                 <a href="/admin/product?page=1<%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
                 <% if (startPage > 2) { %>
@@ -520,7 +509,30 @@
                 })
                 .then(data => {
                     button.disabled = false;
-                    document.getElementById(`product-row-${productId}`).remove();
+
+                    // Remove the product row from the table
+                    const row = document.getElementById(`product-row-${productId}`);
+                    if (row) {
+                        row.remove();
+                    }
+
+                    // Update SL.No for remaining rows
+                    const rows = document.querySelectorAll('.products-table tbody tr');
+                    rows.forEach((row, index) => {
+                        const slNoCell = row.querySelector('td:first-child');
+                        slNoCell.textContent = (currentPage - 1) * 5 + index + 1;
+                    });
+
+                    // If no products remain, show "No products found" and handle pagination
+                    if (rows.length === 0) {
+                        const table = document.querySelector('.products-table');
+                        table.insertAdjacentHTML('afterend', '<p class="no-data">No products found</p>');
+                        table.remove();
+                        // Redirect to previous page if current page is empty and not the first page
+                        if (currentPage > 1) {
+                            window.location.href = `/admin/product?page=${currentPage - 1}${searchQuery ? '&query=' + encodeURIComponent(searchQuery) : ''}`;
+                        }
+                    }
 
                     Swal.fire({
                         title: "Deleted!",
@@ -532,13 +544,6 @@
                             confirmButton: 'gold-confirm-btn'
                         }
                     });
-
-                    // Check if table is empty
-                    const tableRows = document.querySelectorAll('.products-table tbody tr');
-                    if (tableRows.length === 0) {
-                        const tableContainer = document.querySelector('.products-table').parentElement;
-                        tableContainer.innerHTML = '<p class="no-data">No products found</p>';
-                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);

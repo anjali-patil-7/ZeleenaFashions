@@ -38,8 +38,7 @@ router.post('/reset-password', authController.resetPassword);
 // Profile routes
 router.get('/profile', verifyToken, profileController.getProfile);
 router.post('/updateprofile', verifyToken, profileController.updateProfile);
-router.get('/verify-email-update', verifyToken, profileController.getVerifyEmailUpdate);
-router.post('/verify-email-update', verifyToken, profileController.verifyEmailOtp);
+
 
 // Shop routes
 router.get('/shop', shopController.getShopPage);

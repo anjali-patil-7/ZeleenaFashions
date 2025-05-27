@@ -1,32 +1,24 @@
 const { body, validationResult } = require('express-validator');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
-const OTP = require('../../models/otpSchema');
-
-const transporter = require('../../config/nodemailer');
-const bcrypt = require('bcryptjs');
 
 // Render the profile page
 exports.getProfile = async (req, res) => {
     try {
-        // req.user should be set by verifyToken middleware
         if (!req.user) {
             req.session.error_msg = 'Please log in to view your profile.';
             return res.redirect('/login');
         }
 
-        // Fetch user data
         const user = await User.findById(req.user.id).lean();
         if (!user) {
             req.session.error_msg = 'User not found.';
             return res.redirect('/login');
         }
 
-        // Initialize session data
         res.locals.session = req.session || {};
-        res.locals.session.isAuth = true; // Ensure session reflects logged-in state
+        res.locals.session.isAuth = true;
 
-        // Placeholder for referral rewards
         const referralRewards = []; // Replace with actual logic
 
         res.render('user/profile', {
@@ -42,7 +34,6 @@ exports.getProfile = async (req, res) => {
             session: res.locals.session,
         });
 
-        // Clear flash messages
         delete req.session.error_msg;
         delete req.session.success_msg;
     } catch (err) {
@@ -60,21 +51,25 @@ exports.getProfile = async (req, res) => {
 
 // Handle profile update
 exports.updateProfile = [
-    // Input validation using express-validator
+    // Input validation
     body('userName')
         .trim()
         .isLength({ min: 2, max: 50 })
         .withMessage('Name must be between 2 and 50 characters.')
-        .matches(/^[a-zA-Z\s]+$/)
-        .withMessage('Name can only contain letters and spaces.'),
+        .matches(/^[a-zA-Z][a-zA-Z\s]*$/)
+        .withMessage('Name must start with a letter and contain only letters and spaces.'),
     body('phone')
         .trim()
         .matches(/^\d{10}$/)
-        .withMessage('Phone number must be exactly 10 digits.'),
-    body('email')
-        .trim()
-        .isEmail()
-        .withMessage('Please enter a valid email address.'),
+        .withMessage('Phone number must be exactly 10 digits.')
+        .custom((value) => {
+            // Check for repeated digits (e.g., "1111111111")
+            const uniqueDigits = new Set(value.split(''));
+            if (uniqueDigits.size < 5) {
+                throw new Error('Phone number contains too many repeated digits.');
+            }
+            return true;
+        }),
 
     async (req, res) => {
         try {
@@ -85,7 +80,6 @@ exports.updateProfile = [
                 });
             }
 
-            // Check for validation errors
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.json({
@@ -94,7 +88,7 @@ exports.updateProfile = [
                 });
             }
 
-            const { userName, phone, email } = req.body;
+            const { userName, phone } = req.body;
             const user = await User.findById(req.user.id);
 
             if (!user) {
@@ -104,50 +98,17 @@ exports.updateProfile = [
                 });
             }
 
-            // Check if email is already in use by another user
-            if (email !== user.email) {
-                const existingEmail = await User.findOne({ email });
-                if (existingEmail) {
-                    return res.json({
-                        status: 'error',
-                        message: 'Email is already registered.',
-                    });
-                }
-
-                // Store update data in session and send OTP for email verification
-                req.session.profileUpdateData = {
-                    userName,
-                    phone,
-                    email,
-                };
-
-                const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                await OTP.create({ email, otp });
-
-                await transporter.sendMail({
-                    to: email,
-                    subject: 'Zeleena Fashions - OTP for Email Update',
-                    html: `
-                        <div style="font-family: Arial, sans-serif; padding: 20px;">
-                            <h2>Zeleena Fashions</h2>
-                            <p>Your OTP for email update verification is:</p>
-                            <h3 style="color: #1D2951;">${otp}</h3>
-                            <p>This OTP is valid for 2 minutes.</p>
-                            <p>If you did not request this, please ignore this email.</p>
-                        </div>
-                    `,
-                });
-
+            // Check if data has changed
+            if (user.name === userName && user.phone === phone) {
                 return res.json({
-                    status: 'verify',
-                    message: 'OTP sent to your new email for verification.',
+                    status: 'success',
+                    message: 'No changes made to profile.',
                 });
             }
 
-            // Update user data if email is unchanged
+            // Update user data (email is not updated)
             user.name = userName;
             user.phone = phone;
-            user.email = email;
             await user.save();
 
             return res.json({
@@ -164,174 +125,63 @@ exports.updateProfile = [
     },
 ];
 
-// Render email verification page for profile update
-exports.getVerifyEmailUpdate = async (req, res) => {
-    try {
-        if (!req.user || !req.session.profileUpdateData) {
-            req.session.error_msg = 'Session expired. Please try updating your profile again.';
-            return res.redirect('/profile');
-        }
+// Removed getVerifyEmailUpdate and verifyEmailOtp since email updates are not allowed
 
-        res.locals.session = req.session || {};
-        res.locals.session.isAuth = true;
-
-        res.render('user/otp', {
-            error_msg: req.session.error_msg || '',
-            success_msg: 'Please enter the OTP sent to your new email.',
-            session: res.locals.session,
-        });
-
-        delete req.session.error_msg;
-        delete req.session.success_msg;
-    } catch (err) {
-        console.error('Error loading email verification page:', err);
-        res.locals.session = req.session || {};
-        res.locals.session.isAuth = req.session.isAuth || false;
-        res.render('user/otp', {
-            error_msg: 'An unexpected error occurred.',
-            success_msg: '',
-            session: res.locals.session,
-        });
-    }
-};
-
-// Handle OTP verification for email update
-exports.verifyEmailOtp = async (req, res) => {
-    try {
-        const { otp } = req.body;
-
-        if (!req.user || !req.session.profileUpdateData) {
-            res.locals.session = req.session || {};
-            res.locals.session.isAuth = req.session.isAuth || false;
-            return res.render('user/otp', {
-                error_msg: 'Session expired. Please try updating your profile again.',
-                success_msg: '',
-                session: res.locals.session,
-            });
-        }
-
-        if (!otp) {
-            res.locals.session = req.session || {};
-            res.locals.session.isAuth = req.session.isAuth || false;
-            return res.render('user/otp', {
-                error_msg: 'OTP is required.',
-                success_msg: '',
-                session: res.locals.session,
-            });
-        }
-
-        if (otp.length !== 6 || isNaN(otp)) {
-            res.locals.session = req.session || {};
-            res.locals.session.isAuth = req.session.isAuth || false;
-            return res.render('user/otp', {
-                error_msg: 'Please enter a valid 6-digit OTP.',
-                success_msg: '',
-                session: res.locals.session,
-            });
-        }
-
-        const { userName, phone, email } = req.session.profileUpdateData;
-        const otpRecord = await OTP.findOne({ email, otp });
-
-        if (!otpRecord) {
-            res.locals.session = req.session || {};
-            res.locals.session.isAuth = req.session.isAuth || false;
-            return res.render('user/otp', {
-                error_msg: 'Invalid or expired OTP.',
-                success_msg: '',
-                session: res.locals.session,
-            });
-        }
-
-        // Update user data
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            res.locals.session = req.session || {};
-            res.locals.session.isAuth = req.session.isAuth || false;
-            return res.render('user/otp', {
-                error_msg: 'User not found.',
-                success_msg: '',
-                session: res.locals.session,
-            });
-        }
-
-        user.name = userName;
-        user.phone = phone;
-        user.email = email;
-        await user.save();
-
-        delete req.session.profileUpdateData;
-
-        req.session.success_msg = 'Profile updated successfully!';
-        return res.redirect('/profile');
-    } catch (err) {
-        console.error('Email OTP verification error:', err);
-        res.locals.session = req.session || {};
-        res.locals.session.isAuth = req.session.isAuth || false;
-        return res.render('user/otp', {
-            error_msg: 'An unexpected error occurred.',
-            success_msg: '',
-            session: res.locals.session,
-        });
-    }
-};
-
-
+// Fetch wallet history
 exports.getWalletHistory = async (req, res) => {
     try {
-        const user = req.user.id; // Assuming user is stored in session or passport
-        if (!user) {
+        if (!req.user) {
             console.log('No user found, redirecting to login');
             return res.redirect('/login');
         }
 
+        const user = await User.findById(req.user.id).lean();
+        if (!user) {
+            console.log('No user found for ID:', req.user.id);
+            return res.redirect('/login');
+        }
+
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // Number of transactions per page
+        const limit = 10;
         const skip = (page - 1) * limit;
 
-        // Fetch wallet for the user
         const wallet = await Wallet.findOne({ userId: req.user.id })
             .populate('transaction.orderId');
 
-        console.log('Fetched wallet:', wallet); // Debug log
+        console.log('Fetched wallet:', wallet);
 
         if (!wallet) {
             console.log('No wallet found for user:', req.user.id);
             return res.render('user/walletHistory', {
-                user: { userName: user.userName, walletCardNumber: '1234' },
+                user: { userName: user.name, walletCardNumber: '1234' },
                 wallet: { balance: 0, transaction: [] },
                 currentPage: 1,
                 totalPages: 1,
                 hasPrevPage: false,
-                hasNextPage: false
+                hasNextPage: false,
             });
         }
 
-        // Ensure transactions is an array
         const transactions = Array.isArray(wallet.transaction) ? wallet.transaction : [];
-
-        // Sort transactions by date in descending order
         transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // Calculate pagination
         const totalTransactions = transactions.length;
         const totalPages = Math.ceil(totalTransactions / limit) || 1;
         const paginatedTransactions = transactions.slice(skip, skip + limit);
 
-        // Render the wallet history page
         res.render('user/walletHistory', {
-            user: { userName: user.userName, walletCardNumber: '1234' },
+            user: { userName: user.name, walletCardNumber: '1234' },
             wallet: {
                 balance: wallet.balance,
-                transaction: paginatedTransactions
+                transaction: paginatedTransactions,
             },
             currentPage: page,
             totalPages,
             hasPrevPage: page > 1,
-            hasNextPage: page < totalPages
+            hasNextPage: page < totalPages,
         });
     } catch (error) {
         console.error('Error fetching wallet history:', error);
-        res.status(500).render('error', { message: 'Server Error' }); // Render error page
+        res.status(500).render('error', { message: 'Server Error' });
     }
 };
