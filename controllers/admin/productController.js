@@ -422,15 +422,15 @@ exports.renderEditProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ _id: req.params.id, isDeleted: false });
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found or already deleted" });
     }
     product.isDeleted = true;
     await product.save();
-    res.json({ message: 'Product deleted successfully' });
+    res.json({ message: "Product deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred while deleting the product' });
+    res.status(500).json({ error: "An error occurred while deleting the product" });
   }
 };

@@ -252,12 +252,16 @@ exports.getCategories = async (req, res) => {
         const limit = 10;
         const skip = (page - 1) * limit;
 
-        const searchQuery = query ? {
-            $or: [
-                { name: { $regex: query, $options: 'i' } },
-                { description: { $regex: query, $options: 'i' } }
-            ]
-        } : {};
+        // Modified searchQuery to exclude soft-deleted categories
+        const searchQuery = {
+            isDeleted: false, // Only fetch categories that are not soft-deleted
+            ...(query ? {
+                $or: [
+                    { name: { $regex: query, $options: 'i' } },
+                    { description: { $regex: query, $options: 'i' } }
+                ]
+            } : {})
+        };
 
         const categories = await Category.find(searchQuery)
             .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })

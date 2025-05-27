@@ -433,7 +433,7 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error(response.status === 404 ? 'Product not found' : 'Network response was not ok');
                     }
                     return response.json();
                 })
@@ -461,7 +461,7 @@
                     
                     Swal.fire({
                         title: "Error!",
-                        text: "Something went wrong. Please try again.",
+                        text: error.message || "Something went wrong. Please try again.",
                         icon: "error",
                         confirmButtonColor: "#000000",
                         customClass: {
@@ -503,7 +503,7 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error(response.status === 404 ? 'Product not found or already deleted' : 'Network response was not ok');
                     }
                     return response.json();
                 })
@@ -552,7 +552,7 @@
 
                     Swal.fire({
                         title: "Error!",
-                        text: "Something went wrong. Please try again.",
+                        text: error.message || "Something went wrong. Please try again.",
                         icon: "error",
                         confirmButtonColor: "#000000",
                         customClass: {
