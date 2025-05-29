@@ -11,9 +11,9 @@
         border-radius: 4px;
         font-family: 'Montserrat', sans-serif;
         font-weight: 500;
-        border: 1px solid #FFD700; /* Gold border */
-        background-color: #ffffff; /* White background */
-        color: #000000; /* Black text */
+        border: 1px solid #FFD700;
+        background-color: #ffffff;
+        color: #000000;
     }
     .alert ul {
         margin: 0;
@@ -23,28 +23,28 @@
         margin-bottom: 15px;
     }
     .preview-placeholder {
-        border: 2px dashed #000000; /* Black dashed border */
+        border: 2px dashed #000000;
         height: 200px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #ffffff; /* White background */
-        color: #666; /* Gray text */
+        background: #ffffff;
+        color: #666;
         font-family: 'Montserrat', sans-serif;
     }
     .preview-image {
         width: 100%;
         height: 200px;
         object-fit: cover;
-        border: 1px solid #000000; /* Black border */
+        border: 1px solid #000000;
     }
     .form-control.error, .form-select.error {
-        border-color: #FFD700; /* Gold border for errors */
+        border-color: #FFD700;
     }
     .text-danger {
         font-size: 0.875em;
         margin-top: 5px;
-        color: #000000; /* Black text */
+        color: #000000;
         font-family: 'Montserrat', sans-serif;
     }
     .image-preview-container {
@@ -57,7 +57,7 @@
         position: relative;
         width: 200px;
         height: 200px;
-        border: 1px solid #000000; /* Black border */
+        border: 1px solid #000000;
         overflow: hidden;
     }
     .image-preview-item img {
@@ -78,13 +78,13 @@
     .image-actions button {
         background: none;
         border: none;
-        color: #FFD700; /* Gold text */
+        color: #FFD700;
         cursor: pointer;
         font-size: 14px;
         font-family: 'Montserrat', sans-serif;
     }
     .image-actions button:hover {
-        color: #ffffff; /* White text on hover */
+        color: #ffffff;
     }
     .crop-modal {
         display: none;
@@ -99,10 +99,10 @@
     }
     .crop-modal-content {
         position: relative;
-        background-color: #ffffff; /* White background */
+        background-color: #ffffff;
         margin: 5% auto;
         padding: 20px;
-        border: 1px solid #000000; /* Black border */
+        border: 1px solid #000000;
         width: 80%;
         max-width: 800px;
     }
@@ -137,16 +137,16 @@
         font-size: 24px;
         font-weight: bold;
         cursor: pointer;
-        color: #000000; /* Black text */
+        color: #000000;
     }
     .crop-info {
         margin-bottom: 15px;
         padding: 10px;
-        background-color: #ffffff; /* White background */
-        border: 1px solid #000000; /* Black border */
+        background-color: #ffffff;
+        border: 1px solid #000000;
         border-radius: 4px;
         font-size: 14px;
-        color: #000000; /* Black text */
+        color: #000000;
         font-family: 'Montserrat', sans-serif;
     }
     .croppie-container {
@@ -154,8 +154,13 @@
         height: 100%;
     }
     .croppie-container .cr-viewport {
-        border: 2px solid #FFD700; /* Gold border */
+        border: 2px solid #FFD700;
         box-shadow: 0 0 2000px 2000px rgba(0, 0, 0, 0.5);
+    }
+    .input-group-text {
+        background-color: #f8f9fa;
+        color: #000000;
+        font-family: 'Montserrat', sans-serif;
     }
 </style>
 
@@ -205,7 +210,7 @@
                             class="form-control" 
                             id="name" 
                             name="name" 
-                            value="<%= product.productName %>" 
+                            value="<%= formData && formData.name ? formData.name : product.productName %>" 
                             required 
                             style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         />
@@ -220,23 +225,29 @@
                             name="description" 
                             required
                             style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        ><%= product.description %></textarea>
+                        ><%= formData && formData.description ? formData.description : product.description %></textarea>
                         <div id="descriptionError" class="text-danger"></div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="price" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Price</label>
-                        <input 
-                            type="number" 
-                            class="form-control" 
-                            id="price" 
-                            name="price" 
-                            required 
-                            value="<%= product.price %>" 
-                            min="0" 
-                            step="0.01"
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        />
+                        <label for="price" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Price (₹ MRP)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="price" 
+                                name="price" 
+                                required 
+                                value="<%= formData && formData.price ? formData.price : product.price %>" 
+                                min="1" 
+                                max="1000000" 
+                                step="0"
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                            />
+                            <span class="input-group-text">MRP</span>
+                        </div>
+                        <small class="form-text text-muted">Enter price as a whole number (e.g., 116860 for ₹1,16,860 MRP).</small>
                         <div id="priceError" class="text-danger"></div>
                     </div>
 
@@ -248,8 +259,10 @@
                             id="stock" 
                             name="stock" 
                             required 
-                            value="<%= product.totalStock %>" 
-                            min="0"
+                            value="<%= formData && formData.stock ? formData.stock : product.totalStock %>" 
+                            min="0" 
+                            max="10000" 
+                            step="0"
                             style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                         />
                         <div id="stockError" class="text-danger"></div>
@@ -266,7 +279,7 @@
                         >
                             <option value="" disabled>Select a category</option>
                             <% categories.forEach(function(category) { %>
-                                <option value="<%= category._id %>" <%= (product.category && product.category._id.toString() === category._id.toString()) ? 'selected' : '' %>>
+                                <option value="<%= category._id %>" <%= (formData && formData.category && formData.category.toString() === category._id.toString()) || (product.category && product.category._id.toString() === category._id.toString()) ? 'selected' : '' %>>
                                     <%= category.name %>
                                 </option>
                             <% }) %>
@@ -729,9 +742,9 @@
             break;
   
           case 'price':
-            const price = parseFloat(field.value);
-            if (!field.value || isNaN(price) || price <= 0) {
-              showError(field, errorElement, 'Price must be greater than 0');
+            const price = parseInt(field.value);
+            if (!field.value || isNaN(price) || price < 1) {
+              showError(field, errorElement, 'Price must be at least 1');
             } else if (price > 1000000) {
               showError(field, errorElement, 'Price cannot exceed 1,000,000');
             }
@@ -804,6 +817,16 @@
   
       // Initialize hidden inputs
       updateHiddenInputs();
+
+      // Ensure price and stock are whole numbers on load
+      const priceInput = document.getElementById('price');
+      const stockInput = document.getElementById('stock');
+      if (priceInput.value) {
+        priceInput.value = parseInt(priceInput.value);
+      }
+      if (stockInput.value) {
+        stockInput.value = parseInt(stockInput.value);
+      }
     });
 </script>
 

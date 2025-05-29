@@ -103,21 +103,5 @@ app.use((req, res, next) => {
 app.use('/admin', require('./routes/adminRoute'));
 app.use('/', require('./routes/userRoute'));
 
-// // Error handling for 404
-// app.use((req, res, next) => {
-//     console.error(`404 - Route not found: ${req.method} ${req.originalUrl}`);
-//     res.status(404).render('user/404', {
-//         error_msg: 'Page not found',
-//     });
-// });
-
-// Global error handler
-// app.use((err, req, res, next) => {
-//     console.error('Global error:', err.stack);
-//     res.status(500).render('user/500', {
-//         error_msg: 'Something went wrong!',
-//     });
-// });
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));

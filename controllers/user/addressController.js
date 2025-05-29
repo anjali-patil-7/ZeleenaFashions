@@ -265,9 +265,9 @@ exports.updateAddress = async (req, res) => {
         if (!name || name.trim().length < 3 || !/^[a-zA-Z\s]+$/.test(name) || /^\s/.test(name)) {
             errors.push('Name is required, should be at least 3 characters, contain only alphabets and spaces, and not start with a space.');
         }
-        if (!mobile || !/^[6-9]\d{9}$/.test(mobile) || new Set(mobile.split('')).size !== mobile.length) {
-            errors.push('Mobile number must start with 6, 7, 8, or 9, be 10 digits, and have no repeating digits.');
-        }
+        if (!mobile || !/^[6-9]\d{9}$/.test(mobile.trim())) {
+    errors.push('Mobile number must start with 6, 7, 8, or 9 and be 10 digits with no spaces, letters, or symbols');
+}
         if (!email || !validator.isEmail(email) || /^\s/.test(email)) {
             errors.push('Please enter a valid email address that does not start with a space.');
         }
