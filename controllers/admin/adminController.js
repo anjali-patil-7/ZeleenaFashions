@@ -20,7 +20,7 @@ exports.getLogin = (req, res) => {
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+     console.log("podaaa>>>",req.body)
     // Check if email and password are provided
     if (!email || !password) {
       req.flash('error_msg', 'Please provide both email and password');

@@ -19,7 +19,7 @@ exports.getProfile = async (req, res) => {
 
         res.locals.session = req.session || {};
         res.locals.session.isAuth = true;
-
+        
         const referralRewards = []; // Replace with actual logic
 
         res.render('user/profile', {

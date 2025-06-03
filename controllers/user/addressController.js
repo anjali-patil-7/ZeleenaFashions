@@ -43,10 +43,15 @@ const validateAddress = [
         .matches(/^[6-9]\d{9}$/)
         .withMessage('Mobile number must start with 6, 7, 8, or 9 and be 10 digits')
         .custom((value) => {
-            const digitSet = new Set(value.split(''));
-            return digitSet.size === value.length;
-        })
-        .withMessage('Mobile number cannot have repeating digits'),
+            const digitCount = {};
+            for (let digit of value) {
+                digitCount[digit] = (digitCount[digit] || 0) + 1;
+                if (digitCount[digit] > 3) {
+                    throw new Error('Mobile number cannot have any digit repeating more than 3 times');
+                }
+            }
+            return true;
+        }),
     body('pincode')
         .trim()
         .isLength({ min: 6, max: 6 })

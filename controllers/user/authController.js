@@ -3,7 +3,6 @@ const OTP = require("../../models/otpSchema");
 const transporter = require("../../config/nodemailer");
 const passport = require("../../config/passport");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 // Render the signup page
 exports.getSignup = (req, res) => {
@@ -225,19 +224,10 @@ exports.verifyOTP = async (req, res) => {
       isVerified: true,
     });
 
-    const token = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
+    // Store user ID in session
+    req.session.userId = user._id;
     req.session.isAuth = true;
+    req.session.isAdmin = user.isAdmin;
     delete req.session.signupData;
 
     return res.json({
@@ -366,36 +356,25 @@ exports.postLogin = async (req, res) => {
       return res.redirect("/login");
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    // Set token in cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000,
-      domain: process.env.COOKIE_DOMAIN || undefined, // Add domain for production
-    });
-
-    // Update session and save explicitly
+    // Store user ID in session
+    req.session.userId = user._id;
     req.session.isAuth = true;
+    req.session.isAdmin = user.isAdmin;
+
+    // Save session explicitly
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error in postLogin:', err);
-        req.flash('error_msg', 'Failed to save session. Please try again.');
+        console.error("Session save error in postLogin:", err);
+        req.flash("error_msg", "Failed to save session. Please try again.");
         res.locals.session = req.session || {};
         res.locals.session.isAuth = req.session.isAuth || false;
-        return res.redirect('/login');
+        return res.redirect("/login");
       }
-      console.log('postLogin: Session saved successfully:', req.session);
+      console.log("postLogin: Session saved successfully:", req.session);
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth;
-      console.log('postLogin: res.locals.session:', res.locals.session);
-      return res.redirect('/?success_msg=Login+successful!');
+      console.log("postLogin: res.locals.session:", res.locals.session);
+      return res.redirect("/?success_msg=Login+successful!");
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -429,19 +408,11 @@ exports.googleCallback = async (req, res, next) => {
         return res.redirect("/login");
       }
 
-      const token = jwt.sign(
-        { id: user._id, isAdmin: user.isAdmin },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
-      );
-
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-
+      // Store user ID in session
+      req.session.userId = user._id;
       req.session.isAuth = true;
+      req.session.isAdmin = user.isAdmin;
+
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth;
 
@@ -458,12 +429,6 @@ exports.googleCallback = async (req, res, next) => {
 // Handle logout
 exports.logout = (req, res) => {
   try {
-    // Clear the token cookie
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    });
-
     // Destroy the session
     req.session.destroy((err) => {
       if (err) {
@@ -845,8 +810,14 @@ exports.changePassword = async (req, res) => {
         message: "New password and confirm password do not match",
       });
     }
-    // Get authenticated user
-    const userId = req.user.id;
+    // Get authenticated user from session
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.json({
+        success: false,
+        message: "You must be logged in to change your password",
+      });
+    }
     const user = await User.findById(userId);
 
     if (!user) {

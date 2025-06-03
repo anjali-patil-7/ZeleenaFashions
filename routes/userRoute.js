@@ -9,16 +9,20 @@ const wishlistController = require('../controllers/user/wishlistController');
 const checkoutController = require('../controllers/user/checkoutController');
 const orderController = require('../controllers/user/OrderController');
 const paymentController = require('../controllers/user/PaymentController');
-const { verifyToken, ifLogged, logged } = require('../middlewares/auth');
+const { verifySession, ifLogged, logged } = require('../middlewares/auth'); // Updated middleware import
 
 const router = express.Router();
 
+// Public routes
 router.get('/', homeController.getHomePage);
+router.get('/about', homeController.getAboutPage);
+router.get('/contact', homeController.getContactPage);
 
+// Authentication routes
 router.get('/register', ifLogged, authController.getSignup);
-router.post('/register', authController.postSignup);
+router.post('/register', authController.postSignup); // Note: ifLogged removed to allow form submission
 router.get('/login', ifLogged, authController.getLogin);
-router.post('/login', authController.postLogin);
+router.post('/login', authController.postLogin); // Note: ifLogged removed to allow form submission
 router.get('/verify-otp', authController.verifyOTP);
 router.post('/verify-otp', authController.verifyOTP);
 router.post('/resend-otp', authController.resendOTP);
@@ -36,78 +40,68 @@ router.get('/reset-password', authController.resetPassword);
 router.post('/reset-password', authController.resetPassword);
 
 // Profile routes
-router.get('/profile', verifyToken, profileController.getProfile);
-router.post('/updateprofile', verifyToken, profileController.updateProfile);
-
-
-// Shop routes
-router.get('/shop', shopController.getShopPage);
-router.get('/shopbyfilter/:categoryId', shopController.getShopByFilter);
-router.get('/singleproduct/:id', shopController.getSingleProduct);
+router.get('/profile', verifySession, profileController.getProfile);
+router.post('/updateprofile', verifySession, profileController.updateProfile);
 
 // Change password
-router.get('/changepassword',verifyToken , (req, res) => {
+router.get('/changepassword', verifySession, (req, res) => {
     res.render('user/changepassword', {
         session: req.session || {},
-        error_msg: req.session.error_msg || '',
-        success_msg: req.session.success_msg || ''
+        error_msg: req.flash('error_msg') || '',
+        success_msg: req.flash('success_msg') || ''
     });
 });
-router.post('/changepassword', verifyToken, authController.changePassword);
+router.post('/changepassword', verifySession, authController.changePassword);
 
 // Address routes
-router.get('/address', verifyToken, addressController.getAddresses);
-router.get('/createaddress', verifyToken, addressController.getAddressForm);
-router.post('/createaddress', verifyToken, addressController.createAddress);
-router.get('/address/edit/:id', verifyToken, addressController.getEditAddress);
-router.post('/address/update/:id', verifyToken, addressController.updateAddress);
-router.post('/address/default/:id', verifyToken, addressController.setDefaultAddress);
-router.post('/address/delete/:id', verifyToken, addressController.deleteAddress);
+router.get('/address', verifySession, addressController.getAddresses);
+router.get('/createaddress', verifySession, addressController.getAddressForm);
+router.post('/createaddress', verifySession, addressController.createAddress);
+router.get('/address/edit/:id', verifySession, addressController.getEditAddress);
+router.post('/address/update/:id', verifySession, addressController.updateAddress);
+router.post('/address/default/:id', verifySession, addressController.setDefaultAddress);
+router.post('/address/delete/:id', verifySession, addressController.deleteAddress);
 
 // Cart routes
-router.get('/cart', verifyToken, CartController.getCart);
-router.post('/addtocart/:productId', verifyToken, CartController.addToCart);
-router.post('/update-cart', verifyToken, CartController.updateCart);
-router.delete('/remove/:productId', verifyToken, CartController.removeFromCart);
-router.get('/get-cart-item', verifyToken, CartController.getCartItem);
-router.get('/get-cart-totals', verifyToken, CartController.getCartTotals);
+router.get('/cart', verifySession, CartController.getCart);
+router.post('/addtocart/:productId', verifySession, CartController.addToCart);
+router.post('/update-cart', verifySession, CartController.updateCart);
+router.delete('/remove/:productId', verifySession, CartController.removeFromCart);
+router.get('/get-cart-item', verifySession, CartController.getCartItem);
+router.get('/get-cart-totals', verifySession, CartController.getCartTotals);
 
 // Wishlist routes
-router.get('/wishlist', verifyToken, wishlistController.getWishlist);
-router.post('/wishlist/add', verifyToken, wishlistController.addToWishlist);
-router.post('/wishlist/remove', verifyToken, wishlistController.removeFromWishlist);
-router.post('/wishlist/add-to-cart', verifyToken, wishlistController.addToCartFromWishlist);
+router.get('/wishlist', verifySession, wishlistController.getWishlist);
+router.post('/wishlist/add', verifySession, wishlistController.addToWishlist);
+router.post('/wishlist/remove', verifySession, wishlistController.removeFromWishlist);
+router.post('/wishlist/add-to-cart', verifySession, wishlistController.addToCartFromWishlist);
 
 // Checkout routes
-router.get('/checkout', verifyToken, checkoutController.getCheckoutPage);
-router.post('/select-address', verifyToken, checkoutController.selectAddress);
-router.get('/confirmorder/:orderId', verifyToken, checkoutController.getOrderConfirmation);
-router.post('/apply-coupon', verifyToken, checkoutController.applyCoupon);
-router.post('/remove-coupon', verifyToken, checkoutController.removeCoupon);
-router.get('/validate-cart', verifyToken, checkoutController.verifyCartBeforeCheckout);
-router.get('/verify-cart-checkout', verifyToken, checkoutController.verifyCartBeforeCheckout);
+router.get('/checkout', verifySession, checkoutController.getCheckoutPage);
+router.post('/select-address', verifySession, checkoutController.selectAddress);
+router.get('/confirmorder/:orderId', verifySession, checkoutController.getOrderConfirmation);
+router.post('/apply-coupon', verifySession, checkoutController.applyCoupon);
+router.post('/remove-coupon', verifySession, checkoutController.removeCoupon);
+router.get('/validate-cart', verifySession, checkoutController.verifyCartBeforeCheckout);
+router.get('/verify-cart-checkout', verifySession, checkoutController.verifyCartBeforeCheckout);
 
 // Order routes
-router.get('/orders', verifyToken, orderController.getOrders);
-router.get('/orderdetails/:orderId', verifyToken, orderController.getOrderDetails);
-router.post('/:orderId/cancel', verifyToken, orderController.cancelOrder);
-router.get('/orders/:orderId/invoice', verifyToken, orderController.downloadInvoice);
-router.post('/orders/:orderId/return', verifyToken, orderController.requestReturn);
-router.post('/orders/:orderId/cancel', verifyToken, orderController.cancelOrder);
-router.post('/orders/:orderId/cancel-product/:productId', verifyToken, orderController.cancelSingleProduct);
+router.get('/orders', verifySession, orderController.getOrders);
+router.get('/orderdetails/:orderId', verifySession, orderController.getOrderDetails);
+router.post('/:orderId/cancel', verifySession, orderController.cancelOrder);
+router.get('/orders/:orderId/invoice', verifySession, orderController.downloadInvoice);
+router.post('/orders/:orderId/return', verifySession, orderController.requestReturn);
+router.post('/orders/:orderId/cancel', verifySession, orderController.cancelOrder);
+router.post('/orders/:orderId/cancel-product/:productId', verifySession, orderController.cancelSingleProduct);
 
 // Wallet history
-router.get('/walletHistory', verifyToken, profileController.getWalletHistory);
+router.get('/walletHistory', verifySession, profileController.getWalletHistory);
 
 // Payment routes
-router.post('/create-razorpay-order', verifyToken, paymentController.createRazorpayOrder);
-router.post('/verify-payment', verifyToken, paymentController.verifyPayment);
-router.post('/place-order', verifyToken, paymentController.placeOrder);
-router.post('/retry-payment', verifyToken, paymentController.retryPayment);
-router.post('/handle-payment-failure', verifyToken, paymentController.handlePaymentFailure);
-
-//about us and contact 
-router.get('/about', homeController.getAboutPage);
-router.get('/contact', homeController.getContactPage);
+router.post('/create-razorpay-order', verifySession, paymentController.createRazorpayOrder);
+router.post('/verify-payment', verifySession, paymentController.verifyPayment);
+router.post('/place-order', verifySession, paymentController.placeOrder);
+router.post('/retry-payment', verifySession, paymentController.retryPayment);
+router.post('/handle-payment-failure', verifySession, paymentController.handlePaymentFailure);
 
 module.exports = router;
