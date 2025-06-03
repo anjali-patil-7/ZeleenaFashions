@@ -87,7 +87,7 @@ exports.addProduct = async (req, res) => {
         price: price || "",
         stock: stock || "",
         category: category || "",
-        status: status || "true",
+        status: status || true,
       };
       req.session.errors = errors;
       return res.render("admin/addproduct", {
@@ -107,7 +107,7 @@ exports.addProduct = async (req, res) => {
       totalStock: stockNum,
       category,
       productImage: imageUrls,
-      status: status === "true",
+      status: status === true,
     });
 
     await product.save();
@@ -124,7 +124,7 @@ exports.addProduct = async (req, res) => {
       price: req.body.price || "",
       stock: req.body.stock || "",
       category: req.body.category || "",
-      status: req.body.status || "true",
+      status: req.body.status || true,
     };
     req.session.errors = [error.message || "An error occurred while adding the product"];
     return res.render("admin/addproduct", {
@@ -298,7 +298,7 @@ exports.editProduct = async (req, res) => {
         price: price || "",
         stock: stock || "",
         category: category || "",
-        status: status || "true",
+         status: status || true,
       };
       req.session.errors = errors;
       return res.render("admin/editproduct", {

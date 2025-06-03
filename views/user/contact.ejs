@@ -1,6 +1,6 @@
 <%- include('../partials/user/header') %>
 
-<!-- Begin Hiraola's Breadcrumb Area -->
+<!-- Begin Zeleena Fashions Breadcrumb Area -->
 <div class="breadcrumb-area">
     <div class="container">
         <div class="breadcrumb-content">
@@ -12,158 +12,53 @@
         </div>
     </div>
 </div>
-<!-- Hiraola's Breadcrumb Area End Here -->
+<!-- Zeleena Fashions Breadcrumb Area End Here -->
 
-<!-- Begin Hiraola's Contact Page Content Area -->
+<!-- Begin Zeleena Fashions Contact Page Content Area -->
 <main class="page-content">
     <div class="contact-page-area">
         <div class="container">
-            <!-- Contact Info Section -->
+            <!-- Contact Form and Info Section -->
             <div class="contact-section">
-                <div class="row">
-                    <div class="col-lg-4">
-                        <div class="contact-info-item">
-                            <div class="contact-icon">
-                                <i class="fa fa-map-marker-alt"></i>
-                            </div>
-                            <h3>Our Location</h3>
-                            <p>123 Commerce Street</p>
-                            <p>Business District</p>
-                            <p>New York, NY 10001</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="contact-info-item">
-                            <div class="contact-icon">
-                                <i class="fa fa-phone-alt"></i>
-                            </div>
-                            <h3>Phone Number</h3>
-                            <p>Customer Service: (800) 123-4567</p>
-                            <p>Support: (800) 765-4321</p>
-                            <p>Mon-Fri: 9:00 AM - 6:00 PM</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="contact-info-item">
-                            <div class="contact-icon">
-                                <i class="fa fa-envelope"></i>
-                            </div>
-                            <h3>Email Address</h3>
-                            <p>info@yourwebsite.com</p>
-                            <p>support@yourwebsite.com</p>
-                            <p>careers@yourwebsite.com</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contact Form Section -->
-            <div class="contact-form-section">
                 <div class="section-header">
-                    <h2>Get In Touch</h2>
-                    <p>We'd love to hear from you! Fill out the form below and we'll get back to you as soon as possible.</p>
+                    <h2>Contact Us</h2>
                 </div>
                 <div class="row">
                     <div class="col-lg-6">
-                        <div class="contact-form-container">
-                            <form id="contactForm" onsubmit="submitContactForm(event)">
+                        <div class="contact-form">
+                            <p class="intro-text">Get in touch with Zeleena Fashions. We're here to help.</p>
+                            <form action="/contact" method="POST">
                                 <div class="form-group">
-                                    <label for="name">Full Name <span class="required">*</span></label>
-                                    <input type="text" id="name" name="name" class="form-control" required>
+                                    <label for="name">Name</label>
+                                    <input type="text" id="name" name="name" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="email">Email Address <span class="required">*</span></label>
-                                    <input type="email" id="email" name="email" class="form-control" required>
+                                    <label for="email">Email</label>
+                                    <input type="email" id="email" name="email" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="phone">Phone Number</label>
-                                    <input type="tel" id="phone" name="phone" class="form-control">
+                                    <label for="subject">Subject</label>
+                                    <input type="text" id="subject" name="subject" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="subject">Subject <span class="required">*</span></label>
-                                    <input type="text" id="subject" name="subject" class="form-control" required>
+                                    <label for="message">Message</label>
+                                    <textarea id="message" name="message" required></textarea>
                                 </div>
-                                <div class="form-group">
-                                    <label for="message">Your Message <span class="required">*</span></label>
-                                    <textarea id="message" name="message" class="form-control" rows="5" required></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit" class="submit-btn">Send Message</button>
-                                </div>
+                                <button type="submit" class="submit-btn">Send Message</button>
                             </form>
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="map-container">
-                            <!-- Replace with your actual Google Maps embed code -->
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215266156849!2d-73.9878584!3d40.7484282!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9aeb1c6b5%3A0x35b1cfbc89a6097f!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1648646100000!5m2!1sen!2sus" 
-                                width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FAQ Section -->
-            <div class="faq-section">
-                <div class="section-header">
-                    <h2>Frequently Asked Questions</h2>
-                </div>
-                <div class="faq-container">
-                    <div class="accordion" id="faqAccordion">
-                        <div class="card">
-                            <div class="card-header" id="headingOne">
-                                <h2 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        What are your shipping options?
-                                    </button>
-                                </h2>
-                            </div>
-                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#faqAccordion">
-                                <div class="card-body">
-                                    We offer standard shipping (5-7 business days), express shipping (2-3 business days), and overnight shipping options. Shipping costs are calculated at checkout based on your location and the weight of your order.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="headingTwo">
-                                <h2 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                        What is your return policy?
-                                    </button>
-                                </h2>
-                            </div>
-                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#faqAccordion">
-                                <div class="card-body">
-                                    We accept returns within 30 days of purchase. Items must be in their original condition with tags attached. Please visit our Returns page for more information on how to initiate a return.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="headingThree">
-                                <h2 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                        Do you ship internationally?
-                                    </button>
-                                </h2>
-                            </div>
-                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#faqAccordion">
-                                <div class="card-body">
-                                    Yes, we ship to most countries worldwide. International shipping times and costs vary depending on the destination. Please note that customers are responsible for any customs duties or taxes imposed by their country.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="headingFour">
-                                <h2 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                        How can I track my order?
-                                    </button>
-                                </h2>
-                            </div>
-                            <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#faqAccordion">
-                                <div class="card-body">
-                                    Once your order ships, you will receive a confirmation email with a tracking number. You can also track your order by logging into your account and viewing your order history.
-                                </div>
+                        <div class="contact-info">
+                            <h3>Contact Details</h3>
+                            <p><i class="fa fa-envelope"></i> <strong>Email:</strong> support@zeleenafashions.shop</p>
+                            <p><i class="fa fa-phone"></i> <strong>Phone:</strong> +1 (123) 456-7890</p>
+                            <p><i class="fa fa-map-marker-alt"></i> <strong>Address:</strong> 123 Elegance Street, Fashion City, FC 12345</p>
+                            <div class="social-links">
+                                <h3>Follow Us</h3>
+                                <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
+                                <a href="#"><i class="fab fa-facebook-f"></i> Facebook</a>
+                                <a href="#"><i class="fab fa-twitter"></i> Twitter</a>
                             </div>
                         </div>
                     </div>
@@ -172,61 +67,69 @@
         </div>
     </div>
 </main>
-<!-- Hiraola's Contact Page Content Area End Here -->
-
-<%- include('../partials/user/footer') %>
+<!-- Zeleena Fashions Contact Page Content Area End Here -->
 
 <style>
-    /* Contact Page Styles */
-    .contact-page-area {
-        padding: 50px 0;
+    /* General Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
     }
 
-    .contact-section {
-        margin-bottom: 50px;
-    }
-
-    .contact-info-item {
-        border: 1px solid #e0e0e0;
-        padding: 30px;
-        text-align: center;
-        border-radius: 8px;
+    body {
+        font-family: 'Inter', sans-serif;
         background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        height: 100%;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        color: #1a1a1a;
+        line-height: 1.6;
     }
 
-    .contact-info-item:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Breadcrumb Styles */
+    .breadcrumb-area {
+        background: #1a1a1a;
+        padding: 15px 0;
+        color: #ffffff;
     }
 
-    .contact-icon {
-        font-size: 36px;
-        color: #595959;
-        margin-bottom: 20px;
-    }
-
-    .contact-info-item h3 {
-        font-size: 22px;
-        color: #333333;
-        margin-bottom: 15px;
-    }
-
-    .contact-info-item p {
-        font-size: 16px;
-        color: #555555;
+    .breadcrumb-content h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #d4af37;
         margin-bottom: 10px;
     }
 
-    .contact-form-section {
-        border: 1px solid #e0e0e0;
+    .breadcrumb-content ul {
+        list-style: none;
+        display: flex;
+        gap: 10px;
+        font-size: 1rem;
+    }
+
+    .breadcrumb-content ul li a {
+        color: #ffffff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-content ul li a:hover {
+        color: #d4af37;
+    }
+
+    .breadcrumb-content ul li.active {
+        color: #d4af37;
+    }
+
+    /* Contact Page Styles */
+    .contact-page-area {
+        padding: 50px 0;
+        background: #ffffff;
+    }
+
+    .contact-section {
         padding: 30px;
-        border-radius: 8px;
+        border-radius: 10px;
         background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 50px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
 
     .section-header {
@@ -235,10 +138,11 @@
     }
 
     .section-header h2 {
-        font-size: 28px;
-        color: #333333;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        color: #1a1a1a;
         position: relative;
-        padding-bottom: 15px;
+        padding-bottom: 10px;
     }
 
     .section-header h2:after {
@@ -249,13 +153,14 @@
         transform: translateX(-50%);
         width: 80px;
         height: 3px;
-        background-color: #595959;
+        background: #d4af37;
     }
 
-    .section-header p {
-        font-size: 16px;
-        color: #555555;
-        margin-top: 15px;
+    .contact-form .intro-text {
+        font-size: 1.1rem;
+        color: #4a4a4a;
+        margin-bottom: 20px;
+        text-align: center;
     }
 
     .form-group {
@@ -263,194 +168,132 @@
     }
 
     .form-group label {
+        font-size: 1rem;
+        color: #1a1a1a;
         display: block;
-        font-weight: 600;
-        color: #555555;
         margin-bottom: 5px;
     }
 
-    .required {
-        color: #ff0000;
-    }
-
-    .form-control {
+    .form-group input,
+    .form-group textarea {
         width: 100%;
-        padding: 12px;
+        padding: 10px;
         border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        font-size: 14px;
-        color: #333333;
+        border-radius: 5px;
+        font-size: 1rem;
+        background: #ffffff;
+        color: #1a1a1a;
         transition: border-color 0.3s ease;
     }
 
-    .form-control:focus {
-        border-color: #595959;
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #d4af37;
         outline: none;
     }
 
-    textarea.form-control {
+    .form-group textarea {
         resize: vertical;
+        min-height: 100px;
     }
 
     .submit-btn {
-        background-color: #595959;
-        color: white;
+        background: #d4af37;
+        color: #1a1a1a;
+        padding: 10px 25px;
         border: none;
-        padding: 12px 25px;
-        border-radius: 4px;
+        border-radius: 5px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
         cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
+        transition: background 0.3s ease;
     }
 
     .submit-btn:hover {
-        background-color: #1d2951;
+        background: #b8972f;
     }
 
-    .map-container {
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        height: 100%;
-    }
-
-    .faq-section {
-        border: 1px solid #e0e0e0;
-        padding: 30px;
-        border-radius: 8px;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .faq-container {
-        margin-top: 30px;
-    }
-
-    .card {
-        margin-bottom: 10px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-    }
-
-    .card-header {
-        background-color: #f9f9f9;
-        padding: 0;
-        border-bottom: none;
-    }
-
-    .card-header h2 button {
-        padding: 15px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #333333;
-        text-decoration: none;
-    }
-
-    .card-header h2 button:hover {
-        color: #595959;
-    }
-
-    .card-body {
+    .contact-info {
         padding: 20px;
-        font-size: 15px;
-        color: #555555;
-        line-height: 1.6;
+    }
+
+    .contact-info h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        color: #d4af37;
+        margin-bottom: 15px;
+    }
+
+    .contact-info p {
+        font-size: 1rem;
+        color: #4a4a4a;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .contact-info p i {
+        color: #d4af37;
+        font-size: 1.2rem;
+    }
+
+    .social-links {
+        margin-top: 20px;
+    }
+
+    .social-links h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.6rem;
+        color: #d4af37;
+        margin-bottom: 10px;
+    }
+
+    .social-links a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        color: #1a1a1a;
+        text-decoration: none;
+        margin-bottom: 10px;
+        transition: color 0.3s ease;
+    }
+
+    .social-links a i {
+        color: #d4af37;
+        font-size: 1.2rem;
+    }
+
+    .social-links a:hover {
+        color: #d4af37;
     }
 
     /* Responsive Styles */
     @media (max-width: 992px) {
-        .contact-info-item {
-            margin-bottom: 30px;
+        .row {
+            flex-direction: column;
+        }
+
+        .contact-form,
+        .contact-info {
+            margin-bottom: 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .contact-section {
+            padding: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 2.2rem;
+        }
+
+        .contact-info h3 {
+            font-size: 1.6rem;
         }
     }
 </style>
 
-<script>
-    function submitContactForm(event) {
-        event.preventDefault();
-        
-        const form = event.target;
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-
-        // Validation
-        if (!validateContactForm(data)) {
-            return;
-        }
-        
-        // Here you would typically send this data to your server
-        // For now, we'll just show a success message
-        Swal.fire({
-            icon: 'success',
-            title: 'Message Sent!',
-            text: 'Thank you for contacting us. We will get back to you shortly.',
-            confirmButtonColor: '#595959'
-        }).then(() => {
-            form.reset();
-        });
-    }
-
-    function validateContactForm(data) {
-        // Name validation
-        const nameRegex = /^[a-zA-Z\s]{2,50}$/;
-        if (!nameRegex.test(data.name)) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Name',
-                text: 'Name should be 2-50 characters long and contain only letters and spaces',
-                confirmButtonColor: '#595959'
-            });
-            return false;
-        }
-
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(data.email)) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Email',
-                text: 'Please enter a valid email address',
-                confirmButtonColor: '#595959'
-            });
-            return false;
-        }
-
-        // Phone validation (optional field)
-        if (data.phone) {
-            const phoneRegex = /^\d{10}$/;
-            if (!phoneRegex.test(data.phone)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Phone Number',
-                    text: 'Phone number should be exactly 10 digits',
-                    confirmButtonColor: '#595959'
-                });
-                return false;
-            }
-        }
-
-        // Subject validation
-        if (data.subject.trim().length < 3) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Subject',
-                text: 'Subject must be at least 3 characters long',
-                confirmButtonColor: '#595959'
-            });
-            return false;
-        }
-
-        // Message validation
-        if (data.message.trim().length < 10) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Message',
-                text: 'Message must be at least 10 characters long',
-                confirmButtonColor: '#595959'
-            });
-            return false;
-        }
-
-        return true;
-    }
-</script>
+<%- include('../partials/user/footer') %>

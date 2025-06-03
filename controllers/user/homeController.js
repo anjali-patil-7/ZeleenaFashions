@@ -45,6 +45,7 @@ const getBestOffer = async (product) => {
 // Render the homepage
 exports.getHomePage = async (req, res) => {
     try {
+      console.log("User Details>>>>>", req.session)
         // Fetch categories (only active ones)
         const categories = await Category.find({ status: true ,isDeleted: false }).lean();
         if (!categories.length) {
@@ -118,3 +119,13 @@ exports.getHomePage = async (req, res) => {
         });
     }
 };
+
+//about us
+exports.getAboutPage = (req, res) => {
+  res.render('user/about', { pageTitle: 'About Us' });
+};
+
+exports.getContactPage = (req, res) => {
+  res.render('user/contact', { pageTitle: 'Contact Us' });
+};
+

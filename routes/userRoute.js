@@ -46,7 +46,7 @@ router.get('/shopbyfilter/:categoryId', shopController.getShopByFilter);
 router.get('/singleproduct/:id', shopController.getSingleProduct);
 
 // Change password
-router.get('/changepassword', verifyToken, (req, res) => {
+router.get('/changepassword',verifyToken , (req, res) => {
     res.render('user/changepassword', {
         session: req.session || {},
         error_msg: req.session.error_msg || '',
@@ -105,5 +105,9 @@ router.post('/verify-payment', verifyToken, paymentController.verifyPayment);
 router.post('/place-order', verifyToken, paymentController.placeOrder);
 router.post('/retry-payment', verifyToken, paymentController.retryPayment);
 router.post('/handle-payment-failure', verifyToken, paymentController.handlePaymentFailure);
+
+//about us and contact 
+router.get('/about', homeController.getAboutPage);
+router.get('/contact', homeController.getContactPage);
 
 module.exports = router;
