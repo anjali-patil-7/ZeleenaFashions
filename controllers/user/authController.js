@@ -335,10 +335,7 @@ exports.postLogin = async (req, res) => {
 
     // Check if user is blocked
     if (user.isBlocked) {
-      req.flash(
-        "error_msg",
-        "Your account is blocked. Please contact support."
-      );
+      req.flash("error_msg", "Your account is blocked. Please contact support.");
       res.locals.session = req.session || {};
       res.locals.session.isAuth = req.session.isAuth || false;
       return res.redirect("/login");
@@ -381,14 +378,25 @@ exports.postLogin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
+      domain: process.env.COOKIE_DOMAIN || undefined, // Add domain for production
     });
 
-    // Update session
+    // Update session and save explicitly
     req.session.isAuth = true;
-    res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth;
-
-    return res.redirect("/?success_msg=Login+successful!");
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error in postLogin:', err);
+        req.flash('error_msg', 'Failed to save session. Please try again.');
+        res.locals.session = req.session || {};
+        res.locals.session.isAuth = req.session.isAuth || false;
+        return res.redirect('/login');
+      }
+      console.log('postLogin: Session saved successfully:', req.session);
+      res.locals.session = req.session || {};
+      res.locals.session.isAuth = req.session.isAuth;
+      console.log('postLogin: res.locals.session:', res.locals.session);
+      return res.redirect('/?success_msg=Login+successful!');
+    });
   } catch (err) {
     console.error("Login error:", err);
     req.flash("error_msg", "An unexpected error occurred. Please try again.");
