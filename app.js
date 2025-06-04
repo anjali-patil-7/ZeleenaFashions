@@ -1,33 +1,55 @@
-require("dotenv").config();
-const express = require("express");
-const session = require("express-session");
-const flash = require("connect-flash");
-const MongoStore = require("connect-mongo");
-const passport = require("./config/passport");
-const connectDB = require("./config/db");
-const User = require("./models/userSchema");
-const path = require("path");
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const flash = require('connect-flash');
+const MongoStore = require('connect-mongo');
+const passport = require('./config/passport');
+const jwt = require('jsonwebtoken');
+const connectDB = require('./config/db');
+const User = require('./models/userSchema');
+const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 connectDB();
 
+// Log environment variables
+console.log('Environment variables:', {
+  NODE_ENV: process.env.NODE_ENV,
+  MONGO_URI: process.env.MONGO_URI,
+  SESSION_SECRET: process.env.SESSION_SECRET,
+  JWT_SECRET: process.env.JWT_SECRET,
+  COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+});
+
 // Middleware
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Cookie-parser middleware
+app.use(cookieParser());
 
 // Session middleware
+const sessionStore = MongoStore.create({
+  mongoUrl: process.env.MONGO_URI,
+  collectionName: 'sessions',
+});
+sessionStore.on('error', (error) => {
+  console.error('Session store error:', error);
+});
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000,
+      domain: process.env.COOKIE_DOMAIN || undefined,
     },
   })
 );
@@ -35,37 +57,54 @@ app.use(
 // Flash middleware
 app.use(flash());
 
+// Prevent caching
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
+
 // Global middleware to check for blocked users
 app.use(async (req, res, next) => {
+  const token = req.cookies.token;
+
   // Skip middleware for static assets, login route, and favicon
   if (
-    req.path.startsWith("/user/assets") ||
-    req.path === "/login" ||
-    req.path === "/favicon.ico"
+    req.path.startsWith('/user/assets') ||
+    req.path === '/login' ||
+    req.path === '/favicon.ico'
   ) {
     return next();
   }
 
-  if (req.session.userId) {
+  if (token) {
     try {
-      const user = await User.findById(req.session.userId).lean();
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id).lean();
       if (user && user.isBlocked) {
-        req.flash(
-          "error_msg",
-          "Your account has been blocked by the admin. Please contact support."
-        );
+        req.flash('error_msg', 'Your account has been blocked by the admin. Please contact support.');
+        res.clearCookie('token', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          domain: process.env.COOKIE_DOMAIN || undefined,
+        });
         return req.session.destroy((err) => {
           if (err) {
-            return res.status(500).json({ error: "Failed to destroy session" });
+            return res.status(500).json({ error: 'Failed to destroy session' });
           }
-          res.set("Cache-Control", "no-store"); // Prevent caching
-          return res.redirect("/login");
+          res.set('Cache-Control', 'no-store');
+          return res.redirect('/login');
         });
       }
     } catch (err) {
-      console.error("Error checking user status:", err);
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.COOKIE_DOMAIN || undefined,
+      });
     }
   }
+  console.log('Middleware: req.session:', req.session);
+  console.log('Middleware: res.locals.session:', res.locals.session);
   next();
 });
 
@@ -77,48 +116,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Passport (after session)
+// Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Error handling middleware
 app.use((req, res, next) => {
-  res.locals.error_msg = res.locals.error_msg || "";
+  res.locals.error = null;
   next();
 });
 
 // Routes
-app.use("/admin", require("./routes/adminRoute"));
-app.use("/", require("./routes/userRoute"));
-
-// Authentication middleware
-const verifySession = (req, res, next) => {
-  if (!req.session.userId || !req.session.isAuth) {
-    req.flash("error_msg", "Please log in to access this page.");
-    return res.redirect("/login");
-  }
-  next();
-};
-
-const ifLogged = (req, res, next) => {
-  if (req.session.userId && req.session.isAuth) {
-    return res.redirect("/");
-  }
-  next();
-};
-
-const logged = (req, res, next) => {
-  if (!req.session.userId || !req.session.isAuth) {
-    req.flash("error_msg", "Please log in to access this page.");
-    return res.redirect("/login");
-  }
-  next();
-};
-
-// Export middleware
-module.exports = { verifySession, ifLogged, logged };
+app.use('/admin', require('./routes/adminRoute'));
+app.use('/', require('./routes/userRoute'));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`Server running on port http://localhost:${PORT}`)
+
+app.listen(PORT, () =>  console.log(`Server running on port http://localhost:${PORT}`)
 );
