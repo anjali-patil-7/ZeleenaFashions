@@ -293,67 +293,51 @@ exports.postLogin = async (req, res) => {
   try {
     // Email validation
     if (!email) {
-      req.flash("error_msg", "Email is required");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Email is required');
+      return res.redirect('/login');
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      req.flash("error_msg", "Please enter a valid email address");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Please enter a valid email address');
+      return res.redirect('/login');
     }
 
     // Password validation
     if (!password) {
-      req.flash("error_msg", "Password is required");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Password is required');
+      return res.redirect('/login');
     }
 
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      req.flash("error_msg", "Invalid email or password");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Invalid email or password');
+      return res.redirect('/login');
     }
 
     // Check if user is blocked
     if (user.isBlocked) {
-      req.flash("error_msg", "Your account is blocked. Please contact support.");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Your account is blocked. Please contact support.');
+      return res.redirect('/login');
     }
 
     // Check if user is verified
     if (!user.isVerified) {
-      req.flash("error_msg", "Please verify your account with OTP.");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Please verify your account with OTP.');
+      return res.redirect('/login');
     }
 
     // Check if password is set (for Google auth users)
     if (!user.password) {
-      req.flash("error_msg", "Please use Google login for this account.");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Please use Google login for this account.');
+      return res.redirect('/login');
     }
 
     // Compare password using bcrypt
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      req.flash("error_msg", "Invalid email or password");
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
-      return res.redirect("/login");
+      req.flash('error_msg', 'Invalid email or password');
+      return res.redirect('/login');
     }
 
     // Store user ID in session
@@ -363,24 +347,19 @@ exports.postLogin = async (req, res) => {
 
     req.session.save((err) => {
       if (err) {
-        console.error("Session save error in postLogin:", err);
-        req.flash("error_msg", "Failed to save session. Please try again.");
-        res.locals.session = req.session || {};
-        res.locals.session.isAuth = req.session.isAuth || false;
-        return res.redirect("/login");
+        console.error('Session save error in postLogin:', err);
+        req.flash('error_msg', 'Failed to save session. Please try again.');
+        return res.redirect('/login');
       }
-      console.log("postLogin: Session saved successfully:", req.session);
-      res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth;
-      console.log("postLogin: res.locals.session:", res.locals.session);
-      return res.redirect("/?success_msg=Login+successful!");
+      console.log('postLogin: Session saved successfully:', req.session);
+      res.locals.session = { ...req.session, isAuth: req.session.isAuth };
+      console.log('postLogin: res.locals.session:', res.locals.session);
+      return res.redirect('/?success_msg=Login+successful!');
     });
   } catch (err) {
-    console.error("Login error:", err);
-    req.flash("error_msg", "An unexpected error occurred. Please try again.");
-    res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
-    return res.redirect("/login");
+    console.error('Login error:', err);
+    req.flash('error_msg', 'An unexpected error occurred. Please try again.');
+    return res.redirect('/login');
   }
 };
 

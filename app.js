@@ -5,14 +5,13 @@ const flash = require('connect-flash');
 const MongoStore = require('connect-mongo');
 const passport = require('./config/passport');
 const connectDB = require('./config/db');
-const User = require('./models/userSchema');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 
 const app = express();
 connectDB();
 
-// Log environment variables
+// Log environment variables (for debugging)
 console.log('Environment variables:', {
   NODE_ENV: process.env.NODE_ENV,
   MONGO_URI: process.env.MONGO_URI,
@@ -45,7 +44,7 @@ app.use(
     store: sessionStore,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
       domain: process.env.COOKIE_DOMAIN || undefined,
     },
   })
@@ -70,8 +69,6 @@ app.use((req, res, next) => {
 
 // Global middleware to check for blocked users
 app.use(async (req, res, next) => {
-  const token = req.cookies.token;
-
   if (
     req.path.startsWith('/user/assets') ||
     req.path === '/login' ||
@@ -80,19 +77,15 @@ app.use(async (req, res, next) => {
     return next();
   }
 
-  if (token) {
+  if (req.session.userId && req.session.isAuth) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).lean();
+      const User = require('./models/userSchema');
+      const user = await User.findById(req.session.userId).lean();
       if (user && user.isBlocked) {
         req.flash('error_msg', 'Your account has been blocked by the admin. Please contact support.');
-        res.clearCookie('token', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          domain: process.env.COOKIE_DOMAIN || undefined,
-        });
         return req.session.destroy((err) => {
           if (err) {
+            console.error('Session destroy error:', err);
             return res.status(500).json({ error: 'Failed to destroy session' });
           }
           res.set('Cache-Control', 'no-store');
@@ -100,11 +93,9 @@ app.use(async (req, res, next) => {
         });
       }
     } catch (err) {
-      res.clearCookie('token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.COOKIE_DOMAIN || undefined,
-      });
+      console.error('Error checking user status:', err);
+      req.flash('error_msg', 'An error occurred. Please log in again.');
+      return res.redirect('/login');
     }
   }
   console.log('Middleware: req.session:', req.session);
