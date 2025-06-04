@@ -5,27 +5,623 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop - <%= currentCategory.name %></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        .stock-status {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        .in-stock {
-            color: #28a745; /* Green for in stock */
-        }
-        .out-of-stock {
-            color: #dc3545; /* Red for out of stock */
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+  <style>
+    :root {
+      --primary-color: #000000; /* Black */
+      --secondary-color: #f8f8f8; /* Light gray */
+      --text-color: #333333; /* Dark gray */
+      --accent-color: #D4AF37; /* Gold */
+      --success-color: #28a745; /* Green */
+      --error-color: #dc3545; /* Red */
+      --white: #ffffff;
+      --light-gray: #e9ecef;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-color);
+      line-height: 1.6;
+      background-color: var(--white);
+    }
+
+    /* Extended container only for filter section */
+    .extended-container .filter-section {
+      background: var(--white);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+      border: 1px solid rgba(0,0,0,0.05);
+      width: 95vw;
+      max-width: 95vw;
+      margin-left: calc(-47.5vw + 50%);
+      margin-right: calc(-47.5vw + 50%);
+      display: flex;
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically if needed */
+      flex-direction: column; /* Stack items vertically for control */
+    }
+
+    /* Ensure the row inside filter-section centers its columns */
+    .filter-section .row {
+      display: flex;
+      justify-content: center; /* Center columns horizontally */
+      align-items: flex-start; /* Align tops of columns */
+      width: 100%; /* Maintain full width */
+      margin: 0; /* Remove default negative margins */
+      padding: 0 15px; /* Add padding for edges */
+      flex-wrap: wrap; /* Allow wrapping for responsiveness */
+    }
+
+    /* Center the content inside each column */
+    .filter-section .col-lg-3,
+    .filter-section .col-lg-6 {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center content horizontally within each column */
+      text-align: center; /* Center text and inline elements */
+      padding: 0 15px; /* Consistent padding */
+    }
+
+    .new-tag {
+      display: inline-block;
+      background-color: var(--accent-color);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .breadcrumb-content h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .breadcrumb-content ul li {
+      display: inline-block;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .breadcrumb-content ul li a {
+      color: var(--accent-color);
+      text-decoration: none;
+      transition: color 0.3s;
+      font-weight: 500;
+    }
+
+    .breadcrumb-content ul li a:hover {
+      color: var(--primary-color);
+    }
+
+    .filter-section h5 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Center category module content */
+    .category-module {
+      background: var(--white);
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center categories title and buttons */
+    }
+
+    .category-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center; /* Center buttons horizontally */
+      width: 100%; /* Ensure full width for centering */
+    }
+
+    .category-btn {
+      background: var(--primary-color);
+      color: var(--white);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 13px;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 5px;
+    }
+
+    .category-btn:hover {
+      background: var(--accent-color);
+      color: var(--white);
+      transform: translateY(-2px);
+    }
+
+    /* Center search form */
+    .search-form {
+      width: 100%;
+      display: flex;
+      justify-content: center; /* Center the search form */
+    }
+
+    .search-form .input-group {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 600px; /* Limit width for better appearance */
+    }
+
+    .search-form input {
+      border: none;
+      padding: 12px 15px;
+      font-size: 14px;
+      background: var(--white);
+    }
+
+    .search-form .btn {
+      border: none;
+      background: var(--primary-color);
+      color: var(--white);
+      padding: 12px 15px;
+      transition: all 0.3s;
+    }
+
+    .search-form .btn:hover {
+      background: var(--accent-color);
+    }
+
+    .clear-search-btn {
+      background: var(--error-color);
+    }
+
+    /* Center price range content */
+    .price-range {
+      background: var(--white);
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center price range content */
+    }
+
+    .price-range .ui-slider {
+      background: #e0e0e0;
+      height: 6px;
+      border: none;
+      border-radius: 3px;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 300px; /* Limit width for better appearance */
+    }
+
+    .price-range .ui-slider-handle {
+      background: var(--accent-color);
+      border: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      top: -5px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .price-range .ui-slider-range {
+      background: var(--primary-color);
+    }
+
+    .price-range .price-values {
+      font-size: 14px;
+      color: var(--text-color);
+      margin-top: 15px;
+      font-weight: 500;
+      width: 100%;
+      max-width: 300px; /* Limit width for better appearance */
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center; /* Center the buttons horizontally */
+      width: 100%;
+    }
+
+    .filter-controls .btn {
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      flex: 1;
+      text-align: center;
+    }
+
+    .filter-controls .btn-primary {
+      background: var(--primary-color);
+      border: none;
+      color: var(--white);
+    }
+
+    .filter-controls .btn-primary:hover {
+      background: var(--accent-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .filter-controls .btn-secondary {
+      background: var(--light-gray);
+      color: var(--text-color);
+      border: none;
+    }
+
+    .filter-controls .btn-secondary:hover {
+      background: #d0d0d0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .shop-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--white);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .product-sorting-box select {
+      padding: 10px 15px;
+      border-radius: 30px;
+      border: 1px solid #e0e0e0;
+      font-size: 14px;
+      background: var(--white);
+      min-width: 200px;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 1em;
+      cursor: pointer;
+    }
+
+    .product-view-mode {
+      display: flex;
+      gap: 5px;
+    }
+
+    .product-view-mode a {
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--text-color);
+      transition: all 0.3s;
+      background: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+    }
+
+    .product-view-mode a.active,
+    .product-view-mode a:hover {
+      background: var(--primary-color);
+      color: var(--white);
+    }
+
+    .shop-product-wrap {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .slide-item {
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .slide-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-img {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-img img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .slide-item:hover .product-img img {
+      transform: scale(1.05);
+    }
+
+    .hiraola-product_content {
+      padding: 20px;
+      position: relative;
+    }
+
+    .product-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color 0.3s;
+      display: block;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .product-name:hover {
+      color: var(--accent-color);
+    }
+
+    .price-box {
+      margin: 10px 0;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .old-price {
+      color: var(--error-color);
+      text-decoration: line-through;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .new-price {
+      color: var(--primary-color);
+    }
+
+    .discount-label {
+      color: var(--success-color);
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(40, 167, 69, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .stock-status {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 5px;
+    }
+
+    .in-stock {
+      color: var(--success-color);
+    }
+
+    .out-of-stock {
+      color: var(--error-color);
+    }
+
+    .add-actions {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .slide-item:hover .add-actions {
+      opacity: 1;
+    }
+
+    .add-actions a {
+      width: 36px;
+      height: 36px;
+      background: var(--white);
+      color: var(--primary-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+    }
+
+    .add-actions a:hover {
+      background: var(--primary-color);
+      color: var(--white);
+      transform: scale(1.1);
+    }
+
+    .additional-add_action {
+      margin-top: 15px;
+    }
+
+    .additional-add_action ul {
+      display: flex;
+      gap: 10px;
+    }
+
+    .additional-add_action a {
+      color: var(--text-color);
+      font-size: 1.1rem;
+      transition: color 0.3s;
+    }
+
+    .additional-add_action a:hover {
+      color: var(--accent-color);
+    }
+
+    .rating-box ul {
+      display: flex;
+      gap: 2px;
+      margin-top: 10px;
+    }
+
+    .rating-box i {
+      color: var(--accent-color);
+      font-size: 0.9rem;
+    }
+
+    .rating-box .silver-color i {
+      color: #ddd;
+    }
+
+    .hiraola-paginatoin-area {
+      margin-top: 30px;
+      padding: 20px;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .hiraola-pagination-box {
+      display: flex;
+      gap: 5px;
+    }
+
+    .hiraola-pagination-box li a {
+      padding: 8px 16px;
+      border-radius: 30px;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 500;
+      min-width: 40px;
+      text-align: center;
+      display: inline-block;
+    }
+
+    .hiraola-pagination-box li a:hover,
+    .hiraola-pagination-box li.active a {
+      background: var(--primary-color);
+      color: var(--white);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .product-select-box p {
+      font-size: 14px;
+      color: var(--text-color);
+      margin: 0;
+      font-weight: 500;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1400px) {
+      .extended-container .filter-section {
+        width: 90vw;
+        max-width: 90vw;
+        margin-left: calc(-45vw + 50%);
+        margin-right: calc(-45vw + 50%);
+        padding: 25px 30px;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .extended-container .filter-section {
+        width: 85vw;
+        max-width: 85vw;
+        margin-left: calc(-42.5vw + 50%);
+        margin-right: calc(-42.5vw + 50%);
+      }
+    }
+
+    @media (max-width: 991px) {
+      .extended-container .filter-section {
+        width: 95vw;
+        max-width: 95vw;
+        margin-left: calc(-47.5vw + 50%);
+        margin-right: calc(-47.5vw + 50%);
+        padding: 20px 25px;
+      }
+      
+      .filter-section .col-lg-3, 
+      .filter-section .col-lg-6 {
+        margin-bottom: 20px;
+      }
+      
+      .shop-toolbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      
+      .shop-product-wrap {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+    }
+
+    @media (max-width: 767px) {
+      .extended-container .filter-section {
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        padding: 15px 20px;
+      }
+      
+      .shop-product-wrap {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 15px;
+      }
+      
+      .hiraola-product_content {
+        padding: 15px;
+      }
+      
+      .add-actions {
+        opacity: 1;
+      }
+      
+      .hiraola-paginatoin-area .row {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .product-select-box p {
+        text-align: center;
+      }
+    }
+  </style>
 </head>
 <body>
     <%- include('../partials/user/header') %>
 
-    <!-- Begin Hiraola's Breadcrumb Area -->
+    <!-- Begin Breadcrumb Area -->
     <div class="breadcrumb-area">
         <div class="container">
             <div class="breadcrumb-content">
-                <h2>Shop - <%= currentCategory.name %></h2> 
+                <h2>Shop - <%= currentCategory.name %></h2>
                 <ul>
                     <li><a href="/home">Home</a></li>
                     <li><a href="/shop">Shop</a></li>
@@ -34,180 +630,448 @@
             </div>
         </div>
     </div>
-    <!-- Hiraola's Breadcrumb Area End Here -->
+    <!-- Breadcrumb Area End Here -->
 
-    <!-- Begin Hiraola's Content Wrapper Area -->
+    <!-- Begin Content Wrapper Area -->
     <div class="hiraola-content_wrapper">
         <div class="container">
             <div class="row">
-                <div class="col-lg-3 order-2 order-lg-1">
-                    <div class="hiraola-sidebar-catagories_area">
-                        <div class="category-module hiraola-sidebar_categories">
-                            <div class="category-module_heading">
-                                <h5>Categories</h5>
-                            </div>
-                            <div class="module-body">
-                                <ul class="module-list_item">
-                                    <% categories.forEach(category => { %>
-                                        <li>
-                                            <a href="/shopbyfilter/<%= category._id %>" 
-                                               <%= category._id.toString() === categoryId ? 'class="active"' : '' %>>
-                                               <%= category.name %>
-                                            </a>
-                                        </li>
-                                    <% }) %>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-lg-12 extended-container">
+          <div class="filter-section">
+            <div class="row">
+              <div class="col-lg-3">
+                <div class="category-module">
+                  <h5>Categories</h5>
+                  <div class="category-buttons">
+                    <% categories.forEach(category => { %>
+                      <a href="/shopbyfilter/<%= category._id %>" class="category-btn"><%= category.name %></a>
+                    <% }) %>
+                  </div>
                 </div>
-                <div class="col-lg-9 order-1 order-lg-2">
+              </div>
+              <div class="col-lg-6">
+                <div class="search-form">
+                  <form id="search-form" action="/shop" method="get">
+                    <div class="input-group">
+                      <input type="text" name="search" class="form-control" placeholder="Search products..." value="<%= search || '' %>">
+                      <div class="input-group-append">
+                        <button class="btn" type="submit">
+                          <i class="fa fa-search"></i>
+                        </button>
+                        <button type="button" class="btn clear-search-btn" title="Clear Search">
+                          <i class="fa fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="price-range">
+                  <h5>Price Range</h5>
+                  <div id="price-slider" class="slider"></div>
+                  <div class="price-values">
+                    <span>Price: ₹</span>
+                    <span id="min-price"><%= minPrice || 0 %></span> - ₹<span id="max-price"><%= maxPrice || 10000 %></span>
+                  </div>
+                  <div class="filter-controls">
+                    <button id="apply-price-filter" class="btn btn-primary">Apply Filter</button>
+                    <button id="clear-filters" class="btn btn-secondary">Clear All</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+                <div class="col-lg-12">
                     <div class="shop-toolbar">
                         <div class="product-view-mode">
-                            <a class="active grid-3" data-target="gridview-3" data-toggle="tooltip" data-placement="top" title="Grid View"><i class="fa fa-th"></i></a>
-                            <a class="list" data-target="listview" data-toggle="tooltip" data-placement="top" title="List View"><i class="fa fa-th-list"></i></a>
+                            <a class="active grid-3" data-target="gridview-3" data-toggle="tooltip" data-placement="top" title="Grid View">
+                                <i class="fa fa-th"></i>
+                            </a>
+                            <a class="list" data-target="listview" data-toggle="tooltip" data-placement="top" title="List View">
+                                <i class="fa fa-th-list"></i>
+                            </a>
                         </div>
-                        <div class="product-item-selection_area">
-                            <div class="product-short">
-                                <label class="select-label">Sort By:</label>
-                                <select class="nice-select">
-                                    <option value="2">A to Z</option>
-                                    <option value="3">Z to A</option>
-                                    <option value="4">Price: low to high</option>
-                                    <option value="5">Price: high to low</option>
-                                </select>
+                        <div class="product-sorting-box">
+                            <select id="sortSelect" class="form-control" onchange="sortProducts()">
+                                <option value="">Sort By</option>
+                                <option value="a-z" <%= sortOption === 'a-z' ? 'selected' : '' %>>Sort by Name: A-Z</option>
+                                <option value="z-a" <%= sortOption === 'z-a' ? 'selected' : '' %>>Sort by Name: Z-A</option>
+                                <option value="l-h" <%= sortOption === 'l-h' ? 'selected' : '' %>>Sort by Price: Low to High</option>
+                                <option value="h-l" <%= sortOption === 'h-l' ? 'selected' : '' %>>Sort by Price: High to Low</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <% if (products.length > 0) { %>
+                    <div class="shop-product-wrap grid gridview-3">
+                        <% products.forEach(product => { %>
+                            <div class="slide-item">
+                                <div class="single_product">
+                                    <div class="product-img">
+                                        <a href="/singleproduct/<%= product._id %>">
+                                            <img 
+                                                class="primary-img" 
+                                                src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" 
+                                                alt="<%= product.productName %>"
+                                                onerror="this.src='/images/placeholder.jpg'"
+                                            >
+                                        </a>
+                                        <% if (product.createdAt) { 
+                                            const createdAtDate = new Date(product.createdAt);
+                                            const fiveDaysAgo = new Date();
+                                            fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 7);
+                                            if (createdAtDate >= fiveDaysAgo) { %>
+                                            <div class="new-tag">New!</div>
+                                        <% } } %>
+                                        <% if (product.offer && product.offer.discount > 0) { %>
+                                            <div class="new-tag" style="background-color: var(--success-color); right: auto; left: 8px;">
+                                                <%= product.offer.discount %>% OFF
+                                            </div>
+                                        <% } %>
+                                        <div class="add-actions">
+                                            <ul>
+                                                <li>
+                                                    <a class="hiraola-add_cart" href="#" data-product-id="<%= product._id %>"
+                                                       data-bs-toggle="tooltip" data-placement="top" title="Add To Cart">
+                                                        <i class="ion-bag"></i>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" 
+                                                       title="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>" 
+                                                       data-product-id="<%= product._id %>">
+                                                        <i class="<%= userWishlist && userWishlist.includes(product._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="hiraola-product_content">
+                                        <div class="product-desc_info">
+                                            <h6>
+                                                <a class="product-name" href="/singleproduct/<%= product._id %>">
+                                                    <%= product.productName %>
+                                                </a>
+                                            </h6>
+                                            <div class="price-box">
+                                                <% if (product.offer && product.offer.discount > 0) { %>
+                                                    <span class="old-price">₹<%= product.price.toFixed(2) %></span>
+                                                    <span class="new-price">₹<%= product.offer.finalPrice.toFixed(2) %></span>
+                                                    <span class="discount-label">(<%= product.offer.discount %>% OFF)</span>
+                                                <% } else { %>
+                                                    <span class="new-price">₹<%= product.price.toFixed(2) %></span>
+                                                <% } %>
+                                            </div>
+                                            <div class="stock-status">
+                                                <% if (product.totalStock > 0) { %>
+                                                    <span class="in-stock">In Stock</span>
+                                                <% } else { %>
+                                                    <span class="out-of-stock">Out of Stock</span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div class="no-products">
+                        <h3>No products found in this category</h3>
+                        <p>Try another category or browse all products in the <a href="/shop">shop</a>.</p>
+                    </div>
+                <% } %>
+                
+                <% if (products.length > 0) { %>
+                    <div class="hiraola-paginatoin-area">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <ul class="hiraola-pagination-box">
+                                    <% if (currentPage > 1) { %>
+                                        <li>
+                                            <a href="/shopbyfilter/<%= categoryId %>?page=1<%= sortOption ? '&sort=' + sortOption : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">
+                                                |<
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="/shopbyfilter/<%= categoryId %>?page=<%= currentPage - 1 %><%= sortOption ? '&sort=' + sortOption : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">
+                                                <i class="ion-ios-arrow-left"></i>
+                                            </a>
+                                        </li>
+                                    <% } %>
+                                    
+                                    <% 
+                                    let startPage = Math.max(1, currentPage - 2);
+                                    let endPage = Math.min(totalPages, startPage + 4);
+                                    if (endPage - startPage < 4 && startPage > 1) {
+                                        startPage = Math.max(1, endPage - 4);
+                                    }
+                                    for(let i = startPage; i <= endPage; i++) { %>
+                                        <% if (i === currentPage) { %>
+                                            <li class="active">
+                                                <a href="javascript:void(0)"><%= i %></a>
+                                            </li>
+                                        <% } else { %>
+                                            <li>
+                                                <a href="/shopbyfilter/<%= categoryId %>?page=<%= i %><%= sortOption ? '&sort=' + sortOption : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">
+                                                    <%= i %>
+                                                </a>
+                                            </li>
+                                        <% } %>
+                                    <% } %>
+                                    
+                                    <% if (currentPage < totalPages) { %>
+                                        <li>
+                                            <a href="/shopbyfilter/<%= categoryId %>?page=<%= currentPage + 1 %><%= sortOption ? '&sort=' + sortOption : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">
+                                                <i class="ion-ios-arrow-right"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="/shopbyfilter/<%= categoryId %>?page=<%= totalPages %><%= sortOption ? '&sort=' + sortOption : '' %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= minPrice ? '&minPrice=' + minPrice : '' %><%= maxPrice ? '&maxPrice=' + maxPrice : '' %>">
+                                                |>
+                                            </a>
+                                        </li>
+                                    <% } %>
+                                </ul>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <div class="product-select-box">
+                                    <p>
+                                        <% if (totalProducts > 0) { %>
+                                            Showing <%= (currentPage - 1) * limit + 1 %> to <%= Math.min(currentPage * limit, totalProducts) %> of <%= totalProducts %> (<%= totalPages %> Pages)
+                                        <% } else { %>
+                                            No products found
+                                        <% } %>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <% if (products.length > 0) { %>
-                        <div class="shop-product-wrap grid gridview-3 row">
-                            <% products.forEach(product => { %>
-                                <div class="col-lg-4">
-                                    <div class="slide-item">
-                                        <div class="single_product">
-                                            <div class="product-img">
-                                                <a href="/singleproduct/<%= product._id %>">
-                                                    <img class="primary-img" src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/public/user/assets/images/placeholder.jpg' %>" alt="<%= product.productName %>">
-                                                </a>
-                                                <span class="sticker">New</span>
-                                                <div class="add-actions">
-                                                    <ul>
-                                                        <li><a class="hiraola-add_cart" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Cart"><i class="ion-bag"></i></a></li>
-                                                        <li class="quick-view-btn" data-bs-toggle="modal" data-bs-target="#exampleModalCenter"><a href="javascript:void(0)" data-bs-toggle="tooltip" data-placement="top" title="Quick View"><i class="ion-eye"></i></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div class="hiraola-product_content">
-                                                <div class="product-desc_info">
-                                                    <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName %></a></h6>
-                                                    <div class="price-box">
-                                                        <% if (product.offer && product.offer.discount > 0) { %>
-                                                            <span class="old-price" style="color: #ff0000; text-decoration: line-through;">₹<%= product.price.toFixed(2) %></span>
-                                                            <span class="new-price" style="color: #000000;">₹<%= product.offer.finalPrice.toFixed(2) %></span>
-                                                            <span class="discount-label" style="color: #2e7d32; font-size: 0.9rem;">(<%= product.offer.discount %>% OFF)</span>
-                                                        <% } else { %>
-                                                            <span class="new-price">₹<%= product.price.toFixed(2) %></span>
-                                                        <% } %>
-                                                    </div>
-                                                    <div class="stock-status">
-                                                        <% if (product.totalStock > 0) { %>
-                                                            <span class="in-stock">In Stock</span>
-                                                        <% } else { %>
-                                                            <span class="out-of-stock">Out of Stock</span>
-                                                        <% } %>
-                                                    </div>
-                                                    <div class="additional-add_action">
-                                                        <ul>
-                                                            <li><a class="hiraola-add_compare" href="#" data-bs-toggle="tooltip" data-placement="top" title="Add To Wishlist"><i class="ion-android-favorite-outline"></i></a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="rating-box">
-                                                        <ul>
-                                                            <li><i class="fa fa-star-of-david"></i></li>
-                                                            <li><i class="fa fa-star-of-david"></i></li>
-                                                            <li><i class="fa fa-star-of-david"></i></li>
-                                                            <li><i class="fa fa-star-of-david"></i></li>
-                                                            <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <% }) %>
-                        </div>
-                    <% } else { %>
-                        <div class="row">
-                            <div class="col-12 text-center py-5">
-                                <h3>No products found in this category</h3>
-                                <p>Try another category or browse all products in the <a href="/shop">shop</a>.</p>
-                            </div>
-                        </div>
-                    <% } %>
-                    
-                    <% if (products.length > 0) { %>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="hiraola-paginatoin-area">
-                                    <div class="row">
-                                        <div class="col-lg-6 col-md-6 col-sm-6">
-                                            <ul class="hiraola-pagination-box">
-                                                <% if (currentPage > 1) { %>
-                                                    <li><a href="/shopbyfilter/<%= categoryId %>?page=1">|<</a></li>
-                                                    <li><a class="Previous" href="/shopbyfilter/<%= categoryId %>?page=<%= currentPage - 1 %>"><i class="ion-ios-arrow-left"></i></a></li>
-                                                <% } %>
-                                                
-                                                <% 
-                                                // Show a limited number of page links to prevent overcrowding
-                                                let startPage = Math.max(1, currentPage - 2);
-                                                let endPage = Math.min(totalPages, startPage + 4);
-                                                
-                                                // Adjust start page if we're at the end of the range
-                                                if (endPage - startPage < 4 && startPage > 1) {
-                                                    startPage = Math.max(1, endPage - 4);
-                                                }
-                                                
-                                                for(let i = startPage; i <= endPage; i++) { 
-                                                %>
-                                                    <% if (i === currentPage) { %>
-                                                        <li class="active"><a href="javascript:void(0)"><%= i %></a></li>
-                                                    <% } else { %>
-                                                        <li><a href="/shopbyfilter/<%= categoryId %>?page=<%= i %>"><%= i %></a></li>
-                                                    <% } %>
-                                                <% } %>
-                                                
-                                                <% if (currentPage < totalPages) { %>
-                                                    <li><a class="Next" href="/shopbyfilter/<%= categoryId %>?page=<%= currentPage + 1 %>"><i class="ion-ios-arrow-right"></i></a></li>
-                                                    <li><a href="/shopbyfilter/<%= categoryId %>?page=<%= totalPages %>">|></a></li>
-                                                <% } %>
-                                            </ul>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-sm-6">
-                                            <div class="product-select-box">
-                                                <div class="product-short">
-                                                    <p>
-                                                        <% if (totalProducts > 0) { %>
-                                                            Showing <%= (currentPage - 1) * limit + 1 %> to <%= Math.min(currentPage * limit, totalProducts) %> of <%= totalProducts %> (<%= totalPages %> Pages)
-                                                        <% } else { %>
-                                                            No products found
-                                                        <% } %>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <% } %>
-                </div>
+                <% } %>
             </div>
         </div>
     </div>
-    <!-- Hiraola's Content Wrapper Area End Here -->
+    <!-- Content Wrapper Area End Here -->
 
     <%- include('../partials/user/footer') %>
-</body>
-</html>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip({
+                trigger: 'hover'
+            });
+
+            // Initialize price slider
+            const minPrice = <%= minPrice || 0 %>;
+            const maxPrice = <%= maxPrice || 10000 %>;
+            const maxSliderValue = 10000;
+
+            $("#price-slider").slider({
+                range: true,
+                min: 0,
+                max: maxSliderValue,
+                values: [minPrice, maxPrice],
+                slide: function(event, ui) {
+                    $("#min-price").text(ui.values[0]);
+                    $("#max-price").text(ui.values[1]);
+                },
+                create: function(event, ui) {
+                    $("#min-price").text(minPrice);
+                    $("#max-price").text(maxPrice);
+                }
+            });
+
+            // Apply price filter
+            $("#apply-price-filter").click(function() {
+                const minPrice = $("#price-slider").slider("values", 0);
+                const maxPrice = $("#price-slider").slider("values", 1);
+                const currentUrl = new URL(window.location.href);
+                
+                currentUrl.searchParams.set('minPrice', minPrice);
+                currentUrl.searchParams.set('maxPrice', maxPrice);
+                currentUrl.searchParams.set('page', '1');
+                
+                window.location.href = currentUrl.toString();
+            });
+
+            // Clear all filters
+            $("#clear-filters").click(function() {
+                const currentUrl = new URL(window.location.href);
+                
+                currentUrl.searchParams.delete('search');
+                currentUrl.searchParams.delete('sort');
+                currentUrl.searchParams.delete('minPrice');
+                currentUrl.searchParams.delete('maxPrice');
+                currentUrl.searchParams.set('page', '1');
+                
+                $("#search-form input[name='search']").val('');
+                $("#sortSelect").val('');
+                $("#price-slider").slider("values", [0, maxSliderValue]);
+                $("#min-price").text('0');
+                $("#max-price").text(maxSliderValue);
+                
+                window.location.href = currentUrl.toString();
+            });
+
+            // Clear search input
+            $(".clear-search-btn").click(function() {
+                const currentUrl = new URL(window.location.href);
+                
+                currentUrl.searchParams.delete('search');
+                currentUrl.searchParams.set('page', '1');
+                
+                $("#search-form input[name='search']").val('');
+                
+                window.location.href = currentUrl.toString();
+            });
+
+            // Handle search form submission
+            $("#search-form").submit(function(event) {
+                event.preventDefault();
+                const searchTerm = $("input[name='search']").val().trim();
+                const currentUrl = new URL(window.location.href);
+                
+                if (searchTerm) {
+                    currentUrl.searchParams.set('search', searchTerm);
+                } else {
+                    currentUrl.searchParams.delete('search');
+                }
+                currentUrl.searchParams.set('page', '1');
+                
+                window.location.href = currentUrl.toString();
+            });
+
+            // Sort products
+            function sortProducts() {
+                const sortSelect = document.getElementById('sortSelect');
+                const sortOption = sortSelect.value;
+                const currentUrl = new URL(window.location.href);
+                
+                if (sortOption) {
+                    currentUrl.searchParams.set('sort', sortOption);
+                    currentUrl.searchParams.set('page', '1');
+                } else {
+                    currentUrl.searchParams.delete('sort');
+                }
+                
+                window.location.href = currentUrl.toString();
+            }
+
+            // Wishlist functionality
+            $('.hiraola-add_compare').click(function(event) {
+                event.preventDefault();
+                const button = $(this);
+                const productId = button.data('product-id');
+                const icon = button.find('i');
+                const isInWishlist = icon.hasClass('ion-android-favorite');
+
+                const url = isInWishlist ? '/wishlist/remove' : '/wishlist/add';
+                const action = isInWishlist ? 'remove' : 'add';
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ productId }),
+                    success: function(data) {
+                        if (data.success) {
+                            if (action === 'add') {
+                                icon.removeClass('ion-android-favorite-outline').addClass('ion-android-favorite');
+                                button.attr('title', 'Remove from Wishlist');
+                            } else {
+                                icon.removeClass('ion-android-favorite').addClass('ion-android-favorite-outline');
+                                button.attr('title', 'Add To Wishlist');
+                            }
+                            button.tooltip('hide').attr('data-original-title', button.attr('title')).tooltip('show');
+                            
+                            Swal.fire({
+                                icon: 'success',
+                                title: data.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Something went wrong!'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to update wishlist. Please try again.'
+                        });
+                    }
+                });
+            });
+
+            // Add to cart functionality
+            $('.hiraola-add_cart').click(function(event) {
+                event.preventDefault();
+                const productId = $(this).data('product-id');
+                
+                $.ajax({
+                    url: '/cart/add',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ productId, quantity: 1 }),
+                    success: function(data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added to Cart',
+                                text: data.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            
+                            if (data.cartCount) {
+                                $('.cart-count').text(data.cartCount);
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Failed to add to cart'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to add to cart. Please try again.'
+                        });
+                    }
+                });
+            });
+
+            // View mode toggle
+            $('.product-view-mode a').on('click', function(e) {
+                e.preventDefault();
+                const target = $(this).data('target');
+                
+                $('.product-view-mode a').removeClass('active');
+                $(this).addClass('active');
+                
+                if (target === 'listview') {
+                    $('.shop-product-wrap').removeClass('grid gridview-3').addClass('list');
+                    $('.slide-item').css('height', 'auto');
+                } else {
+                    $('.shop-product-wrap').removeClass('list').addClass('grid gridview-3');
+                    $('.slide-item').css('height', '100%');
+                }
+            });
+        });
+    </script>

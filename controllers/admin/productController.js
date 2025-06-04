@@ -50,7 +50,7 @@ exports.addProduct = async (req, res) => {
       }
     }
 
-    const priceNum = parseInt(price); // Fixed syntax
+    const priceNum = parseInt(price);
     if (!price || isNaN(priceNum) || priceNum < 1 || priceNum > 1000000) {
       errors.push("Price must be between 1 and 1,000,000");
     }
@@ -77,6 +77,10 @@ exports.addProduct = async (req, res) => {
           errors.push(`Image ${index + 1} must be less than 5MB`);
         }
       });
+    }
+
+    if (!["true", "false"].includes(status)) {
+      errors.push("Status must be either Active or Inactive");
     }
 
     if (errors.length > 0) {
@@ -107,7 +111,7 @@ exports.addProduct = async (req, res) => {
       totalStock: stockNum,
       category,
       productImage: imageUrls,
-      status: status === true,
+      status: status === "true",
     });
 
     await product.save();

@@ -178,8 +178,8 @@
       console.log('cartDetails:', <%- JSON.stringify(cartDetails) %>);
     </script>
 
-    <% if (cartDetails && cartDetails.cartItem && Array.isArray(cartDetails.cartItem) && cartDetails.cartItem.length > 0) { %>
-      <div class="table-content table-responsive">
+    <div class="table-content table-responsive">
+      <% if (cartDetails && cartDetails.cartItem && Array.isArray(cartDetails.cartItem) && cartDetails.cartItem.length > 0) { %>
         <table class="table cart-table">
           <thead>
             <tr>
@@ -192,12 +192,12 @@
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="cart-items">
             <% let index = 1; %>
             <% cartDetails.cartItem.forEach(item => { %>
               <% if (item && item.productId && item.productId._id && item.productId.productName && item.productId.productImage && item.productId.productImage.length > 0) { %>
                 <tr class="cart-item" data-product-id="<%= item.productId._id %>">
-                  <td><%= index++ %></td>
+                  <td class="serial-number"><%= index++ %></td>
                   <td>
                     <img class="product-image" src="<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>">
                   </td>
@@ -272,11 +272,20 @@
             <% }); %>
           </tbody>
         </table>
-      </div>
+      <% } else { %>
+        <div class="text-center py-5" id="empty-cart">
+          <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+          <h2>Your Cart is Empty</h2>
+          <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
+          <a href="/shop" class="btn btn-primary">Start Shopping</a>
+        </div>
+      <% } %>
+    </div>
 
+    <% if (cartDetails && cartDetails.cartItem && Array.isArray(cartDetails.cartItem) && cartDetails.cartItem.length > 0) { %>
       <div class="row justify-content-end">
         <div class="col-md-4">
-          <div class="cart-summary-card">
+          <div class="cart-summary-card" id="cart-summary">
             <h3>Order Summary</h3>
             <% 
               let originalSubtotal = 0;
@@ -292,19 +301,19 @@
               });
               const totalDiscount = originalSubtotal - discountedSubtotal;
             %>
-            <div class="summary-row">
+            <div class="summary-row" id="subtotal-row">
               <span>Subtotal</span>
-              <span>₹<%= originalSubtotal.toFixed(2) %></span>
+              <span id="subtotal-amount">₹<%= originalSubtotal.toFixed(2) %></span>
             </div>
             <% if (totalDiscount > 0) { %>
-              <div class="summary-row">
+              <div class="summary-row" id="discount-row">
                 <span>Discount</span>
-                <span class="text-success">-₹<%= totalDiscount.toFixed(2) %></span>
+                <span class="text-success" id="discount-amount">-₹<%= totalDiscount.toFixed(2) %></span>
               </div>
             <% } %>
             <div class="summary-row total">
               <span>Total</span>
-              <span>₹<%= discountedSubtotal.toFixed(2) %></span>
+              <span id="total-amount">₹<%= discountedSubtotal.toFixed(2) %></span>
             </div>
             <div class="mt-3">
               <a href="javascript:void(0);" onclick="verifyCartBeforeCheckout()" class="btn btn-primary btn-block">Proceed to Checkout</a>
@@ -312,13 +321,6 @@
             </div>
           </div>
         </div>
-      </div>
-    <% } else { %>
-      <div class="text-center py-5">
-        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-        <h2>Your Cart is Empty</h2>
-        <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
-        <a href="/shop" class="btn btn-primary">Start Shopping</a>
       </div>
     <% } %>
   </div>
@@ -340,12 +342,21 @@
       cancelButtonColor: "#d33",
     }).then((result) => {
       if (result.isConfirmed) {
+        // Show loading spinner for the item and summary
+        $(`.cart-item[data-product-id="${productId}"] .item-total`).html('<i class="fa fa-spinner fa-spin"></i>');
+        $('#cart-summary .summary-row span:last-child').html('<i class="fa fa-spinner fa-spin"></i>');
+        
         $.ajax({
           url: `/remove/${productId}`,
           method: "DELETE",
           success: function (response) {
+            // Remove the item row from the table
             $(`.cart-item[data-product-id="${productId}"]`).remove();
-
+            
+            // Update serial numbers
+            updateSerialNumbers();
+            
+            // Show success flash message
             const flashMessage = `
               <div class="flash-message success-message" id="flash-message">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
@@ -358,18 +369,20 @@
             $("body").append(flashMessage);
             removeFlashMessage();
 
-            updateCartTotals();
+            // Fetch updated cart data and update totals
+            fetchCartAndUpdate();
 
+            // Show empty cart message if no items remain
             if ($(".cart-item").length === 0) {
               $(".table-content").html(`
-                <div class="text-center py-5">
+                <div class="text-center py-5" id="empty-cart">
                   <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
                   <h2>Your Cart is Empty</h2>
                   <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
                   <a href="/shop" class="btn btn-primary">Start Shopping</a>
                 </div>
               `);
-              $(".cart-summary-card").remove();
+              $("#cart-summary").remove();
             }
 
             const Toast = Swal.mixin({
@@ -391,9 +404,107 @@
               title: "Error",
               text: errorData.message || "Failed to remove product from cart",
             });
+            // Revert loading spinners and fetch updated cart data
+            fetchCartAndUpdate();
           },
         });
       }
+    });
+  }
+
+  // Update serial numbers of cart items
+  function updateSerialNumbers() {
+    $("#cart-items .cart-item").each(function(index) {
+      $(this).find(".serial-number").text(index + 1);
+    });
+  }
+
+  // Fetch updated cart data and update UI
+  function fetchCartAndUpdate() {
+    $.ajax({
+      url: "/get-cart-totals",
+      method: "GET",
+      success: function (data) {
+        let originalTotal = 0;
+        let discountedTotal = 0;
+
+        // Recalculate item totals for each row based on current UI state
+        $(".cart-item").each(function() {
+          const input = $(this).find(".cart-plus-minus-box");
+          const quantity = parseInt(input.val()) || 0;
+          const originalPrice = parseFloat(input.data("product-price")) || 0;
+          const finalPrice = parseFloat(input.data("final-price")) || originalPrice;
+          
+          originalTotal += originalPrice * quantity;
+          discountedTotal += finalPrice * quantity;
+          
+          const itemTotalCell = $(this).find(".item-total");
+          const hasDiscount = input.data("has-discount") === "true";
+          if (hasDiscount) {
+            itemTotalCell.html(`
+              <div class="price-display">
+                <span class="original-price">₹${(originalPrice * quantity).toFixed(2)}</span>
+                <span class="discounted-price">₹${(finalPrice * quantity).toFixed(2)}</span>
+              </div>
+            `);
+          } else {
+            itemTotalCell.html(`<span>₹${(originalPrice * quantity).toFixed(2)}</span>`);
+          }
+        });
+
+        const totalDiscount = originalTotal - discountedTotal;
+        const summaryCard = $('#cart-summary');
+
+        if (summaryCard.length) {
+          // Update subtotal
+          $('#subtotal-amount').text(`₹${originalTotal.toFixed(2)}`);
+          
+          // Update discount row
+          const discountRow = $('#discount-row');
+          if (totalDiscount > 0) {
+            if (discountRow.length === 0) {
+              $('#subtotal-row').after(`
+                <div class="summary-row" id="discount-row">
+                  <span>Discount</span>
+                  <span class="text-success" id="discount-amount">-₹${totalDiscount.toFixed(2)}</span>
+                </div>
+              `);
+            } else {
+              $('#discount-amount').text(`-₹${totalDiscount.toFixed(2)}`);
+            }
+          } else {
+            discountRow.remove();
+          }
+          
+          // Update total
+          $('#total-amount').text(`₹${discountedTotal.toFixed(2)}`);
+        }
+
+        // Handle empty cart
+        if (discountedTotal === 0 || $(".cart-item").length === 0) {
+          $(".table-content").html(`
+            <div class="text-center py-5" id="empty-cart">
+              <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+              <h2>Your Cart is Empty</h2>
+              <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
+              <a href="/shop" class="btn btn-primary">Start Shopping</a>
+            </div>
+          `);
+          $("#cart-summary").remove();
+        }
+      },
+      error: function (xhr) {
+        const errorData = xhr.responseJSON || {};
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: errorData.message || "Could not update cart totals",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        // Attempt to recover by reloading cart data
+        location.reload();
+      },
     });
   }
 
@@ -473,7 +584,7 @@
     // Show loading spinner during updates
     function showLoading(productId) {
       $(`.cart-item[data-product-id="${productId}"] .item-total`).html('<i class="fa fa-spinner fa-spin"></i>');
-      $('.cart-summary-card .summary-row span:last').html('<i class="fa fa-spinner fa-spin"></i>');
+      $('#cart-summary .summary-row span:last-child').html('<i class="fa fa-spinner fa-spin"></i>');
     }
 
     // Handle quantity increment
@@ -578,7 +689,7 @@
             itemTotalCell.html(`<span>₹${originalItemTotal}</span>`);
           }
 
-          updateCartTotals();
+          fetchCartAndUpdate();
           
           const Toast = Swal.mixin({
             toast: true,
@@ -605,91 +716,11 @@
             data: { productId },
             success: function (data) {
               input.val(data.quantity);
-              updateCartTotals();
+              fetchCartAndUpdate();
             },
             error: function () {
               location.reload();
             },
-          });
-        },
-      });
-    }
-
-    // Update cart totals via AJAX
-    function updateCartTotals() {
-      $.ajax({
-        url: "/get-cart-totals",
-        method: "GET",
-        success: function (data) {
-          let originalTotal = 0;
-          let discountedTotal = 0;
-          
-          $(".cart-item").each(function() {
-            const input = $(this).find(".cart-plus-minus-box");
-            const quantity = parseInt(input.val()) || 0;
-            const originalPrice = parseFloat(input.data("product-price")) || 0;
-            const finalPrice = parseFloat(input.data("final-price")) || originalPrice;
-            
-            originalTotal += originalPrice * quantity;
-            discountedTotal += finalPrice * quantity;
-            
-            const itemTotalCell = $(this).find(".item-total");
-            const hasDiscount = input.data("has-discount") === "true";
-            if (hasDiscount) {
-              itemTotalCell.html(`
-                <div class="price-display">
-                  <span class="original-price">₹${(originalPrice * quantity).toFixed(2)}</span>
-                  <span class="discounted-price">₹${(finalPrice * quantity).toFixed(2)}</span>
-                </div>
-              `);
-            } else {
-              itemTotalCell.html(`<span>₹${(originalPrice * quantity).toFixed(2)}</span>`);
-            }
-          });
-          
-          const totalDiscount = originalTotal - discountedTotal;
-          
-          const summaryCard = $('.cart-summary-card');
-          if (summaryCard.length) {
-            summaryCard.find('.summary-row:eq(0) span:last').text(`₹${originalTotal.toFixed(2)}`);
-            summaryCard.find('.summary-row.total span:last').text(`₹${discountedTotal.toFixed(2)}`);
-            
-            const discountRow = summaryCard.find('.summary-row:contains("Discount")');
-            if (totalDiscount > 0) {
-              if (discountRow.length === 0) {
-                summaryCard.find('.summary-row:eq(0)').after(`
-                  <div class="summary-row">
-                    <span>Discount</span>
-                    <span class="text-success">-₹${totalDiscount.toFixed(2)}</span>
-                  </div>
-                `);
-              } else {
-                discountRow.find('span:last').text(`-₹${totalDiscount.toFixed(2)}`);
-              }
-            } else {
-              discountRow.remove();
-            }
-          }
-          
-          if (discountedTotal === 0 || $(".cart-item").length === 0) {
-            $(".table-content").html(`
-              <div class="text-center py-5">
-                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                <h2>Your Cart is Empty</h2>
-                <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
-                <a href="/shop" class="btn btn-primary">Start Shopping</a>
-              </div>
-            `);
-            $('.cart-summary-card').remove();
-          }
-        },
-        error: function () {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Could not update cart totals",
-            timer: 2000,
-            showConfirmButton: false,
           });
         },
       });

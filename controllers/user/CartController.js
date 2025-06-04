@@ -90,9 +90,13 @@ exports.getCart = async (req, res) => {
 // Add to Cart
 exports.addToCart = async (req, res) => {
     try {
+        console.log('Request headers:', req.headers); // Log headers for cookies
+        console.log('Session data:', req.session);
         const userId = req.user.id;
+        console.log("userdeatils>>",userId)
         if (!userId) {
             return res.status(401).json({ message: 'Please log in to add items to cart' });
+
         }
 
         const { productId } = req.params;

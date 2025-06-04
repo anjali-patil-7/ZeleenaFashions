@@ -72,14 +72,13 @@
             box-shadow: none;
         }
         .qty-wishlist_btn.active {
-            background: #ffc107; /* Golden yellow background */
-            color: #ffffff; /* White icon for contrast */
-            border-color: #e0a800; /* Slightly darker border */
+            background: #ffc107;
+            color: #ffffff;
+            border-color: #e0a800;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         .qty-wishlist_btn.active i {
             font-family: "Ionicons";
-            content: "\f387"; /* Ionicons code for filled heart */
         }
         .qty-wishlist_btn i {
             display: flex;
@@ -251,7 +250,7 @@
         }
         .sp-img_slider a {
             display: inline-block;
-            width: 400px;
+            width: 100px;
             height: 80px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -312,14 +311,14 @@
                                 <div class="zoompro-border">
                                     <img
                                         class="zoompro"
-                                        src="<%= product.productImage[0] %>"
-                                        data-zoom-image="<%= product.productImage[0] %>"
+                                        src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/images/placeholder.jpg' %>"
+                                        data-zoom-image="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/images/placeholder.jpg' %>"
                                         alt="<%= product.productName %> Image"
                                         onerror="this.src='/images/placeholder.jpg'; console.log('Main image failed to load: <%= product.productImage[0] %>')"
                                     />
                                 </div>
                                 <div id="gallery" class="sp-img_slider">
-                                    <% product.productImage.forEach((image, index) => { %>
+                                    <% product.productImage && product.productImage.forEach((image, index) => { %>
                                         <a
                                             class="<%= index === 0 ? 'active' : '' %>"
                                             data-image="<%= image %>"
@@ -350,17 +349,6 @@
                             </div>
 
                             <div class="sp-content">
-                                <div class="rating-box">
-                                    <ul>
-                                        <li><i class="fa fa-star-of-david"></i></li>
-                                        <li><i class="fa fa-star-of-david"></i></li>
-                                        <li><i class="fa fa-star-of-david"></i></li>
-                                        <li><i class="fa fa-star-of-david"></i></li>
-                                        <li class="silver-color">
-                                            <i class="fa fa-star-of-david"></i>
-                                        </li>
-                                    </ul>
-                                </div>
 
                                 <a href="#">
                                     <% if (product.totalStock == 0) { %>
@@ -373,7 +361,7 @@
                                 <div class="quantity">
                                     <label>Quantity</label>
                                     <div class="cart-plus-minus">
-                                        <input class="cart-plus-minus-box" value="1" type="text" />
+                                        <input class="cart-plus-minus-box" value="1" type="number" min="1" max="<%= product.totalStock %>" />
                                         <div class="dec qtybutton">
                                             <i class="fa fa-angle-down"></i>
                                         </div>
@@ -508,11 +496,11 @@
                                                                 <p>Good product! Thank you very much</p>
                                                                 <div class="rating-box">
                                                                     <ul>
-                                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                                        <li><i class="fa fa-star-of-david"></i></li>
+                                                                        <li><i class="fa fa-star"></i></li>
+                                                                        <li><i class="fa fa-star"></i></li>
+                                                                        <li><i class="fa fa-star"></i></li>
+                                                                        <li><i class="fa fa-star"></i></li>
+                                                                        <li><i class="fa fa-star"></i></li>
                                                                     </ul>
                                                                 </div>
                                                             </td>
@@ -584,22 +572,22 @@
                             <h4>Related Products</h4>
                         </div>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-12">
                         <div class="hiraola-product_slider-3">
-                            <% relatedProduct.forEach(function(related) { %>
+                            <% relatedProducts.forEach(function(related) { %>
                                 <div class="slide-item">
                                     <div class="single_product">
                                         <div class="product-img">
                                             <a href="/singleproduct/<%= related._id %>">
                                                 <img
                                                     class="primary-img"
-                                                    src="<%= related.productImage[0] %>"
+                                                    src="<%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : '/images/placeholder.jpg' %>"
                                                     alt="<%= related.productName %>"
                                                     onerror="this.src='/images/placeholder.jpg'; console.log('Related product image failed to load: <%= related.productImage[0] %>')"
                                                 />
                                                 <img
                                                     class="secondary-img"
-                                                    src="<%= related.productImage[1] || related.productImage[0] %>"
+                                                    src="<%= related.productImage && related.productImage.length > 1 ? related.productImage[1] : related.productImage[0] || '/images/placeholder.jpg' %>"
                                                     alt="<%= related.productName %>"
                                                     onerror="this.src='/images/placeholder.jpg'; console.log('Related product secondary image failed to load: <%= related.productImage[1] || related.productImage[0] %>')"
                                                 />
@@ -609,23 +597,24 @@
                                                     <li>
                                                         <a
                                                             class="hiraola-add_cart"
-                                                            href="/cart"
+                                                            href="javascript:void(0)"
+                                                            data-product-id="<%= related._id %>"
                                                             data-bs-toggle="tooltip"
                                                             data-placement="top"
                                                             title="Add To Cart"
+                                                            onclick="addToCart('<%= related._id %>')"
                                                         ><i class="ion-bag"></i></a>
                                                     </li>
-                                                    <li
-                                                        class="quick-view-btn"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#exampleModalCenter"
-                                                    >
+                                                    <li>
                                                         <a
+                                                            class="hiraola-add_compare"
                                                             href="javascript:void(0)"
+                                                            data-product-id="<%= related._id %>"
                                                             data-bs-toggle="tooltip"
                                                             data-placement="top"
-                                                            title="Quick View"
-                                                        ><i class="ion-eye"></i></a>
+                                                            title="<%= userWishlist && userWishlist.includes(related._id.toString()) ? 'Remove from Wishlist' : 'Add To Wishlist' %>"
+                                                            onclick="toggleWishlist('<%= related._id %>')"
+                                                        ><i class="<%= userWishlist && userWishlist.includes(related._id.toString()) ? 'ion-android-favorite' : 'ion-android-favorite-outline' %>"></i></a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -644,33 +633,28 @@
                                                         <span class="new-price">₹<%= related.price.toFixed(2) %></span>
                                                     <% } %>
                                                 </div>
-                                                <div class="additional-add_action">
-                                                    <ul>
-                                                        <li>
-                                                            <a
-                                                                class="hiraola-add_compare"
-                                                                href="/wishlist"
-                                                                data-bs-toggle="tooltip"
-                                                                data-placement="top"
-                                                                title="Add To Wishlist"
-                                                            ><i class="ion-android-favorite-outline"></i></a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
                                                 <div class="rating-box">
                                                     <ul>
-                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                        <li><i class="fa fa-star-of-david"></i></li>
-                                                        <li class="silver-color"><i class="fa fa-star-of-david"></i></li>
+                                                        <% const relRating = related.averageRating || 0;
+                                                           const relFullStars = Math.floor(relRating);
+                                                           const relHasHalfStar = relRating % 1 >= 0.5;
+                                                           const relEmptyStars = 5 - relFullStars - (relHasHalfStar ? 1 : 0);
+                                                           for (let i = 0; i < relFullStars; i++) { %>
+                                                            <li><i class="fa fa-star"></i></li>
+                                                        <% } %>
+                                                        <% if (relHasHalfStar) { %>
+                                                            <li><i class="fa fa-star-half-alt"></i></li>
+                                                        <% } %>
+                                                        <% for (let i = 0; i < relEmptyStars; i++) { %>
+                                                            <li class="silver-color"><i class="fa fa-star"></i></li>
+                                                        <% } %>
                                                     </ul>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            <% }); %>
+                            <% }) %>
                         </div>
                     </div>
                 </div>
@@ -767,15 +751,49 @@
                 }
             );
 
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip({
+                trigger: 'hover'
+            });
+
+            // Quantity buttons
+            const maxStock = <%= product ? product.totalStock : 0 %>;
+            $('.dec.qtybutton').on('click', function() {
+                const input = $('.cart-plus-minus-box');
+                let value = parseInt(input.val());
+                if (value > 1) {
+                    input.val(value - 1);
+                }
+            });
+            $('.inc.qtybutton').on('click', function() {
+                const input = $('.cart-plus-minus-box');
+                let value = parseInt(input.val());
+                if (value < maxStock) {
+                    input.val(value + 1);
+                }
+            });
+            $('.cart-plus-minus-box').on('change', function() {
+                let value = parseInt($(this).val());
+                if (isNaN(value) || value < 1) {
+                    $(this).val(1);
+                } else if (value > maxStock) {
+                    $(this).val(maxStock);
+                }
+            });
+
             // Check wishlist status on page load
-            const productId = '<%= product._id %>';
-            checkWishlistStatus(productId);
+            const productId = '<%= product && product._id %>';
+            if (productId) {
+                checkWishlistStatus(productId);
+            }
         });
 
-        const MAX_QUANTITY = 7;
-
         async function addToCart(productId) {
-            const quantity = parseInt(document.querySelector(".cart-plus-minus-box").value);
+            const quantityInput = document.querySelector(".cart-plus-minus-box");
+            const quantity = parseInt(quantityInput.value);
+            const maxStock = <%= product ? product.totalStock : 0 %>;
+
+            // Validate quantity
             if (isNaN(quantity) || quantity < 1) {
                 Swal.fire({
                     icon: "error",
@@ -784,38 +802,55 @@
                 });
                 return;
             }
+            if (quantity > maxStock) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Quantity Exceeded",
+                    text: "Cannot add more than available stock (" + maxStock + " items)",
+                });
+                return;
+            }
 
             try {
-                const response = await fetch(`/addtocart/${productId}`, {
+                console.log('Adding to cart from single product page:', { 
+                    productId, 
+                    quantity, 
+                    url: 'http://localhost:3000/addtocart/' + productId,
+                    cookies: document.cookie 
+                });
+                const response = await fetch('http://localhost:3000/addtocart/' + productId, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
+                    credentials: "include", // Ensure session cookies are sent
                     body: JSON.stringify({ quantity }),
                 });
 
                 const data = await response.json();
+                console.log('Response from server (single product):', { 
+                    status: response.status, 
+                    data 
+                });
 
                 if (response.ok) {
                     Swal.fire({
                         icon: "success",
                         title: "Success!",
-                        text: "Product added to cart successfully!",
+                        text: data.message || "Product added to cart successfully!",
                         showConfirmButton: false,
                         timer: 1500,
                     });
 
-                    if (data.cartCount) {
-                        const cartCountElement = document.querySelector(".cart-count");
-                        if (cartCountElement) {
-                            cartCountElement.textContent = data.cartCount;
-                        }
+                    const cartCountElement = document.querySelector(".cart-count");
+                    if (cartCountElement && data.cartCount) {
+                        cartCountElement.textContent = data.cartCount;
                     }
                 } else {
                     let errorMessage = data.message || "Failed to add product to cart";
                     let isProductBlocked = errorMessage.includes("blocked") ||
-                                        errorMessage.includes("disabled") ||
-                                        errorMessage.includes("not available");
+                                          errorMessage.includes("disabled") ||
+                                          errorMessage.includes("not available");
 
                     if (errorMessage.includes("undefined")) {
                         errorMessage = "This item is out of stock.";
@@ -842,11 +877,16 @@
                     }
                 }
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error adding to cart (single product):", error);
                 Swal.fire({
                     icon: "warning",
                     title: "Please Login",
                     text: "Please login to add items to your cart.",
+                    confirmButtonText: "OK",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "/login";
+                    }
                 });
             }
         }
@@ -863,8 +903,10 @@
                 const data = await response.json();
                 if (response.ok && data.isInWishlist) {
                     const wishlistBtn = document.querySelector(`.qty-wishlist_btn[data-product-id="${productId}"]`);
-                    wishlistBtn.classList.add("active");
-                    wishlistBtn.querySelector("i").className = "ion-android-favorite";
+                    if (wishlistBtn) {
+                        wishlistBtn.classList.add("active");
+                        wishlistBtn.querySelector("i").className = "ion-android-favorite";
+                    }
                 }
             } catch (error) {
                 console.error("Error checking wishlist status:", error);
@@ -876,11 +918,10 @@
             const wishlistBtn = document.querySelector(`.qty-wishlist_btn[data-product-id="${productId}"]`);
             const isActive = wishlistBtn.classList.contains("active");
             const endpoint = isActive ? `/wishlist/remove` : `/wishlist/add`;
-            const method = isActive ? "POST" : "POST"; // Both use POST in your controller
 
             try {
                 const response = await fetch(endpoint, {
-                    method: method,
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
@@ -911,6 +952,18 @@
                             timer: 1500,
                         });
                     }
+                    // Update related products wishlist buttons
+                    const relatedButtons = document.querySelectorAll(`.hiraola-add_compare[data-product-id="${productId}"]`);
+                    relatedButtons.forEach(btn => {
+                        if (isActive) {
+                            btn.querySelector("i").className = "ion-android-favorite-outline";
+                            btn.setAttribute("title", "Add To Wishlist");
+                        } else {
+                            btn.querySelector("i").className = "ion-android-favorite";
+                            btn.setAttribute("title", "Remove from Wishlist");
+                        }
+                        $(btn).tooltip('hide').attr('data-original-title', btn.getAttribute("title")).tooltip('show');
+                    });
                 } else {
                     let errorMessage = data.message || "Failed to update wishlist";
                     if (errorMessage.includes("login") || response.status === 401) {
@@ -946,6 +999,79 @@
                 });
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const cartButtons = document.querySelectorAll('.hiraola-add_cart');
+
+            cartButtons.forEach((button) => {
+                button.addEventListener('click', async function (event) {
+                    event.preventDefault();
+
+                    const productId = button.getAttribute('data-product-id');
+
+                    try {
+                        console.log('Adding to cart from related products:', { 
+                            productId, 
+                            quantity: 1, 
+                            url: 'http://localhost:3000/addtocart/' + productId,
+                            cookies: document.cookie 
+                        });
+                        const response = await fetch('http://localhost:3000/addtocart/' + productId, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ quantity: 1 }),
+                        });
+
+                        const data = await response.json();
+                        console.log('Response from server (related products):', { 
+                            status: response.status, 
+                            data 
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: data.message || 'Product added to cart successfully!',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                            });
+                            const cartCountElement = document.querySelector(".cart-count");
+                            if (cartCountElement && data.cartCount) {
+                                cartCountElement.textContent = data.cartCount;
+                            }
+                        } else {
+                            let errorMessage = data.message || "Failed to add product to cart";
+                            if (errorMessage.includes("undefined")) {
+                                errorMessage = "This item is out of stock.";
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: errorMessage,
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error adding to cart (related products):', error);
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Please Login',
+                            text: 'Please login to add items to your cart.',
+                            confirmButtonText: 'OK',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "/login";
+                            }
+                        });
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>

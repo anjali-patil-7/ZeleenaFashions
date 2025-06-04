@@ -18,6 +18,13 @@ router.get('/', homeController.getHomePage);
 router.get('/about', homeController.getAboutPage);
 router.get('/contact', homeController.getContactPage);
 
+
+// Shop routes
+router.get('/shop', shopController.getShopPage);
+router.get('/shopbyfilter/:categoryId', shopController.getShopByFilter);
+router.get('/singleproduct/:id', shopController.getSingleProduct);
+
+
 // Authentication routes
 router.get('/register', ifLogged, authController.getSignup);
 router.post('/register', authController.postSignup); // Note: ifLogged removed to allow form submission

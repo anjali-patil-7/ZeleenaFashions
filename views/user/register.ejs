@@ -30,7 +30,8 @@
       html {
         height: 100%;
         margin: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Inter", sans-serif;
+        background: #ffffff; /* White background for entire page */
       }
 
       .bg-wrapper {
@@ -38,8 +39,7 @@
         width: 100%;
         position: relative;
         overflow: hidden;
-        background: url("/api/placeholder/1920/1080") no-repeat center center;
-        background-size: cover;
+        background: #ffffff; /* White background, removed placeholder image */
       }
 
       .blur-overlay {
@@ -48,8 +48,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(8px);
+        background: #ffffff; /* White background */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -57,9 +56,9 @@
       }
 
       .login-container {
-        background: rgba(255, 255, 255, 0.95);
+        background: #ffffff;
         border-radius: 15px;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         padding: 40px;
         width: 100%;
         max-width: 500px;
@@ -68,14 +67,46 @@
       }
 
       .login-container:hover {
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       }
 
       .login-area h2 {
-        font-weight: 600;
-        color: #333;
+        font-family: "Playfair Display", serif;
+        font-weight: 700;
+        font-size: 28px;
+        color: #1a1a1a;
         margin-bottom: 20px;
-        font-size: 24px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        background: linear-gradient(45deg, #d4af37, #b8972f);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: inline-block;
+        transition: transform 0.3s ease;
+      }
+
+      .login-area h2:hover {
+        transform: scale(1.05);
+      }
+
+      .login-area h2:after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 2px;
+        background: #d4af37;
+        border-radius: 1px;
+        transition: width 0.3s ease;
+      }
+
+      .login-area h2:hover:after {
+        width: 80px;
       }
 
       .form-control {
@@ -84,46 +115,86 @@
         box-shadow: none;
         margin-bottom: 5px;
         padding-left: 20px;
-        border: 1px solid #e8e8e8;
+        border: 1px solid #ffffff; /* White border for inputs */
         transition: all 0.3s;
         font-size: 14px;
+        background: #ffffff;
+        color: #1a1a1a;
       }
 
       .form-control:focus {
-        border-color: #1d2951;
-        box-shadow: 0 0 0 0.25rem rgba(55, 76, 145, 0.2);
+        border-color: #d4af37;
+        box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.2);
+      }
+
+      .form-control::placeholder {
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        color: #1a1a1a; /* Black instead of grey */
+        letter-spacing: 0.2px;
+        transition: color 0.3s ease;
+      }
+
+      .form-control:focus::placeholder {
+        color: #d4af37;
       }
 
       .default-btn {
         width: 100%;
         height: 45px;
-        background: linear-gradient(135deg, #1d2951 0%, #374c91 100%);
-        color: white;
+        background: #d4af37;
+        color: #1a1a1a;
         border: none;
         border-radius: 8px;
-        font-weight: 500;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.5px;
         margin-top: 10px;
         margin-bottom: 20px;
         transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
       }
 
       .default-btn:hover {
-        background: linear-gradient(135deg, #374c91 0%, #1d2951 100%);
+        background: #b8972f;
         transform: translateY(-2px);
+      }
+
+      .default-btn::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 0;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: skewX(-20deg);
+        transition: width 0.5s ease, left 0.5s ease;
+      }
+
+      .default-btn:hover::after {
+        width: 200%;
+        left: 100%;
       }
 
       .forgot-password {
         display: block;
         text-align: center;
-        color: #6c757d;
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
         font-size: 14px;
+        color: #1a1a1a; /* Black instead of grey */
         margin-top: 15px;
         text-decoration: none;
-        transition: color 0.3s;
+        transition: color 0.3s ease, letter-spacing 0.3s ease;
       }
 
       .forgot-password:hover {
-        color: #1d2951;
+        color: #d4af37;
+        letter-spacing: 0.8px;
       }
 
       .register-link {
@@ -133,22 +204,24 @@
       .google-btn {
         width: 100%;
         height: 45px;
-        background: #fff;
-        color: #757575;
-        border: 1px solid #ddd;
+        background: #ffffff;
+        color: #1a1a1a; /* Black instead of grey */
+        border: 1px solid #ffffff; /* White border */
         border-radius: 8px;
-        font-weight: 500;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.3px;
         margin-bottom: 20px;
         transition: all 0.3s;
         display: flex;
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        font-size: 14px;
       }
 
       .google-btn:hover {
-        background: #f1f1f1;
+        background: #f0f0f0; /* Very light grey for hover, subtle contrast */
         transform: translateY(-2px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
@@ -184,21 +257,26 @@
       .divider::after {
         content: "";
         flex: 1;
-        border-bottom: 1px solid #e8e8e8;
+        border-bottom: 1px solid #ffffff; /* White instead of grey */
       }
 
       .divider span {
         padding: 0 10px;
-        color: #6c757d;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
         font-size: 14px;
+        color: #1a1a1a; /* Black instead of grey */
+        letter-spacing: 0.3px;
       }
 
       .error-text {
-        color: #dc3545;
+        color: #d32f2f;
         font-size: 12px;
         margin-bottom: 15px;
         display: none;
         text-align: left;
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
       }
 
       .form-group {
@@ -206,7 +284,7 @@
       }
 
       .is-invalid {
-        border-color: #dc3545 !important;
+        border-color: #d32f2f !important;
       }
 
       .alert {
@@ -215,12 +293,14 @@
         border-radius: 8px;
         font-size: 14px;
         text-align: left;
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
       }
 
       .alert-danger {
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-        color: #721c24;
+        background-color: #ffebee;
+        border-color: #ffcdd2;
+        color: #d32f2f;
       }
 
       .flash-message {
@@ -237,6 +317,7 @@
         right: 20px;
         max-width: 300px;
         z-index: 1000;
+        font-family: "Inter", sans-serif;
       }
 
       .flash-message svg {
@@ -253,9 +334,9 @@
       }
 
       .success-message {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-        border-left: 4px solid #2e7d32;
+        background-color: #ffffff; /* White instead of grey */
+        color: #1a1a1a;
+        border-left: 4px solid #d4af37;
       }
 
       @keyframes fadeIn {
@@ -292,11 +373,15 @@
         }
 
         .login-area h2 {
-          font-size: 20px;
+          font-size: 22px;
         }
 
         .form-control {
           height: 40px;
+          font-size: 13px;
+        }
+
+        .form-control::placeholder {
           font-size: 13px;
         }
 
@@ -312,6 +397,10 @@
 
         .error-text {
           font-size: 11px;
+        }
+
+        .divider span {
+          font-size: 13px;
         }
       }
     </style>

@@ -361,7 +361,6 @@ exports.postLogin = async (req, res) => {
     req.session.isAuth = true;
     req.session.isAdmin = user.isAdmin;
 
-    // Save session explicitly
     req.session.save((err) => {
       if (err) {
         console.error("Session save error in postLogin:", err);

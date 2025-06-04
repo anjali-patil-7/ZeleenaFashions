@@ -1,713 +1,822 @@
-<%- include('../partials/admin/header') %>
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../partials/admin/header') %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <style>
+        .alert {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            border: 1px solid #FFD700;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .alert ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .preview-box {
+            margin-bottom: 15px;
+        }
+        .preview-placeholder {
+            border: 2px dashed #000000;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            color: #666;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .preview-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border: 1px solid #000000;
+        }
+        .form-control.error, .form-select.error {
+            border-color: #FFD700;
+        }
+        .text-danger {
+            font-size: 0.875em;
+            margin-top: 5px;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .image-preview-item {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border: 1px solid #000000;
+            overflow: hidden;
+        }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: space-around;
+            padding: 5px;
+        }
+        .image-actions button {
+            background: none;
+            border: none;
+            color: #FFD700;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .image-actions button:hover {
+            color: #ffffff;
+        }
+        .crop-modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .crop-modal-content {
+            position: relative;
+            background-color: #ffffff;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #000000;
+            width: 80%;
+            max-width: 800px;
+        }
+        .crop-container {
+            height: 400px;
+            width: 100%;
+            background-color: #f0f0f0;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .crop-img {
+            display: none;
+        }
+        .crop-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .crop-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .crop-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .close-crop-modal {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #000000;
+        }
+        .crop-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .croppie-container {
+            width: 100%;
+            height: 100%;
+        }
+        .croppie-container .cr-viewport {
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 2000px 2000px rgba(0, 0, 0, 0.5);
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            color: #000000;
+            font-family: 'Montserrat', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
+        <div class="content-header">
+            <h1 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Add Product</h1>
+            <a href="/admin/product" 
+               class="btn" 
+               style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+               onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+               onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                Back to Products
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <% if (messages.error && messages.error.length > 0) { %>
+                        <div class="alert"><%= messages.error %></div>
+                    <% } %>
+                    <% if (messages.success && messages.success.length > 0) { %>
+                        <div class="alert"><%= messages.success %></div>
+                    <% } %>
+                    <% if (errors && errors.length > 0) { %>
+                        <div class="alert">
+                            <ul>
+                                <% errors.forEach(error => { %>
+                                    <li><%= error %></li>
+                                <% }) %>
+                            </ul>
+                        </div>
+                    <% } %>
+                    <form 
+                        id="addProductForm" 
+                        method="post" 
+                        action="/admin/addproduct" 
+                        enctype="multipart/form-data"
+                    >
+                        <div class="mb-4">
+                            <label for="name" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Product Name</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="name" 
+                                name="name" 
+                                value="<%= formData && formData.name ? formData.name : '' %>" 
+                                required 
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                            />
+                            <div id="nameError" class="text-danger"></div>
+                        </div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+                        <div class="mb-4">
+                            <label for="description" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Description</label>
+                            <textarea 
+                                class="form-control" 
+                                id="description" 
+                                name="description" 
+                                required
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                            ><%= formData && formData.description ? formData.description : '' %></textarea>
+                            <div id="descriptionError" class="text-danger"></div>
+                        </div>
 
-<style>
-    .alert {
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-        border: 1px solid #FFD700;
-        background-color: #ffffff;
-        color: #000000;
-    }
-    .alert ul {
-        margin: 0;
-        padding-left: 20px;
-    }
-    .preview-box {
-        margin-bottom: 15px;
-    }
-    .preview-placeholder {
-        border: 2px dashed #000000;
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #ffffff;
-        color: #666;
-        font-family: 'Montserrat', sans-serif;
-    }
-    .preview-image {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border: 1px solid #000000;
-    }
-    .form-control.error, .form-select.error {
-        border-color: #FFD700;
-    }
-    .text-danger {
-        font-size: 0.875em;
-        margin-top: 5px;
-        color: #000000;
-        font-family: 'Montserrat', sans-serif;
-    }
-    .image-preview-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-    .image-preview-item {
-        position: relative;
-        width: 200px;
-        height: 200px;
-        border: 1px solid #000000;
-        overflow: hidden;
-    }
-    .image-preview-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .image-actions {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0,0,0,0.7);
-        display: flex;
-        justify-content: space-around;
-        padding: 5px;
-    }
-    .image-actions button {
-        background: none;
-        border: none;
-        color: #FFD700;
-        cursor: pointer;
-        font-size: 14px;
-        font-family: 'Montserrat', sans-serif;
-    }
-    .image-actions button:hover {
-        color: #ffffff;
-    }
-    .crop-modal {
-        display: none;
-        position: fixed;
-        z-index: 1050;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.7);
-    }
-    .crop-modal-content {
-        position: relative;
-        background-color: #ffffff;
-        margin: 5% auto;
-        padding: 20px;
-        border: 1px solid #000000;
-        width: 80%;
-        max-width: 800px;
-    }
-    .crop-container {
-        height: 400px;
-        width: 100%;
-        background-color: #f0f0f0;
-        margin-bottom: 20px;
-        position: relative;
-        overflow: hidden;
-    }
-    .crop-img {
-        display: none;
-    }
-    .crop-actions {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 15px;
-    }
-    .crop-controls {
-        display: flex;
-        gap: 10px;
-    }
-    .crop-buttons {
-        display: flex;
-        gap: 10px;
-    }
-    .close-crop-modal {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 24px;
-        font-weight: bold;
-        cursor: pointer;
-        color: #000000;
-    }
-    .crop-info {
-        margin-bottom: 15px;
-        padding: 10px;
-        background-color: #ffffff;
-        border: 1px solid #000000;
-        border-radius: 4px;
-        font-size: 14px;
-        color: #000000;
-        font-family: 'Montserrat', sans-serif;
-    }
-    .croppie-container {
-        width: 100%;
-        height: 100%;
-    }
-    .croppie-container .cr-viewport {
-        border: 2px solid #FFD700;
-        box-shadow: 0 0 2000px 2000px rgba(0, 0, 0, 0.5);
-    }
-    .input-group-text {
-        background-color: #f8f9fa;
-        color: #000000;
-        font-family: 'Montserrat', sans-serif;
-    }
-</style>
+                        <div class="mb-4">
+                            <label for="price" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Price (₹ MRP)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="price" 
+                                    name="price" 
+                                    required 
+                                    value="<%= formData && formData.price ? parseInt(formData.price) : '' %>" 
+                                    min="1" 
+                                    max="1000000" 
+                                    step="1"
+                                    style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                                />
+                                <span class="input-group-text">MRP</span>
+                            </div>
+                            <small class="form-text text-muted">Enter price as a whole number (e.g., 116860 for ₹1,16,860 MRP).</small>
+                            <div id="priceError" class="text-danger"></div>
+                        </div>
 
-<section class="content-main" style="background: #ffffff; padding: 20px; min-height: 80vh;">
-    <div class="content-header">
-        <h1 class="content-title" style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Add Product</h1>
-        <a href="/admin/product" 
-           class="btn" 
-           style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-           onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-           onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-            Back to Products
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-8">
-                <% if (messages.error && messages.error.length > 0) { %>
-                    <div class="alert"><%= messages.error %></div>
-                <% } %>
-                <% if (messages.success && messages.success.length > 0) { %>
-                    <div class="alert"><%= messages.success %></div>
-                <% } %>
-                <% if (errors && errors.length > 0) { %>
-                    <div class="alert">
-                        <ul>
-                            <% errors.forEach(error => { %>
-                                <li><%= error %></li>
-                            <% }) %>
-                        </ul>
-                    </div>
-                <% } %>
-                <form 
-                    id="addProductForm" 
-                    method="post" 
-                    action="/admin/addproduct" 
-                    enctype="multipart/form-data"
-                >
-                    <div class="mb-4">
-                        <label for="name" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Product Name</label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="name" 
-                            name="name" 
-                            value="<%= formData && formData.name ? formData.name : '' %>" 
-                            required 
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        />
-                        <div id="nameError" class="text-danger"></div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="description" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Description</label>
-                        <textarea 
-                            class="form-control" 
-                            id="description" 
-                            name="description" 
-                            required
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        ><%= formData && formData.description ? formData.description : '' %></textarea>
-                        <div id="descriptionError" class="text-danger"></div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="price" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Price (₹ MRP)</label>
-                        <div class="input-group">
-                            <span class="input-group-text">₹</span>
+                        <div class="mb-4">
+                            <label for="stock" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Stock Quantity</label>
                             <input 
                                 type="number" 
                                 class="form-control" 
-                                id="price" 
-                                name="price" 
+                                id="stock" 
+                                name="stock" 
                                 required 
-                                value="<%= formData && formData.price ? parseInt(formData.price) : '' %>" 
-                                min="1" 
-                                max="1000000" 
+                                value="<%= formData && formData.stock ? parseInt(formData.stock) : '' %>" 
+                                min="0" 
+                                max="10000" 
                                 step="1"
                                 style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
                             />
-                            <span class="input-group-text">MRP</span>
+                            <div id="stockError" class="text-danger"></div>
                         </div>
-                        <small class="form-text text-muted">Enter price as a whole number (e.g., 116860 for ₹1,16,860 MRP).</small>
-                        <div id="priceError" class="text-danger"></div>
-                    </div>
 
-                    <div class="mb-4">
-                        <label for="stock" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Stock Quantity</label>
-                        <input 
-                            type="number" 
-                            class="form-control" 
-                            id="stock" 
-                            name="stock" 
-                            required 
-                            value="<%= formData && formData.stock ? parseInt(formData.stock) : '' %>" 
-                            min="0" 
-                            max="10000" 
-                            step="1"
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        />
-                        <div id="stockError" class="text-danger"></div>
-                    </div>
+                        <div class="mb-4">
+                            <label for="category" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Category</label>
+                            <select 
+                                class="form-select" 
+                                id="category" 
+                                name="category" 
+                                required
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                            >
+                                <option value="" disabled <%= !formData || !formData.category ? 'selected' : '' %>>Select a category</option>
+                                <% categories.forEach(function(category) { %>
+                                    <option value="<%= category._id %>" <%= formData && formData.category && formData.category.toString() === category._id.toString() ? 'selected' : '' %>>
+                                        <%= category.name %>
+                                    </option>
+                                <% }) %>
+                            </select>
+                            <div id="categoryError" class="text-danger"></div>
+                        </div>
 
-                    <div class="mb-4">
-                        <label for="category" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Category</label>
-                        <select 
-                            class="form-select" 
-                            id="category" 
-                            name="category" 
-                            required
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        >
-                            <option value="" disabled <%= !formData || !formData.category ? 'selected' : '' %>>Select a category</option>
-                            <% categories.forEach(function(category) { %>
-                                <option value="<%= category._id %>" <%= formData && formData.category && formData.category.toString() === category._id.toString() ? 'selected' : '' %>>
-                                    <%= category.name %>
-                                </option>
-                            <% }) %>
-                        </select>
-                        <div id="categoryError" class="text-danger"></div>
-                    </div>
+                        <div class="mb-4">
+                            <label for="imageUpload" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Upload Images (Exactly 3)</label>
+                            <input type="file" 
+                                   id="imageUpload" 
+                                   name="images" 
+                                   class="form-control" 
+                                   accept="image/*" 
+                                   multiple
+                                   required
+                                   style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                            />
+                            <div id="newImagesPreview" class="d-flex flex-wrap mt-2 gap-2"></div>
+                            <div id="imageError" class="text-danger"></div>
+                            <input type="hidden" id="croppedImages" name="croppedImages">
+                        </div>
 
-                    <div class="mb-4">
-                        <label for="imageUpload" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Upload Images (Exactly 3)</label>
-                        <input type="file" 
-                               id="imageUpload" 
-                               name="images" 
-                               class="form-control" 
-                               accept="image/*" 
-                               multiple
-                               required
-                               style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        />
-                        <div id="newImagesPreview" class="d-flex flex-wrap mt-2 gap-2"></div>
-                        <div id="imageError" class="text-danger"></div>
-                    </div>
+                        <div class="mb-4">
+                            <label for="status" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Status</label>
+                            <select 
+                                class="form-select" 
+                                id="status" 
+                                name="status"
+                                style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
+                            >
+                                <option value="true" <%= formData && formData.status === 'true' ? 'selected' : '' %>>Active</option>
+                                <option value="false" <%= formData && formData.status === 'false' ? 'selected' : '' %>>Inactive</option>
+                            </select>
+                        </div>
 
-                    <div class="mb-4">
-                        <label for="status" class="form-label" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Status</label>
-                        <select 
-                            class="form-select" 
-                            id="status" 
-                            name="status"
-                            style="background-color: #ffffff; border: 1px solid #000000; color: #000000; padding: 10px; border-radius: 4px; font-family: 'Montserrat', sans-serif;"
-                        >
-                            <option value="true" <%= formData && formData.status === 'true' ? 'selected' : '' %>>Active</option>
-                            <option value="false" <%= formData && formData.status === 'false' ? 'selected' : '' %>>Inactive</option>
-                        </select>
-                    </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            <button type="submit" 
+                                    class="btn"
+                                    style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                                    onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                                    onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                                Add Product
+                            </button>
+                        </div>  
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    <div class="d-flex justify-content-center mt-3">
-                        <button type="submit" 
-                                class="btn"
-                                style="background-color: #000000; color: #FFD700; padding: 10px 20px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                                onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                                onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                            Add Product
-                        </button>
-                    </div>  
-                </form>
+    <div id="cropModal" class="crop-modal">
+        <div class="crop-modal-content">
+            <span class="close-crop-modal">×</span>
+            <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Crop Image (400 x 400)</h4>
+            <div class="crop-info">
+                All product images will be cropped to a 400x400 pixel square format. Use the controls below to adjust your image.
+            </div>
+            <div class="crop-container" id="cropContainer">
+                <img id="cropImage" class="crop-img" src="">
+            </div>
+            <div class="crop-actions">
+                <div class="crop-controls">
+                    <button id="zoomIn" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        <i class="fas fa-search-plus"></i> Zoom In
+                    </button>
+                    <button id="zoomOut" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        <i class="fas fa-search-minus"></i> Zoom Out
+                    </button>
+                    <button id="rotateLeft" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        <i class="fas fa-undo"></i> Rotate Left
+                    </button>
+                    <button id="rotateRight" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        <i class="fas fa-redo"></i> Rotate Right
+                    </button>
+                    <button id="reset" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        <i class="fas fa-sync"></i> Reset
+                    </button>
+                </div>
+                <div class="crop-buttons">
+                    <button id="cancelCrop" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        Cancel
+                    </button>
+                    <button id="confirmCrop" 
+                            class="btn"
+                            style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
+                            onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
+                            onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
+                        Confirm Crop
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</section>
 
-<div id="cropModal" class="crop-modal">
-    <div class="crop-modal-content">
-        <span class="close-crop-modal">×</span>
-        <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Crop Image (400 x 400)</h4>
-        <div class="crop-info">
-            All product images will be cropped to a 400x400 pixel square format. Use the controls below to adjust your image.
-        </div>
-        <div class="crop-container" id="cropContainer">
-            <img id="cropImage" class="crop-img" src="">
-        </div>
-        <div class="crop-actions">
-            <div class="crop-controls">
-                <button id="zoomIn" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    <i class="fas fa-search-plus"></i> Zoom In
-                </button>
-                <button id="zoomOut" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    <i class="fas fa-search-minus"></i> Zoom Out
-                </button>
-                <button id="rotateLeft" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    <i class="fas fa-undo"></i> Rotate Left
-                </button>
-                <button id="rotateRight" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    <i class="fas fa-redo"></i> Rotate Right
-                </button>
-                <button id="reset" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    <i class="fas fa-sync"></i> Reset
-                </button>
-            </div>
-            <div class="crop-buttons">
-                <button id="cancelCrop" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    Cancel
-                </button>
-                <button id="confirmCrop" 
-                        class="btn"
-                        style="background-color: #000000; color: #FFD700; padding: 8px 12px; border: none; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.3s;"
-                        onmouseover="this.style.backgroundColor='#FFD700'; this.style.color='#000000';"
-                        onmouseout="this.style.backgroundColor='#000000'; this.style.color='#FFD700';">
-                    Confirm Crop
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('addProductForm');
+        const imageUpload = document.getElementById('imageUpload');
+        const newImagesPreview = document.getElementById('newImagesPreview');
+        const cropModal = document.getElementById('cropModal');
+        const cropContainer = document.getElementById('cropContainer');
+        const confirmCropBtn = document.getElementById('confirmCrop');
+        const cancelCropBtn = document.getElementById('cancelCrop');
+        const closeModalBtn = document.querySelector('.close-crop-modal');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        const rotateLeftBtn = document.getElementById('rotateLeft');
+        const rotateRightBtn = document.getElementById('rotateRight');
+        const resetBtn = document.getElementById('reset');
+        const croppedImagesInput = document.getElementById('croppedImages');
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const form = document.getElementById('addProductForm');
-  const imageUpload = document.getElementById('imageUpload');
-  const newImagesPreview = document.getElementById('newImagesPreview');
-  const cropModal = document.getElementById('cropModal');
-  const cropContainer = document.getElementById('cropContainer');
-  const confirmCropBtn = document.getElementById('confirmCrop');
-  const cancelCropBtn = document.getElementById('cancelCrop');
-  const closeModalBtn = document.querySelector('.close-crop-modal');
-  const zoomInBtn = document.getElementById('zoomIn');
-  const zoomOutBtn = document.getElementById('zoomOut');
-  const rotateLeftBtn = document.getElementById('rotateLeft');
-  const rotateRightBtn = document.getElementById('rotateRight');
-  const resetBtn = document.getElementById('reset');
+        const CROP_WIDTH = 400;
+        const CROP_HEIGHT = 400;
+        let currentCroppie = null;
+        let croppedImages = []; // Store cropped image blobs
+        let originalFiles = []; // Store original file references
+        let currentFile = null;
+        let currentFileIndex = 0;
+        let filesToProcess = [];
 
-  const CROP_WIDTH = 400;
-  const CROP_HEIGHT = 400;
-  let currentCroppie = null;
-  let newImagesData = [];
-  let currentFile = null;
-  let currentFileIndex = 0;
-  let filesToProcess = [];
+        // Initialize Croppie with improved settings
+        function initializeCroppie(imageUrl) {
+            if (currentCroppie) {
+                currentCroppie.destroy();
+            }
+            currentCroppie = new Croppie(cropContainer, {
+                viewport: { width: CROP_WIDTH, height: CROP_HEIGHT, type: 'square' },
+                boundary: { width: 600, height: 400 },
+                showZoomer: true,
+                enableOrientation: true,
+                enableResize: false,
+                mouseWheelZoom: true,
+                enableExif: true
+            });
+            currentCroppie.bind({ 
+                url: imageUrl, 
+                zoom: 'auto' // Automatically fit image to viewport
+            });
+        }
 
-  // Initialize Croppie
-  function initializeCroppie(imageUrl) {
-    if (currentCroppie) {
-      currentCroppie.destroy();
-    }
-    currentCroppie = new Croppie(cropContainer, {
-      viewport: { width: CROP_WIDTH, height: CROP_HEIGHT, type: 'square' },
-      boundary: { width: 600, height: 400 },
-      showZoomer: true,
-      enableOrientation: true,
-      enableResize: false,
+        // Open crop modal for a single image
+        function openCropModal(imageUrl) {
+            cropModal.style.display = 'block';
+            initializeCroppie(imageUrl);
+        }
+
+        // Close crop modal
+        function closeCropModal() {
+            if (currentCroppie) {
+                currentCroppie.destroy();
+                currentCroppie = null;
+            }
+            cropModal.style.display = 'none';
+        }
+
+        // Get error element safely
+        function getErrorElement(fieldId) {
+            const errorElement = document.getElementById(fieldId + 'Error');
+            if (!errorElement) {
+                console.warn(`Error element for ${fieldId} not found`);
+                return null;
+            }
+            return errorElement;
+        }
+
+        // Show error message
+        function showError(field, errorElement, message) {
+            if (errorElement) {
+                errorElement.innerHTML = message;
+                if (field) field.classList.add('error');
+            }
+        }
+
+        // Clear error message
+        function clearError(field, errorElement) {
+            if (errorElement) {
+                errorElement.innerHTML = '';
+                if (field) field.classList.remove('error');
+            }
+        }
+
+        // Validate individual field
+        function validateField(field) {
+            const errorElement = getErrorElement(field.id);
+            if (!errorElement) return;
+
+            clearError(field, errorElement);
+
+            switch (field.id) {
+                case 'name':
+                    const name = field.value.trim();
+                    if (!name) {
+                        showError(field, errorElement, 'Product name is required');
+                    } else if (name.length < 2 || name.length > 100) {
+                        showError(field, errorElement, 'Name must be 2-100 characters long');
+                    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                        showError(field, errorElement, 'Name should only contain letters and spaces');
+                    }
+                    break;
+
+                case 'description':
+                    const description = field.value.trim();
+                    if (!description) {
+                        showError(field, errorElement, 'Description is required');
+                    } else if (description.length < 10 || description.length > 1000) {
+                        showError(field, errorElement, 'Description must be 10–1000 characters long');
+                    } else if (!/^[a-zA-Z0-9][a-zA-Z0-9\s.,\-:;'"()!?]*$/.test(description)) {
+                        showError(field, errorElement, 'Description can only contain letters, numbers, spaces, and punctuation');
+                    }
+                    break;
+
+                case 'price':
+                    const price = parseInt(field.value);
+                    if (!field.value || isNaN(price) || price < 1) {
+                        showError(field, errorElement, 'Price must be at least 1');
+                    } else if (price > 1000000) {
+                        showError(field, errorElement, 'Price cannot exceed 1,000,000');
+                    }
+                    break;
+
+                case 'stock':
+                    const stock = parseInt(field.value);
+                    if (!field.value || isNaN(stock) || stock < 0) {
+                        showError(field, errorElement, 'Stock must be 0 or greater');
+                    } else if (stock > 10000) {
+                        showError(field, errorElement, 'Stock cannot exceed 10,000');
+                    }
+                    break;
+
+                case 'category':
+                    if (!field.value) {
+                        showError(field, errorElement, 'Please select a category');
+                    }
+                    break;
+            }
+        }
+
+        // Validate images
+        function validateImages() {
+            const imageError = getErrorElement('image');
+            if (!imageError) return false;
+
+            clearError(null, imageError);
+            if (croppedImages.length !== 3) {
+                showError(null, imageError, `Exactly 3 images are required. Currently you have ${croppedImages.length} images.`);
+                return false;
+            }
+            const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
+            const maxSize = 5 * 1024 * 1024;
+            for (let file of originalFiles) {
+                if (!validExtensions.includes(file.type)) {
+                    showError(null, imageError, 'Images must be JPG, JPEG, or PNG');
+                    return false;
+                }
+                if (file.size > maxSize) {
+                    showError(null, imageError, 'Images must be less than 5MB');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Validate entire form
+        function validateForm() {
+            let isValid = true;
+            const fields = ['name', 'description', 'price', 'stock', 'category'];
+            fields.forEach(id => {
+                const field = document.getElementById(id);
+                if (field) {
+                    validateField(field);
+                    if (field.classList.contains('error')) {
+                        isValid = false;
+                    }
+                }
+            });
+            if (!validateImages()) {
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        // Update preview with cropped images
+        function updatePreview() {
+            newImagesPreview.innerHTML = '';
+            croppedImages.forEach((blob, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'image-preview-item';
+                previewItem.style.width = '200px';
+                previewItem.style.height = '200px';
+                previewItem.style.position = 'relative';
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+
+                const actions = document.createElement('div');
+                actions.className = 'image-actions';
+                actions.innerHTML = `
+                    <button type="button" class="remove-image" data-index="${index}">Remove</button>
+                    <button type="button" class="recrop-image" data-index="${index}">Recrop</button>
+                `;
+
+                previewItem.appendChild(img);
+                previewItem.appendChild(actions);
+                newImagesPreview.appendChild(previewItem);
+
+                // Remove image
+                actions.querySelector('.remove-image').addEventListener('click', function () {
+                    const idx = parseInt(this.getAttribute('data-index'));
+                    croppedImages.splice(idx, 1);
+                    originalFiles.splice(idx, 1);
+                    updatePreview();
+                    validateImages();
+                });
+
+                // Recrop image
+                actions.querySelector('.recrop-image').addEventListener('click', function () {
+                    const idx = parseInt(this.getAttribute('data-index'));
+                    currentFile = originalFiles[idx];
+                    currentFileIndex = idx;
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        openCropModal(e.target.result);
+                    };
+                    reader.readAsDataURL(currentFile);
+                });
+            });
+        }
+
+        // Handle image uploads
+        imageUpload.addEventListener('change', function (e) {
+            const files = Array.from(e.target.files);
+            const imageError = getErrorElement('image');
+            if (!imageError) return;
+
+            if (files.length !== 3) {
+                showError(null, imageError, `Please select exactly 3 images. You selected ${files.length}.`);
+                imageUpload.value = '';
+                croppedImages = [];
+                originalFiles = [];
+                newImagesPreview.innerHTML = '';
+                return;
+            }
+
+            originalFiles = files;
+            filesToProcess = files.slice();
+            croppedImages = [];
+            newImagesPreview.innerHTML = '';
+            currentFileIndex = 0;
+
+            if (filesToProcess.length > 0) {
+                currentFile = filesToProcess[currentFileIndex];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    openCropModal(e.target.result);
+                };
+                reader.readAsDataURL(currentFile);
+            }
+        });
+
+        // Crop controls
+        zoomInBtn.addEventListener('click', () => {
+            if (currentCroppie) {
+                const currentZoom = currentCroppie.get().zoom;
+                currentCroppie.setZoom(currentZoom + 0.1);
+            }
+        });
+        zoomOutBtn.addEventListener('click', () => {
+            if (currentCroppie) {
+                const currentZoom = currentCroppie.get().zoom;
+                currentCroppie.setZoom(currentZoom - 0.1);
+            }
+        });
+        rotateLeftBtn.addEventListener('click', () => currentCroppie && currentCroppie.rotate(-90));
+        rotateRightBtn.addEventListener('click', () => currentCroppie && currentCroppie.rotate(90));
+        resetBtn.addEventListener('click', () => {
+            if (currentCroppie && currentFile) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentCroppie.bind({ url: e.target.result, zoom: 'auto' });
+                };
+                reader.readAsDataURL(currentFile);
+            }
+        });
+
+        // Confirm crop
+        confirmCropBtn.addEventListener('click', function () {
+            if (!currentCroppie || !currentFile) return;
+
+            currentCroppie.result({
+                type: 'blob',
+                size: { width: CROP_WIDTH, height: CROP_HEIGHT },
+                format: 'jpeg',
+                quality: 0.95,
+                circle: false
+            }).then(blob => {
+                const fileName = `cropped_${currentFile.name}_${Date.now()}.jpg`;
+                const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+                if (currentFileIndex < croppedImages.length) {
+                    // Replace existing cropped image during recrop
+                    croppedImages[currentFileIndex] = croppedFile;
+                } else {
+                    // Add new cropped image
+                    croppedImages.push(croppedFile);
+                }
+
+                updatePreview();
+                closeCropModal();
+
+                // Process next image if any
+                currentFileIndex++;
+                if (currentFileIndex < filesToProcess.length) {
+                    currentFile = filesToProcess[currentFileIndex];
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        openCropModal(e.target.result);
+                    };
+                    reader.readAsDataURL(currentFile);
+                } else {
+                    validateImages();
+                }
+            }).catch(error => {
+                console.error('Error cropping image:', error);
+                const imageError = getErrorElement('image');
+                showError(null, imageError, 'Error cropping image. Please try again.');
+            });
+        });
+
+        // Cancel crop
+        cancelCropBtn.addEventListener('click', function () {
+            closeCropModal();
+            imageUpload.value = '';
+            croppedImages = [];
+            originalFiles = [];
+            filesToProcess = [];
+            newImagesPreview.innerHTML = '';
+            validateImages();
+        });
+        closeModalBtn.addEventListener('click', cancelCropBtn.click.bind(cancelCropBtn));
+
+        // Form submission
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (!validateForm()) return;
+
+            const formData = new FormData(form);
+            // Clear existing images from file input to avoid duplication
+            formData.delete('images');
+            // Add cropped images to form data
+            croppedImages.forEach((file, index) => {
+                formData.append('images', file, file.name);
+            });
+
+            try {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = 'Adding...';
+                }
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Error adding product');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Add Product';
+                    }
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('An error occurred. Please try again.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Add Product';
+                }
+            }
+        });
+
+        // Real-time validation
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            if (input.id !== 'imageUpload') {
+                input.addEventListener('input', () => {
+                    if (input) validateField(input);
+                });
+                input.addEventListener('change', () => {
+                    if (input) validateField(input);
+                });
+            }
+        });
+
+        // Close modal on outside click
+        window.addEventListener('click', function (e) {
+            if (e.target === cropModal) {
+                cancelCropBtn.click();
+            }
+        });
+
+        // Ensure price and stock are whole numbers on load
+        const priceInput = document.getElementById('price');
+        const stockInput = document.getElementById('stock');
+        if (priceInput && priceInput.value) priceInput.value = parseInt(priceInput.value);
+        if (stockInput && stockInput.value) stockInput.value = parseInt(stockInput.value);
     });
-    currentCroppie.bind({ url: imageUrl, zoom: 0 });
-  }
-
-  // Open crop modal
-  function openCropModal(imageUrl) {
-    cropModal.style.display = 'block';
-    initializeCroppie(imageUrl);
-  }
-
-  // Close crop modal
-  function closeCropModal() {
-    if (currentCroppie) {
-      currentCroppie.destroy();
-      currentCroppie = null;
-    }
-    cropModal.style.display = 'none';
-    imageUpload.value = '';
-    newImagesData = [];
-    newImagesPreview.innerHTML = '';
-    filesToProcess = [];
-  }
-
-  // Validate field
-  function validateField(field) {
-    const errorElement = document.getElementById(field.id + 'Error');
-    errorElement.innerHTML = '';
-    field.classList.remove('error');
-
-    switch (field.id) {
-      case 'name':
-        const name = field.value.trim();
-        if (!name) {
-          showError(field, errorElement, 'Product name is required');
-        } else if (name.length < 2 || name.length > 100) {
-          showError(field, errorElement, 'Name must be 2-100 characters long');
-        } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-          showError(field, errorElement, 'Name should only contain letters and spaces');
-        }
-        break;
-
-      case 'description':
-        const description = field.value.trim();
-        if (!description) {
-          showError(field, errorElement, 'Description is required');
-        } else if (description.length < 10 || description.length > 1000) {
-          showError(field, errorElement, 'Description must be 10–1000 characters long');
-        } else if (!/^[a-zA-Z0-9][a-zA-Z0-9\s.,\-:;'"()!?]*$/.test(description)) {
-          showError(field, errorElement, 'Description can only contain letters, numbers, spaces, and punctuation');
-        }
-        break;
-
-      case 'price':
-        const price = parseInt(field.value);
-        if (!field.value || isNaN(price) || price < 1) {
-          showError(field, errorElement, 'Price must be at least 1');
-        } else if (price > 1000000) {
-          showError(field, errorElement, 'Price cannot exceed 1,000,000');
-        }
-        break;
-
-      case 'stock':
-        const stock = parseInt(field.value);
-        if (!field.value || isNaN(stock) || stock < 0) {
-          showError(field, errorElement, 'Stock must be 0 or greater');
-        } else if (stock > 10000) {
-          showError(field, errorElement, 'Stock cannot exceed 10,000');
-        }
-        break;
-
-      case 'category':
-        if (!field.value) {
-          showError(field, errorElement, 'Please select a category');
-        }
-        break;
-    }
-  }
-
-  // Validate images
-  function validateImages() {
-    const imageError = document.getElementById('imageError');
-    imageError.innerHTML = '';
-    if (newImagesData.length !== 3) {
-      imageError.innerHTML = `Exactly 3 images are required. Currently you have ${newImagesData.length} images.`;
-      return false;
-    }
-    const validExtensions = ['image/jpeg', 'image/jpg', 'image/png'];
-    const maxSize = 5 * 1024 * 1024;
-    for (let file of newImagesData) {
-      if (!validExtensions.includes(file.type)) {
-        imageError.innerHTML = 'Images must be JPG, JPEG, or PNG';
-        return false;
-      }
-      if (file.size > maxSize) {
-        imageError.innerHTML = 'Images must be less than 5MB';
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // Validate form
-  function validateForm() {
-    let isValid = true;
-    const fields = ['name', 'description', 'price', 'stock', 'category'];
-    fields.forEach(id => {
-      const field = document.getElementById(id);
-      validateField(field);
-      if (field.classList.contains('error')) {
-        isValid = false;
-      }
-    });
-    if (!validateImages()) {
-      isValid = false;
-    }
-    return isValid;
-  }
-
-  // Show error
-  function showError(field, errorElement, message) {
-    errorElement.innerHTML = message;
-    field.classList.add('error');
-  }
-
-  // Handle image uploads
-  imageUpload.addEventListener('change', function (e) {
-    const files = Array.from(e.target.files);
-    if (files.length !== 3) {
-      alert(`Please select exactly 3 images. You selected ${files.length}.`);
-      imageUpload.value = '';
-      newImagesData = [];
-      newImagesPreview.innerHTML = '';
-      return;
-    }
-
-    newImagesData = [];
-    newImagesPreview.innerHTML = '';
-    filesToProcess = files;
-    currentFileIndex = 0;
-
-    if (filesToProcess.length > 0) {
-      currentFile = filesToProcess[currentFileIndex];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        openCropModal(e.target.result);
-      };
-      reader.readAsDataURL(currentFile);
-    }
-  });
-
-  // Crop controls
-  zoomInBtn.addEventListener('click', () => currentCroppie && currentCroppie.setZoom(currentCroppie.get().zoom + 0.1));
-  zoomOutBtn.addEventListener('click', () => currentCroppie && currentCroppie.setZoom(currentCroppie.get().zoom - 0.1));
-  rotateLeftBtn.addEventListener('click', () => currentCroppie && currentCroppie.rotate(-90));
-  rotateRightBtn.addEventListener('click', () => currentCroppie && currentCroppie.rotate(90));
-  resetBtn.addEventListener('click', () => {
-    if (currentCroppie) {
-      currentCroppie.bind({ url: currentCroppie.get().url, zoom: 0, orientation: 1 });
-    }
-  });
-
-  // Confirm crop
-  confirmCropBtn.addEventListener('click', function () {
-    if (!currentCroppie) return;
-
-    currentCroppie.result({
-      type: 'blob',
-      size: { width: CROP_WIDTH, height: CROP_HEIGHT },
-      format: 'jpeg',
-      quality: 0.95,
-    }).then(blob => {
-      const fileName = `product_${Date.now()}.jpg`;
-      const file = new File([blob], fileName, { type: 'image/jpeg' });
-      newImagesData.push(file);
-
-      const previewItem = document.createElement('div');
-      previewItem.className = 'image-preview-item';
-      previewItem.style.width = '200px';
-      previewItem.style.height = '200px';
-      previewItem.style.position = 'relative';
-
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(blob);
-      img.style.width = '100%';
-      img.style.height = '100%';
-      img.style.objectFit = 'cover';
-
-      const actions = document.createElement('div');
-      actions.className = 'image-actions';
-      actions.innerHTML = `<button type="button" class="remove-new-image">Remove</button>`;
-      previewItem.appendChild(img);
-      previewItem.appendChild(actions);
-      newImagesPreview.appendChild(previewItem);
-
-      actions.querySelector('.remove-new-image').addEventListener('click', function () {
-        const index = newImagesData.indexOf(file);
-        if (index >= 0) {
-          newImagesData.splice(index, 1);
-        }
-        previewItem.remove();
-        validateForm();
-      });
-
-      currentFileIndex++;
-      if (currentFileIndex < filesToProcess.length) {
-        currentFile = filesToProcess[currentFileIndex];
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          openCropModal(e.target.result);
-        };
-        reader.readAsDataURL(currentFile);
-      } else {
-        closeCropModal();
-        validateForm();
-      }
-    }).catch(error => {
-      console.error('Error cropping image:', error);
-      alert('Error cropping image. Please try again.');
-    });
-  });
-
-  // Cancel crop
-  cancelCropBtn.addEventListener('click', closeCropModal);
-  closeModalBtn.addEventListener('click', closeCropModal);
-
-  // Form submission
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    const formData = new FormData(form);
-    newImagesData.forEach(file => formData.append('images', file));
-
-    try {
-      const submitBtn = form.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = 'Adding...';
-
-      const response = await fetch(form.action, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Error adding product');
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Add Product';
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      alert('An error occurred. Please try again.');
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = 'Add Product';
-    }
-  });
-
-  // Real-time validation
-  const inputs = document.querySelectorAll('.form-control, .form-select');
-  inputs.forEach(input => {
-    input.addEventListener('input', () => validateField(input));
-    input.addEventListener('change', () => validateField(input));
-  });
-
-  // Close modal on outside click
-  window.addEventListener('click', function (e) {
-    if (e.target === cropModal) {
-      closeCropModal();
-    }
-  });
-
-  // Ensure price and stock are whole numbers on load
-  const priceInput = document.getElementById('price');
-  const stockInput = document.getElementById('stock');
-  if (priceInput.value) priceInput.value = parseInt(priceInput.value);
-  if (stockInput.value) stockInput.value = parseInt(stockInput.value);
-});
-</script>
-
-<%- include('../partials/admin/footer') %> 
+    </script>
+    <%- include('../partials/admin/footer') %>
+</body>
+</html>
