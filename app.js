@@ -4,7 +4,6 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const MongoStore = require('connect-mongo');
 const passport = require('./config/passport');
-const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
 const User = require('./models/userSchema');
 const path = require('path');
@@ -18,8 +17,6 @@ console.log('Environment variables:', {
   NODE_ENV: process.env.NODE_ENV,
   MONGO_URI: process.env.MONGO_URI,
   SESSION_SECRET: process.env.SESSION_SECRET,
-  JWT_SECRET: process.env.JWT_SECRET,
-  COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
 });
 
 // Middleware
@@ -63,11 +60,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Session locals and flash messages middleware
+app.use((req, res, next) => {
+  res.locals.session = { ...req.session, isAuth: req.session.isAuth || false };
+  res.locals.messages = req.flash();
+  console.log('Setting res.locals.session:', res.locals.session);
+  next();
+});
+
 // Global middleware to check for blocked users
 app.use(async (req, res, next) => {
   const token = req.cookies.token;
 
-  // Skip middleware for static assets, login route, and favicon
   if (
     req.path.startsWith('/user/assets') ||
     req.path === '/login' ||
@@ -108,14 +112,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Session locals and flash messages middleware
-app.use((req, res, next) => {
-  res.locals.session = req.session || {};
-  res.locals.session.isAuth = req.session.isAuth || false;
-  res.locals.messages = req.flash();
-  next();
-});
-
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
@@ -132,5 +128,4 @@ app.use('/', require('./routes/userRoute'));
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () =>  console.log(`Server running on port http://localhost:${PORT}`)
-);
+app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));
