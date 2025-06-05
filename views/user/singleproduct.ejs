@@ -674,6 +674,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        const BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin;
         $(document).ready(function () {
             // Initialize elevateZoom on the main image
             function initializeZoom() {
@@ -815,10 +816,10 @@
                 console.log('Adding to cart from single product page:', { 
                     productId, 
                     quantity, 
-                    url: 'http://localhost:3000/addtocart/' + productId,
+                    url: `${BASE_URL}/addtocart/` + productId,
                     cookies: document.cookie 
                 });
-                const response = await fetch('http://localhost:3000/addtocart/' + productId, {
+                const response = await fetch(`${BASE_URL}/addtocart/` + productId, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -1013,10 +1014,10 @@
                         console.log('Adding to cart from related products:', { 
                             productId, 
                             quantity: 1, 
-                            url: 'http://localhost:3000/addtocart/' + productId,
+                            url: `${BASE_URL}/addtocart/` + productId,
                             cookies: document.cookie 
                         });
-                        const response = await fetch('http://localhost:3000/addtocart/' + productId, {
+                        const response = await fetch(`${BASE_URL}/addtocart/` + productId, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
