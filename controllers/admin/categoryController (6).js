@@ -267,7 +267,7 @@ exports.getCategories = async (req, res) => {
             .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
             .skip(skip)
             .limit(limit);
-
+        console.log("Category Details>>>>",categories)
         const totalCategories = await Category.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalCategories / limit);
 

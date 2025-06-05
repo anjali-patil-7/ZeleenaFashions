@@ -286,7 +286,7 @@
                     type="text" 
                     name="query" 
                     placeholder="Search by product name or description..." 
-                    value="<%= searchQuery ? searchQuery.replace(/"/g, '"') : '' %>"
+                    value="<%= searchQuery ? searchQuery.replace(/"/g, '&quot;') : '' %>"
                 >
                 <button type="submit">Search</button>
                 <% if (searchQuery) { %>
@@ -358,42 +358,70 @@
 
     <% if (products && products.length > 0 && totalPages > 1) { %>
         <div class="pagination">
+            <!-- Previous Page Link -->
             <% if (currentPage > 1) { %>
-                <a href="/admin/product?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">←</a>
+                <a href="/admin/product?page=<%= currentPage - 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>&sort=<%= sortBy %>&order=<%= sortOrder %>" 
+                   class="page-link" 
+                   aria-label="Previous page">
+                    ←
+                </a>
+            <% } else { %>
+                <span class="page-link" style="opacity: 0.5; cursor: not-allowed;" aria-disabled="true">←</span>
             <% } %>
-            
+
             <% 
                 const maxPagesToShow = 5;
                 const halfRange = Math.floor(maxPagesToShow / 2);
                 let startPage = Math.max(1, currentPage - halfRange);
                 let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+                // Adjust startPage if endPage is at the limit to always show maxPagesToShow
                 if (endPage - startPage + 1 < maxPagesToShow) {
                     startPage = Math.max(1, endPage - maxPagesToShow + 1);
                 }
             %>
 
+            <!-- First Page Link -->
             <% if (startPage > 1) { %>
-                <a href="/admin/product?page=1<%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">1</a>
+                <a href="/admin/product?page=1<%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>&sort=<%= sortBy %>&order=<%= sortOrder %>" 
+                   class="page-link">
+                    1
+                </a>
                 <% if (startPage > 2) { %>
-                    <span class="page-link">...</span>
+                    <span class="page-link" style="cursor: default;">...</span>
                 <% } %>
             <% } %>
 
+            <!-- Page Number Links -->
             <% for (let i = startPage; i <= endPage; i++) { %>
-                <a href="/admin/product?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                <a href="/admin/product?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>&sort=<%= sortBy %>&order=<%= sortOrder %>" 
+                   class="page-link <%= i === currentPage ? 'active' : '' %>"
+                   aria-label="Page <%= i %> <%= i === currentPage ? 'current' : '' %>">
                     <%= i %>
                 </a>
             <% } %>
 
+            <!-- Last Page Link -->
             <% if (endPage < totalPages) { %>
                 <% if (endPage < totalPages - 1) { %>
-                    <span class="page-link">...</span>
+                    <span class="page-link" style="cursor: default;">...</span>
                 <% } %>
-                <a href="/admin/product?page=<%= totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+                <a href="/admin/product?page=<%= totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>&sort=<%= sortBy %>&order=<%= sortOrder %>" 
+                   class="page-link"
+                   aria-label="Last page, page <%= totalPages %>">
+                    <%= totalPages %>
+                </a>
             <% } %>
 
+            <!-- Next Page Link -->
             <% if (currentPage < totalPages) { %>
-                <a href="/admin/product?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link">→</a>
+                <a href="/admin/product?page=<%= currentPage + 1 %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>&sort=<%= sortBy %>&order=<%= sortOrder %>" 
+                   class="page-link"
+                   aria-label="Next page">
+                    →
+                </a>
+            <% } else { %>
+                <span class="page-link" style="opacity: 0.5; cursor: not-allowed;" aria-disabled="true">→</span>
             <% } %>
         </div>
     <% } %>

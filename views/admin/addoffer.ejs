@@ -97,6 +97,19 @@
     background-color: #FFD700; /* Gold background */
     color: #000000; /* Black text */
   }
+  .flash-message {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-family: 'Montserrat', sans-serif;
+    color: #000000;
+  }
+  .flash-success {
+    background-color: #28a745;
+  }
+  .flash-error {
+    background-color: #dc3545;
+  }
 </style>
 
 <section class="content-main" style="background: #ffffff; padding: 60px; min-height: 90vh; max-width: 2000px; margin: 0 auto;">
@@ -113,6 +126,13 @@
       Back to Offers
     </button>
   </div>
+
+  <% if (messages.success) { %>
+    <div class="flash-message flash-success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages.error) { %>
+    <div class="flash-message flash-error"><%= messages.error %></div>
+  <% } %>
 
   <div class="form-container" style="background-color: #ffffff; padding: 20px; border: 1px solid #000000; border-radius: 4px;">
     <form action="/admin/addoffer" method="POST" id="offerForm">
@@ -234,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
   productSelect.select2({
     placeholder: 'Search or select products',
     allowClear: true,
-    closeOnSelect: false
+    closeOnSelect: false Ericsson
   });
 
   categorySelect.select2({
@@ -247,10 +267,10 @@ document.addEventListener('DOMContentLoaded', function() {
   startDateInput.min = todayISO;
   endDateInput.min = todayISO;
   startDateInput.value = todayISO;
-  const thirtyDaysLater = new Date(today);
-  thirtyDaysLater.setDate(today.getDate() + 30);
-  const thirtyDaysLaterISO = new Date(thirtyDaysLater.getTime() - thirtyDaysLater.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  endDateInput.value = thirtyDaysLaterISO;
+  const oneDayLater = new Date(today);
+  oneDayLater.setDate(today.getDate() + 1);
+  const oneDayLaterISO = new Date(oneDayLater.getTime() - oneDayLater.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  endDateInput.value = oneDayLaterISO;
 
   // Update endDate min when startDate changes
   startDateInput.addEventListener('change', function() {
@@ -260,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (endDateInput.value) {
       const endDateValue = new Date(endDateInput.value);
       if (endDateValue <= startDateValue || endDateValue < todayDate) {
-        endDateInput.value = '';
+        endDateInput.value = oneDayLaterISO;
         validateField(endDateInput);
       }
     }
@@ -272,11 +292,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (this.value === 'product') {
         productSection.classList.remove('hidden');
         categorySection.classList.add('hidden');
+        categorySelect.val(null).trigger('change');
         validateField(document.getElementById('productId'));
         validateField(document.getElementById('categoryId'));
       } else if (this.value === 'category') {
         productSection.classList.add('hidden');
         categorySection.classList.remove('hidden');
+        productSelect.val(null).trigger('change');
         validateField(document.getElementById('productId'));
         validateField(document.getElementById('categoryId'));
       }
@@ -323,20 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
   form.addEventListener('submit', function(event) {
     event.preventDefault();
     if (validateForm()) {
-      const formData = new FormData(form);
-      const data = {};
-      for (let [key, value] of formData.entries()) {
-        if (data[key]) {
-          if (!Array.isArray(data[key])) {
-            data[key] = [data[key]];
-          }
-          data[key].push(value);
-        } else {
-          data[key] = value;
-        }
-      }
-      console.log('Form Data:', data);
-      this.submit();
+      form.submit();
     }
   });
 
@@ -389,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showError(field, errorElement, 'Invalid start date format');
             isValid = false;
           } else if (start < todayDate) {
-            showError(field, errorElement, `Start date cannot be before ${new Date(todayISO).toLocaleString()}`);
+            showError(field, errorElement, `Start date cannot be before now`);
             isValid = false;
           }
         }
@@ -410,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showError(field, errorElement, 'Invalid end date format');
             isValid = false;
           } else if (end < todayDate) {
-            showError(field, errorElement, `End date cannot be before ${new Date(todayISO).toLocaleString()}`);
+            showError(field, errorElement, `End date cannot be before now`);
             isValid = false;
           } else if (start && end <= start) {
             showError(field, errorElement, 'End date must be after start date');

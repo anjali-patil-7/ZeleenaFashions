@@ -45,7 +45,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      domain: process.env.COOKIE_DOMAIN || undefined,
+      // domain: process.env.COOKIE_DOMAIN || undefined,
     },
   })
 );
@@ -63,7 +63,6 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.locals.session = { ...req.session, isAuth: req.session.isAuth || false };
   res.locals.messages = req.flash();
-  console.log('Setting res.locals.session:', res.locals.session);
   next();
 });
 
@@ -98,8 +97,6 @@ app.use(async (req, res, next) => {
       return res.redirect('/login');
     }
   }
-  console.log('Middleware: req.session:', req.session);
-  console.log('Middleware: res.locals.session:', res.locals.session);
   next();
 });
 

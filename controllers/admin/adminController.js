@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 
 // Render the login page
 exports.getLogin = (req, res) => {
+    console.log("Session details>>>>", req.session)
   console.log('Flash messages on getLogin:', {
     error_msg: req.flash('error_msg'),
     success_msg: req.flash('success_msg'),
@@ -20,7 +21,8 @@ exports.getLogin = (req, res) => {
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-     console.log("podaaa>>>",req.body)
+    console.log("podaaa>>>", req.body);
+
     // Check if email and password are provided
     if (!email || !password) {
       req.flash('error_msg', 'Please provide both email and password');
@@ -30,8 +32,6 @@ exports.adminLogin = async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email });
-
-    // Check if user exists and is an admin
     if (!user || !user.isAdmin) {
       req.flash('error_msg', 'Invalid credentials or not an admin');
       console.log('Flash set: Invalid credentials or not an admin');
@@ -54,22 +54,37 @@ exports.adminLogin = async (req, res) => {
     }
 
     // Set session for authenticated admin
+    console.log(user._id, "userID")
+    req.session.userId = user._id;
+    req.session.isAuth = true;
     req.session.admin = {
       id: user._id,
       email: user.email,
       name: user.name,
     };
 
-    req.flash('success_msg', 'Successfully logged in');
-    console.log('Flash set: Successfully logged in');
-    res.redirect('/admin/index');
+    // Save session before redirecting
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        req.flash('error_msg', 'Failed to save session');
+        return res.redirect('/admin/login');
+      }
+      req.flash('success_msg', 'Successfully logged in');
+      console.log('Flash set: Successfully logged in');
+      res.redirect('/admin/index');
+    });
   } catch (error) {
     console.error('Admin login error:', error);
-    req.flash('error_msg', 'An error occurred during login');
-    console.log('Flash set: An error occurred during login');
-    res.redirect('/admin/login');
+    // Check if headers have already been sent
+    if (!res.headersSent) {
+      req.flash('error_msg', 'An error occurred during login');
+      console.log('Flash set: An error occurred during login');
+      res.redirect('/admin/login');
+    }
   }
 };
+
 
 // Render the dashboard
 exports.getDashboard = async (req, res) => {

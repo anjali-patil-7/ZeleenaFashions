@@ -732,7 +732,7 @@
               <a class="list" data-target="listview" data-toggle="tooltip" data-placement="top" title="List View"><i class="fa fa-th-list"></i></a>
             </div>
             <div class="product-sorting-box">
-              <select id="sortSelect" class="form-control" onchange="sortProducts()">
+              <select id="sortSelect" class="form-control">
                 <option value="">Sort By</option>
                 <option value="a-z" <%= sort === 'a-z' ? 'selected' : '' %>>Sort by Name: A-Z</option>
                 <option value="z-a" <%= sort === 'z-a' ? 'selected' : '' %>>Sort by Name: Z-A</option>
@@ -803,7 +803,6 @@
                           <span class="out-of-stock">Out of Stock</span>
                         <% } %>
                       </div>
-
                     </div>
                   </div>
                 </div>
@@ -901,6 +900,7 @@
         currentUrl.searchParams.set('maxPrice', maxPrice);
         currentUrl.searchParams.set('page', '1');
         
+        console.log('Redirecting to (Price Filter):', currentUrl.toString()); // Debug log
         window.location.href = currentUrl.toString();
       });
 
@@ -920,6 +920,7 @@
         $("#min-price").text('0');
         $("#max-price").text(maxSliderValue);
         
+        console.log('Redirecting to (Clear Filters):', currentUrl.toString()); // Debug log
         window.location.href = currentUrl.toString();
       });
 
@@ -932,6 +933,7 @@
         
         $("#search-form input[name='search']").val('');
         
+        console.log('Redirecting to (Clear Search):', currentUrl.toString()); // Debug log
         window.location.href = currentUrl.toString();
       });
 
@@ -948,24 +950,34 @@
         }
         currentUrl.searchParams.set('page', '1');
         
+        console.log('Redirecting to (Search):', currentUrl.toString()); // Debug log
         window.location.href = currentUrl.toString();
       });
 
       // Sort products
-      function sortProducts() {
-        const sortSelect = document.getElementById('sortSelect');
-        const sortOption = sortSelect.value;
+      $("#sortSelect").on('change', function() {
+        const sortOption = $(this).val();
         const currentUrl = new URL(window.location.href);
         
         if (sortOption) {
           currentUrl.searchParams.set('sort', sortOption);
-          currentUrl.searchParams.set('page', '1');
         } else {
           currentUrl.searchParams.delete('sort');
         }
+        currentUrl.searchParams.set('page', '1');
         
+        // Preserve other query parameters
+        const search = currentUrl.searchParams.get('search');
+        const minPrice = currentUrl.searchParams.get('minPrice');
+        const maxPrice = currentUrl.searchParams.get('maxPrice');
+        
+        if (search) currentUrl.searchParams.set('search', search);
+        if (minPrice) currentUrl.searchParams.set('minPrice', minPrice);
+        if (maxPrice) currentUrl.searchParams.set('maxPrice', maxPrice);
+        
+        console.log('Redirecting to (Sort):', currentUrl.toString()); // Debug log
         window.location.href = currentUrl.toString();
-      }
+      });
 
       // Wishlist functionality
       $('.hiraola-add_compare').click(function(event) {

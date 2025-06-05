@@ -182,7 +182,6 @@ exports.editProduct = async (req, res) => {
       replacedImages,
     } = req.body;
     const files = req.files || [];
-
     // Backend validation
     const errors = [];
     if (!name || name.trim().length < 2 || name.trim().length > 100) {
@@ -302,7 +301,7 @@ exports.editProduct = async (req, res) => {
         price: price || "",
         stock: stock || "",
         category: category || "",
-         status: status || true,
+        status: status || product.status.toString(), // Preserve existing status
       };
       req.session.errors = errors;
       return res.render("admin/editproduct", {
@@ -314,6 +313,9 @@ exports.editProduct = async (req, res) => {
       });
     }
 
+    // Determine status: use existing product status if not provided
+    const statusBool = status === "true" ? true : status === "false" ? false : product.status;
+
     // Update product
     await Product.findByIdAndUpdate(
       id,
@@ -324,7 +326,7 @@ exports.editProduct = async (req, res) => {
         totalStock: stockNum,
         category,
         productImage: currentImages,
-        status: status === "true",
+        status: statusBool, // Use determined status
       },
       { new: true }
     );
@@ -343,7 +345,7 @@ exports.editProduct = async (req, res) => {
       price: req.body.price || "",
       stock: req.body.stock || "",
       category: req.body.category || "",
-      status: req.body.status || "true",
+      status: req.body.status || (product ? product.status.toString() : "true"), // Preserve existing status or default to true
     };
     req.session.errors = [error.message || "An error occurred while updating the product"];
     return res.render("admin/editproduct", {
@@ -360,10 +362,13 @@ exports.editProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
   try {
     let page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 4;
     const searchQuery = req.query.query ? req.query.query.trim() : "";
-    const sortBy = req.query.sort || "updatedAt";
-    const sortOrder = req.query.order === "asc" ? 1 : -1;
+    const validSortFields = ['productName', 'price', 'totalStock', 'updatedAt', 'createdAt'];
+    const sortBy = validSortFields.includes(req.query.sort) ? req.query.sort : 'updatedAt';
+    const sortOrder = req.query.order === 'asc' ? 1 : -1;
+
+    console.log(req.session);
 
     if (page < 1 || isNaN(page)) {
       page = 1;
@@ -374,8 +379,8 @@ exports.getProducts = async (req, res) => {
     const query = searchQuery
       ? {
           $or: [
-            { productName: { $regex: searchQuery, $options: "i" } },
-            { description: { $regex: searchQuery, $options: "i" } },
+            { productName: { $regex: searchQuery, $options: 'i' } },
+            { description: { $regex: searchQuery, $options: 'i' } },
           ],
           isDeleted: false,
         }
@@ -385,7 +390,7 @@ exports.getProducts = async (req, res) => {
     sortOptions[sortBy] = sortOrder;
 
     const products = await Product.find(query)
-      .populate("category")
+      .populate('category')
       .sort(sortOptions)
       .skip((page - 1) * limit)
       .limit(limit);
@@ -395,32 +400,32 @@ exports.getProducts = async (req, res) => {
 
     if (page > totalPages) {
       return res.redirect(
-        `/admin/product?page=${totalPages}${searchQuery ? '&query=' + encodeURIComponent(searchQuery) : ''}&sort=${sortBy}&order=${req.query.order || 'desc'}`
+        `/admin/product?page=${totalPages}${searchQuery ? '&query=' + encodeURIComponent(searchQuery) : ''}&sort=${sortBy}&order=${sortOrder}`
       );
     }
 
     console.log(`Total Products: ${totalProducts}, Total Pages: ${totalPages}, Products Fetched: ${products.length}`);
 
-    res.render("admin/product", {
+    res.render('admin/product', {
       products,
       currentPage: page,
       totalPages,
       searchQuery,
       sortBy,
-      sortOrder: req.query.order || "desc",
-      messages: { error: req.flash("error"), success: req.flash("success") },
+      sortOrder,
+      messages: { error: req.flash('error'), success: req.flash('success') },
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    req.flash("error", "An error occurred while fetching products");
-    res.render("admin/product", {
+    console.error('Error fetching products:', error);
+    req.flash('error', 'An error occurred while fetching products');
+    res.render('admin/product', {
       products: [],
       currentPage: 1,
       totalPages: 1,
-      searchQuery: "",
-      sortBy: "updatedAt",
-      sortOrder: "desc",
-      messages: { error: req.flash("error"), success: req.flash("success") },
+      searchQuery: '',
+      sortBy: 'updatedAt',
+      sortOrder: 'desc',
+      messages: { error: req.flash('error'), success: req.flash('success') },
     });
   }
 };

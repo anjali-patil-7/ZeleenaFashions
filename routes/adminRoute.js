@@ -28,7 +28,7 @@ router.get('/logout', (req, res) => {
 });
 
 // Protected routes
-router.get('/index', adminSession, authController.getDashboard);
+router.get('/index',adminSession, authController.getDashboard);
 router.get('/categories', adminSession, categoryController.getCategories);
 router.get('/addcategory', adminSession, categoryController.getAddCategory);
 router.post('/addcategory', adminSession, categoryUpload.single('image'), categoryController.validateAddCategory, categoryController.postAddCategory);
@@ -45,10 +45,10 @@ router.delete('/deleteCategory/:id',adminSession, categoryController.deleteCateg
 // Product routes
 router.get('/product',adminSession, productController.getProducts);
 router.get('/addproduct',adminSession, productController.renderAddProduct);
-router.post('/addproduct', adminSession, productUpload.array('images', 3), productController.addProduct);
-router.delete('/api/deleteproduct/:id', productController.deleteProduct);
-router.get('/editproduct/:id', adminSession, productController.renderEditProduct);
-router.post('/editproduct/:id', adminSession, productUpload.array('images', 3), productController.editProduct);
+router.post('/addproduct',adminSession, productUpload.array('images', 3), productController.addProduct);
+router.delete('/api/deleteproduct/:id',adminSession, productController.deleteProduct);
+router.get('/editproduct/:id',adminSession, productController.renderEditProduct);
+router.post('/editproduct/:id',adminSession, productUpload.array('images', 3), productController.editProduct);
 router.post('/api/blockproduct/:id',adminSession, productController.toggleProductStatus);
 
 // User routes
@@ -58,11 +58,11 @@ router.post('/api/block/:userId',adminSession, userController.toggleUserStatus);
 
 //order Route
 router.get('/orders',adminSession,orderController.getOrders)
-router.get('/orders/:id', adminSession,orderController.getOrderDetails)
-router.post('/orders/update-status', orderController.updateOrderStatus);
-router.post('/orders/update-product-status', orderController.updateProductStatus);
-router.post('/orders/update-payment-status', orderController.updatePaymentStatus);
-router.post('/orders/verify-return', orderController.verifyReturn);
+router.get('/orders/:id',adminSession,orderController.getOrderDetails)
+router.post('/orders/update-status',adminSession, orderController.updateOrderStatus);
+router.post('/orders/update-product-status',adminSession, orderController.updateProductStatus);
+router.post('/orders/update-payment-status',adminSession, orderController.updatePaymentStatus);
+router.post('/orders/verify-return',adminSession, orderController.verifyReturn);
 
 
 //Coupon routes
@@ -74,7 +74,7 @@ router.post('/editcoupon/:id',adminSession,couponController.postEditCoupon)
 router.put('/api/blockcoupon/:id',adminSession,couponController.blockCoupon)
 
 // Offer management routes
-router.get('/offer', adminSession, offerController.getOfferList);
+router.get('/offer',adminSession, offerController.getOfferList);
 router.get('/addoffer',adminSession, offerController.getAddOffer);
 router.post('/addoffer',adminSession, offerController.postAddOffer);
 router.get('/editoffer/:id',adminSession, offerController.getEditOffer);

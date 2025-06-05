@@ -41,6 +41,13 @@
     background-color: #FFD700;
     color: #000000;
   }
+  .error-message {
+    color: #000000;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.875em;
+    margin-top: 10px;
+    text-align: center;
+  }
 </style>
 
 <section class="content-main" style="background: #ffffff; padding: 60px; min-height: 90vh; max-width: 2000px; margin: 0 auto;">
@@ -60,6 +67,7 @@
 
   <div class="form-container" style="background-color: #ffffff; padding: 20px; border: 1px solid #000000; border-radius: 4px;">
     <form action="/admin/editoffer/<%= offer._id %>" method="POST" id="offerForm">
+      <div id="formError" class="error-message"></div>
       <div class="form-group" style="margin-bottom: 20px;">
         <label for="offerName" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Offer Name</label>
         <input type="text" class="form-control" id="offerName" name="offerName" value="<%= offer.offerName %>" required>
@@ -118,7 +126,8 @@
         <h4 class="form-section-title" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #000000; font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Select Categories</h4>
         <div class="form-group">
           <label for="categoryId" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Categories</label>
-          <select multiple class="form-control" id="categoryId" name="categoryId[]">
+          <select multiple class="form-control" id="categoryId" name="categoryId">
+
             <% categories.forEach(category => { %>
               <option value="<%= category._id.toString() %>"
                       <%= (offer.categoryId || []).some(c => (c._id || c).toString() === category._id.toString()) ? 'selected' : '' %>>
@@ -147,7 +156,7 @@
 <%- include('../partials/admin/footer') %>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('offerForm');
   const today = new Date();
   const todayISO = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -159,11 +168,23 @@ document.addEventListener('DOMContentLoaded', function() {
   const productSelect = document.getElementById('productId');
   const categorySelect = document.getElementById('categoryId');
 
-  // Set minimum dates
+  // Set minimum start and end dates
   startDateInput.min = todayISO;
   endDateInput.min = todayISO;
 
-  // Function to update selected option styles
+  // Toggle visibility of sections on page load
+  function initializeSections() {
+    const offerType = document.querySelector('input[name="offerType"]:checked')?.value;
+    if (offerType === 'product') {
+      productSection.classList.remove('hidden');
+      categorySection.classList.add('hidden');
+    } else if (offerType === 'category') {
+      categorySection.classList.remove('hidden');
+      productSection.classList.add('hidden');
+    }
+  }
+
+  // Style selected options
   function updateSelectedStyles(selectElement) {
     selectElement.querySelectorAll('option').forEach(option => {
       if (option.selected) {
@@ -176,83 +197,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Initialize selected options
-  function initializeSelectedOptions() {
-    const offerType = document.querySelector('input[name="offerType"]:checked').value;
-    updateSelectedStyles(productSelect);
-    updateSelectedStyles(categorySelect);
-
-    // Validate initial selections
-    if (offerType === 'product' && productSelect.selectedOptions.length === 0) {
-      showError(productSelect, document.getElementById('productIdError'), 'At least one product must be selected');
-    } else {
-      document.getElementById('productIdError').innerHTML = '';
-      productSelect.classList.remove('error');
-    }
-
-    if (offerType === 'category' && categorySelect.selectedOptions.length === 0) {
-      showError(categorySelect, document.getElementById('categoryIdError'), 'At least one category must be selected');
-    } else {
-      document.getElementById('categoryIdError').innerHTML = '';
-      categorySelect.classList.remove('error');
-    }
+  // Show error
+  function showError(field, errorElement, message) {
+    errorElement.innerHTML = message;
+    field.classList.add('error');
   }
 
-  // Toggle offer type sections
-  offerTypeRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      if (this.value === 'product') {
-        productSection.classList.remove('hidden');
-        categorySection.classList.add('hidden');
-        validateField(productSelect);
-        document.getElementById('categoryIdError').innerHTML = '';
-        categorySelect.classList.remove('error');
-      } else if (this.value === 'category') {
-        productSection.classList.add('hidden');
-        categorySection.classList.remove('hidden');
-        validateField(categorySelect);
-        document.getElementById('productIdError').innerHTML = '';
-        productSelect.classList.remove('error');
-      }
-    });
-  });
-
-  // Dynamic styling for select multiple
-  productSelect.addEventListener('change', function() {
-    updateSelectedStyles(this);
-    validateField(this);
-  });
-
-  categorySelect.addEventListener('change', function() {
-    updateSelectedStyles(this);
-    validateField(this);
-  });
-
-  // Form submission handler
-  form.addEventListener('submit', function(event) {
-    event.preventDefault();
-    if (validateForm()) {
-      this.submit();
-    }
-  });
-
-  // Real-time validation
-  const inputs = document.querySelectorAll('.form-control');
-  inputs.forEach(input => {
-    input.addEventListener('input', function() {
-      validateField(this);
-    });
-    input.addEventListener('change', function() {
-      validateField(this);
-    });
-  });
-
+  // Validate field
   function validateField(field) {
     const errorElement = document.getElementById(field.id + 'Error');
     errorElement.innerHTML = '';
     field.classList.remove('error');
 
-    switch(field.id) {
+    switch (field.id) {
       case 'offerName':
         const offerName = field.value.trim();
         if (!offerName) {
@@ -264,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       case 'discount':
         const discount = parseFloat(field.value);
-        if (!discount || isNaN(discount)) {
+        if (!field.value || isNaN(discount)) {
           showError(field, errorElement, 'Discount percentage is required');
         } else if (discount < 1 || discount > 100) {
           showError(field, errorElement, 'Discount must be between 1-100%');
@@ -272,71 +229,153 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
 
       case 'startDate':
-        const startDate = field.value;
-        if (!startDate) {
+        const start = new Date(field.value);
+        const todayDate = new Date(todayISO);
+        if (!field.value) {
           showError(field, errorElement, 'Start date is required');
-        } else {
-          const start = new Date(startDate);
-          const todayDate = new Date(todayISO);
-          if (start < todayDate) {
-            showError(field, errorElement, 'Start date cannot be in the past');
-          }
+        } else if (isNaN(start) || start < todayDate) {
+          showError(field, errorElement, 'Start date cannot be in the past');
         }
         break;
 
       case 'endDate':
-        const endDate = field.value;
-        if (!endDate) {
+        const end = new Date(field.value);
+        const startVal = new Date(document.getElementById('startDate').value);
+        if (!field.value) {
           showError(field, errorElement, 'End date is required');
-        } else {
-          const end = new Date(endDate);
-          const start = new Date(document.getElementById('startDate').value);
-          const todayDate = new Date(todayISO);
-          if (end < todayDate) {
-            showError(field, errorElement, 'End date cannot be in the past');
-          } else if (start && end <= start) {
-            showError(field, errorElement, 'End date must be after start date');
-          }
+        } else if (isNaN(end)) {
+          showError(field, errorElement, 'Invalid end date');
+        } else if (end < new Date(todayISO)) {
+          showError(field, errorElement, 'End date cannot be in the past');
+        } else if (!isNaN(startVal) && end <= startVal) {
+          showError(field, errorElement, 'End date must be after start date');
+        } else if (!isNaN(startVal) && (end - startVal) < 3600000) {
+          showError(field, errorElement, 'Offer must be active for at least 1 hour');
         }
         break;
 
       case 'productId':
-        const productOfferType = document.querySelector('input[name="offerType"]:checked').value === 'product';
-        if (productOfferType && field.selectedOptions.length === 0) {
+        if (document.querySelector('input[name="offerType"]:checked')?.value === 'product' && field.selectedOptions.length === 0) {
           showError(field, errorElement, 'At least one product must be selected');
         }
         break;
 
       case 'categoryId':
-        const categoryOfferType = document.querySelector('input[name="offerType"]:checked').value === 'category';
-        if (categoryOfferType && field.selectedOptions.length === 0) {
+        if (document.querySelector('input[name="offerType"]:checked')?.value === 'category' && field.selectedOptions.length === 0) {
           showError(field, errorElement, 'At least one category must be selected');
         }
         break;
     }
   }
 
+  // Validate entire form
   function validateForm() {
     let isValid = true;
     const fields = ['offerName', 'discount', 'startDate', 'endDate', 'productId', 'categoryId'];
-    
     fields.forEach(fieldId => {
       const field = document.getElementById(fieldId);
       validateField(field);
-      if (field.classList.contains('error')) {
-        isValid = false;
-      }
+      if (field.classList.contains('error')) isValid = false;
     });
+
+    const offerType = document.querySelector('input[name="offerType"]:checked');
+    const offerTypeError = document.getElementById('offerTypeError');
+    if (!offerType) {
+      offerTypeError.innerHTML = 'Please select a valid offer type';
+      isValid = false;
+    } else {
+      offerTypeError.innerHTML = '';
+    }
 
     return isValid;
   }
 
-  function showError(field, errorElement, message) {
-    errorElement.innerHTML = message;
-    field.classList.add('error');
-  }
+  // Handle form submission
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (validateForm()) {
+      const formData = new FormData(this);
+      const jsonData = {};
 
-  // Initialize on page load
-  initializeSelectedOptions();
+      formData.forEach((value, key) => {
+        if (jsonData[key]) {
+          if (Array.isArray(jsonData[key])) {
+            jsonData[key].push(value);
+          } else {
+            jsonData[key] = [jsonData[key], value];
+          }
+        } else {
+          jsonData[key] = value;
+        }
+      });
+
+      // Ensure arrays for multi-select
+      if (typeof jsonData.productId === 'string') jsonData.productId = [jsonData.productId];
+      if (typeof jsonData.categoryId === 'string') jsonData.categoryId = [jsonData.categoryId];
+
+      fetch(this.action, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = '/admin/offer';
+        } else {
+          Object.keys(data.errors || {}).forEach(key => {
+            const errorElement = document.getElementById(key + 'Error');
+            const field = document.getElementById(key);
+            if (errorElement && field) {
+              errorElement.innerHTML = data.errors[key];
+              field.classList.add('error');
+            }
+          });
+        }
+      })
+      .catch(err => {
+        console.error('Form submission error:', err);
+        alert('An error occurred while submitting the form.');
+      });
+    }
+  });
+
+  // Live validation
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.addEventListener('input', () => validateField(input));
+    input.addEventListener('change', () => validateField(input));
+  });
+
+  // Offer type toggle
+  offerTypeRadios.forEach(radio => {
+    radio.addEventListener('change', function () {
+      initializeSections();
+      if (this.value === 'product') {
+        validateField(productSelect);
+        categorySelect.classList.remove('error');
+        document.getElementById('categoryIdError').innerHTML = '';
+      } else if (this.value === 'category') {
+        validateField(categorySelect);
+        productSelect.classList.remove('error');
+        document.getElementById('productIdError').innerHTML = '';
+      }
+    });
+  });
+
+  productSelect.addEventListener('change', () => {
+    updateSelectedStyles(productSelect);
+    validateField(productSelect);
+  });
+
+  categorySelect.addEventListener('change', () => {
+    updateSelectedStyles(categorySelect);
+    validateField(categorySelect);
+  });
+
+  initializeSections(); // show relevant fields
 });
 </script>
+

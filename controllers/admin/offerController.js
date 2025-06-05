@@ -165,16 +165,17 @@ exports.postAddOffer = async (req, res) => {
 
         await newOffer.save();
         req.flash('success', 'Offer created successfully');
-        res.redirect('/admin/offer');
+        return res.redirect('/admin/offer');
 
     } catch (error) {
         console.error('Error creating offer:', error);
         req.flash('error', 'Failed to create offer. Please try again.');
-        res.redirect('/admin/addoffer');
+        return res.redirect('/admin/addoffer');
     }
 };
 
 // Render edit offer form
+
 exports.getEditOffer = async (req, res) => {
     try {
         const offerId = req.params.id;
@@ -183,10 +184,7 @@ exports.getEditOffer = async (req, res) => {
             return res.redirect('/admin/offer');
         }
 
-        const offer = await Offer.findById(offerId)
-            .populate('productId', 'productName')
-            .populate('categoryId', 'name');
-
+        const offer = await Offer.findById(offerId);
         if (!offer) {
             req.flash('error', 'Offer not found');
             return res.redirect('/admin/offer');
@@ -195,139 +193,183 @@ exports.getEditOffer = async (req, res) => {
         const products = await Product.find({ status: true });
         const categories = await Category.find({ status: true });
 
-        res.render('admin/editoffer', {
+        res.render('admin/editOffer', {
             offer,
             products,
             categories,
-            error: req.flash('error')
+            error_msg: req.flash('error'),
+            success_msg: req.flash('success'),
+            formData: req.flash('formData')[0] || {} // Ensure formData is always defined
         });
     } catch (error) {
-        console.error('Error in getEditOffer:', error);
-        req.flash('error', 'Error loading edit offer form');
+        console.error('Error in getEditOffer:', error.message, error.stack);
+        req.flash('error', `Error loading offer: ${error.message}`);
         res.redirect('/admin/offer');
     }
 };
 
 // Handle edit offer submission
 exports.postEditOffer = async (req, res) => {
-    try {
-        const offerId = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(offerId)) {
-            req.flash('error', 'Invalid offer ID');
-            return res.redirect('/admin/offer');
-        }
+  try {
+    const offerId = req.params.id;
+    const {
+      offerName,
+      discount,
+      startDate,
+      endDate,
+      offerType,
+      productId = [],
+      categoryId = []
+    } = req.body;
 
-        const {
-            offerName,
-            discount,
-            startDate,
-            endDate,
-            offerType,
-            productId,
-            categoryId
-        } = req.body;
+    // Log the incoming request body for debugging
+    console.log('Request Body:', {
+      offerId,
+      offerName,
+      discount,
+      startDate,
+      endDate,
+      offerType,
+      productId,
+      categoryId
+    });
 
-        // Validation
-        if (!offerName || offerName.length < 3 || offerName.length > 50) {
-            req.flash('error', 'Offer name must be 3-50 characters long');
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
+    // Ensure productId and categoryId are arrays
+    const productIds = Array.isArray(productId) ? productId : (productId ? [productId] : []);
+    const categoryIds = Array.isArray(categoryId) ? categoryId : (categoryId ? [categoryId] : []);
 
-        const discountValue = parseFloat(discount);
-        if (isNaN(discountValue) || discountValue < 1 || discountValue > 100) {
-            req.flash('error', 'Discount must be between 1-100%');
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
+    // Server-side validation based on original offerSchema
+    const errors = {};
 
-        const now = new Date();
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            req.flash('error', 'Invalid date format');
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
-
-        if (start < now) {
-            req.flash('error', 'Start date cannot be in the past');
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
-
-        const minDurationHours = 1;
-        const minDurationMs = minDurationHours * 60 * 60 * 1000;
-        if (end <= start) {
-            req.flash('error', 'End date must be after start date');
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
-        if ((end - start) < minDurationMs) {
-            req.flash('error', `End date must be at least ${minDurationHours} hour(s) after start date`);
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
-
-        if (!['product', 'category'].includes(offerType)) {
-            req.flash('error', 'Invalid offer type');
-            return res.redirect(`/admin/editoffer/${offerId}`);
-        }
-
-        // Validate productIds or categoryIds based on offerType
-        let validatedProductIds = [];
-        let validatedCategoryIds = [];
-
-        if (offerType === 'product') {
-            const productIds = Array.isArray(productId) ? productId : (productId ? [productId] : []);
-            if (productIds.length === 0) {
-                req.flash('error', 'At least one product must be selected');
-                return res.redirect(`/admin/editoffer/${offerId}`);
-            }
-            validatedProductIds = await Product.find({ 
-                _id: { $in: productIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
-                status: true 
-            }).select('_id');
-            if (validatedProductIds.length !== productIds.length) {
-                req.flash('error', 'One or more selected products are invalid or inactive');
-                return res.redirect(`/admin/editoffer/${offerId}`);
-            }
-        } else if (offerType === 'category') {
-            const categoryIds = Array.isArray(categoryId) ? categoryId : (categoryId ? [categoryId] : []);
-            if (categoryIds.length === 0) {
-                req.flash('error', 'At least one category must be selected');
-                return res.redirect(`/admin/editoffer/${offerId}`);
-            }
-            validatedCategoryIds = await Category.find({ 
-                _id: { $in: categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
-                status: true 
-            }).select('_id');
-            if (validatedCategoryIds.length !== categoryIds.length) {
-                req.flash('error', 'One or more selected categories are invalid or inactive');
-                return res.redirect(`/admin/editoffer/${offerId}`);
-            }
-        }
-
-        // Update offer
-        const updateData = {
-            offerName,
-            discount: discountValue,
-            startDate: start,
-            endDate: end,
-            offerType,
-            productId: offerType === 'product' ? validatedProductIds.map(id => id._id) : [],
-            categoryId: offerType === 'category' ? validatedCategoryIds.map(id => id._id) : [],
-            updatedAt: new Date()
-        };
-
-        const updatedOffer = await Offer.findByIdAndUpdate(offerId, updateData, { new: true });
-        if (!updatedOffer) {
-            req.flash('error', 'Offer not found');
-            return res.redirect('/admin/offer');
-        }
-
-        req.flash('success', 'Offer updated successfully');
-        res.redirect('/admin/offer');
-    } catch (error) {
-        console.error('Error in postEditOffer:', error);
-        req.flash('error', 'Error updating offer');
-        res.redirect(`/admin/editoffer/${offerId}`);
+    // Validate offerName
+    if (!offerName || offerName.trim() === '') {
+      errors.offerName = 'Offer name is required';
+    } else if (offerName.length < 3 || offerName.length > 50) {
+      errors.offerName = 'Offer name must be 3-50 characters long';
     }
+
+    // Validate discount
+    const discountValue = parseFloat(discount);
+    if (isNaN(discountValue)) {
+      errors.discount = 'Discount percentage is required';
+    } else if (discountValue < 1 || discountValue > 100) {
+      errors.discount = 'Discount must be between 1-100%';
+    }
+
+    // Validate startDate
+    const startDateObj = new Date(startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!startDate || isNaN(startDateObj)) {
+      errors.startDate = 'Start date is required';
+    } else if (startDateObj < today) {
+      errors.startDate = 'Start date cannot be in the past';
+    }
+
+    // Validate endDate
+    const endDateObj = new Date(endDate);
+    if (!endDate || isNaN(endDateObj)) {
+      errors.endDate = 'End date is required';
+    } else if (endDateObj < today) {
+      errors.endDate = 'End date cannot be in the past';
+    } else if (startDateObj && !isNaN(startDateObj) && endDateObj <= startDateObj) {
+      errors.endDate = 'End date must be after start date';
+    } else if (startDateObj && !isNaN(startDateObj) && (endDateObj - startDateObj) < 3600000) {
+      errors.endDate = 'Offer must be active for at least 1 hour';
+    }
+
+    // Validate offerType
+    if (!offerType || !['product', 'category'].includes(offerType)) {
+      errors.offerType = 'Please select a valid offer type';
+    }
+
+    // Validate productId or categoryId based on offerType
+    if (offerType === 'product') {
+      if (productIds.length === 0) {
+        errors.productId = 'At least one product must be selected';
+      } else {
+        const products = await Product.find({ _id: { $in: productIds } }).catch(err => {
+          console.error('Error querying products:', err);
+          return [];
+        });
+        if (products.length !== productIds.length) {
+          errors.productId = 'One or more selected products are invalid';
+        }
+      }
+      categoryIds.length = 0; // Clear categoryId for product offer
+    } else if (offerType === 'category') {
+      if (categoryIds.length === 0) {
+        errors.categoryId = 'At least one category must be selected';
+      } else {
+        const categories = await Category.find({ _id: { $in: categoryIds } }).catch(err => {
+          console.error('Error querying categories:', err);
+          return [];
+        });
+        if (categories.length !== categoryIds.length) {
+          errors.categoryId = 'One or more selected categories are invalid';
+        }
+      }
+      productIds.length = 0; // Clear productId for category offer
+    }
+
+    // If there are validation errors, return them
+    if (Object.keys(errors).length > 0) {
+      console.log('Validation Errors:', errors);
+      return res.status(400).json({
+        success: false,
+        errors,
+        formData: {
+          offerName,
+          discount,
+          startDate,
+          endDate,
+          offerType,
+          productId: productIds,
+          categoryId: categoryIds
+        }
+      });
+    }
+
+    // Update the offer
+    const updatedOffer = await Offer.findByIdAndUpdate(
+      offerId,
+      {
+        offerName,
+        discount: discountValue,
+        startDate: startDateObj,
+        endDate: endDateObj,
+        offerType,
+        productId: productIds,
+        categoryId: categoryIds,
+        status: true
+      },
+      { new: true, runValidators: true }
+    ).catch(err => {
+      console.error('Error updating offer in DB:', err);
+      return null;
+    });
+
+    if (!updatedOffer) {
+      console.log('Offer not found for ID:', offerId);
+      return res.status(404).json({
+        success: false,
+        error_msg: 'Offer not found'
+      });
+    }
+
+    console.log('Offer updated successfully:', updatedOffer);
+    return res.status(200).json({
+      success: true,
+      success_msg: 'Offer updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating offer:', error);
+    return res.status(500).json({
+      success: false,
+      error_msg: 'An error occurred while updating the offer'
+    });
+  }
 };
 
 // Block/Unblock offer

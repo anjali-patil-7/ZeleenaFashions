@@ -52,19 +52,21 @@ exports.getProfile = async (req, res) => {
 
 // Handle profile update
 exports.updateProfile = [
-    // Input validation
+    // Input validation for userName
     body('userName')
         .trim()
         .isLength({ min: 2, max: 50 })
         .withMessage('Name must be between 2 and 50 characters.')
         .matches(/^[a-zA-Z][a-zA-Z\s]*$/)
         .withMessage('Name must start with a letter and contain only letters and spaces.'),
+
+    // Input validation for phone
     body('phone')
         .trim()
-        .matches(/^\d{10}$/)
-        .withMessage('Phone number must be exactly 10 digits.')
+        .matches(/^[6-9]\d{9}$/)
+        .withMessage('Phone number must be exactly 10 digits and start with 6, 7, 8, or 9.')
         .custom((value) => {
-            // Check for repeated digits (e.g., "1111111111")
+            // Check for repeated digits (e.g., "6666666666")
             const uniqueDigits = new Set(value.split(''));
             if (uniqueDigits.size < 5) {
                 throw new Error('Phone number contains too many repeated digits.');
@@ -72,8 +74,10 @@ exports.updateProfile = [
             return true;
         }),
 
+    // No validation for email as it should not be editable
     async (req, res) => {
         try {
+            // Check if user is logged in
             if (!req.user) {
                 return res.json({
                     status: 'error',
@@ -81,6 +85,7 @@ exports.updateProfile = [
                 });
             }
 
+            // Check for validation errors
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.json({
@@ -89,9 +94,11 @@ exports.updateProfile = [
                 });
             }
 
+            // Extract validated fields from request body
             const { userName, phone } = req.body;
-            const user = await User.findById(req.user.id);
 
+            // Find the user by ID
+            const user = await User.findById(req.user.id);
             if (!user) {
                 return res.json({
                     status: 'error',
@@ -117,7 +124,7 @@ exports.updateProfile = [
                 message: 'Profile updated successfully!',
             });
         } catch (err) {
-            console.error('Profile update error:', err);
+            console.error('Profile updaterror:', err);
             return res.json({
                 status: 'error',
                 message: 'An unexpected error occurred.',

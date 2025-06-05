@@ -81,6 +81,7 @@ exports.getShopPage = async (req, res) => {
             default:
                 sortOption = { createdAt: -1 };
         }
+        console.log('Sort Option Applied:', sortOption); // Debug log
 
         const totalProducts = await Product.countDocuments(query);
         const products = await Product.find(query)
