@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors')
 const session = require('express-session');
 const flash = require('connect-flash');
 const MongoStore = require('connect-mongo');
@@ -7,8 +8,10 @@ const passport = require('./config/passport');
 const connectDB = require('./config/db');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan')
 
 const app = express();
+
 connectDB();
 
 // Log environment variables (for debugging)
@@ -19,6 +22,12 @@ console.log('Environment variables:', {
 });
 
 // Middleware
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
+
+app.use(morgan('combined'))
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
