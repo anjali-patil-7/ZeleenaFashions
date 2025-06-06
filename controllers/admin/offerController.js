@@ -193,7 +193,7 @@ exports.getEditOffer = async (req, res) => {
         const products = await Product.find({ status: true });
         const categories = await Category.find({ status: true });
 
-        res.render('admin/editOffer', {
+        res.render('admin/editoffer', {
             offer,
             products,
             categories,
