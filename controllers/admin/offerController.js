@@ -74,7 +74,6 @@ exports.postAddOffer = async (req, res) => {
             productId,
             categoryId
         } = req.body;
-
         // Input validation
         if (!offerName || offerName.length < 3 || offerName.length > 50) {
             req.flash('error', 'Offer name must be 3-50 characters long');
@@ -127,28 +126,50 @@ exports.postAddOffer = async (req, res) => {
                 req.flash('error', 'At least one product must be selected');
                 return res.redirect('/admin/addoffer');
             }
+            // Filter valid ObjectIds and convert to mongoose.Types.ObjectId
+            const validProductIds = productIds.filter(id => mongoose.Types.ObjectId.isValid(id))
+                                             .map(id => new mongoose.Types.ObjectId(id));
+            if (validProductIds.length !== productIds.length) {
+                req.flash('error', 'One or more product IDs are invalid');
+                return res.redirect('/admin/addoffer');
+            }
+            // Validate against Product collection
             validatedProductIds = await Product.find({ 
-                _id: { $in: productIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
+                _id: { $in: validProductIds },
                 status: true 
             }).select('_id');
-            if (validatedProductIds.length !== productIds.length) {
+            if (validatedProductIds.length !== validProductIds.length) {
                 req.flash('error', 'One or more selected products are invalid or inactive');
                 return res.redirect('/admin/addoffer');
             }
+            // Map to ObjectId instances for saving
+            validatedProductIds = validatedProductIds.map(doc => doc._id);
+            console.log('Validated Product IDs:', validatedProductIds);
         } else if (offerType === 'category') {
             const categoryIds = Array.isArray(categoryId) ? categoryId : (categoryId ? [categoryId] : []);
             if (categoryIds.length === 0) {
                 req.flash('error', 'At least one category must be selected');
                 return res.redirect('/admin/addoffer');
             }
+            // Filter valid ObjectIds and convert to mongoose.Types.ObjectId
+            const validCategoryIds = categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id))
+                                               .map(id => new mongoose.Types.ObjectId(id));
+            if (validCategoryIds.length !== categoryIds.length) {
+                req.flash('error', 'One or more category IDs are invalid');
+                return res.redirect('/admin/addoffer');
+            }
+            // Validate against Category collection
             validatedCategoryIds = await Category.find({ 
-                _id: { $in: categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id)) },
+                _id: { $in: validCategoryIds },
                 status: true 
             }).select('_id');
-            if (validatedCategoryIds.length !== categoryIds.length) {
+            if (validatedCategoryIds.length !== validCategoryIds.length) {
                 req.flash('error', 'One or more selected categories are invalid or inactive');
                 return res.redirect('/admin/addoffer');
             }
+            // Map to ObjectId instances for saving
+            validatedCategoryIds = validatedCategoryIds.map(doc => doc._id);
+            console.log('Validated Category IDs:', validatedCategoryIds);
         }
 
         // Create new offer
@@ -158,12 +179,34 @@ exports.postAddOffer = async (req, res) => {
             startDate: start,
             endDate: end,
             offerType,
-            productId: offerType === 'product' ? validatedProductIds.map(id => id._id) : [],
-            categoryId: offerType === 'category' ? validatedCategoryIds.map(id => id._id) : [],
+            productId: offerType === 'product' ? validatedProductIds : [],
+            categoryId: offerType === 'category' ? validatedCategoryIds : [],
             status: true
         });
 
-        await newOffer.save();
+        // Save to database
+        const savedOffer = await newOffer.save();
+        
+        // Log the saved offer for debugging
+        console.log('Saved Offer:', JSON.stringify(savedOffer, null, 2));
+
+        // Verify the saved data
+        if (offerType === 'product' && (!savedOffer.productId || savedOffer.productId.length !== validatedProductIds.length)) {
+            console.error('Product IDs not saved correctly:', savedOffer.productId);
+            req.flash('error', 'Failed to save product associations. Please try again.');
+            return res.redirect('/admin/addoffer');
+        }
+        if (offerType === 'category' && (!savedOffer.categoryId || savedOffer.categoryId.length !== validatedCategoryIds.length)) {
+            console.error('Category IDs not saved correctly:', savedOffer.categoryId);
+            req.flash('error', 'Failed to save category associations. Please try again.');
+            return res.redirect('/admin/addoffer');
+        }
+        if (savedOffer.status !== true) {
+            console.error('Status not saved as true:', savedOffer.status);
+            req.flash('error', 'Failed to set offer status. Please try again.');
+            return res.redirect('/admin/addoffer');
+        }
+
         req.flash('success', 'Offer created successfully');
         return res.redirect('/admin/offer');
 
@@ -173,7 +216,6 @@ exports.postAddOffer = async (req, res) => {
         return res.redirect('/admin/addoffer');
     }
 };
-
 // Render edit offer form
 
 exports.getEditOffer = async (req, res) => {
