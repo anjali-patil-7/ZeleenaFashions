@@ -6,7 +6,7 @@ const Cart = require('../../models/cartSchema');
 // Get user's wishlist
 exports.getWishlist = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.session.userId;
         const wishlist = await Wishlist.find({ userId })
             .populate({
                 path: 'wishlistItems.productId',
