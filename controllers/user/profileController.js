@@ -5,13 +5,14 @@ const Wallet = require('../../models/walletSchema');
 // Render the profile page
 exports.getProfile = async (req, res) => {
     try {
-   
-        if (!req.user) {
+       const userId = req. req.session.userId 
+        console.log(userId,"UserDetails")
+        if (!req.userId) {
             req.session.error_msg = 'Please log in to view your profile.';
             return res.redirect('/login');
         }
 
-        const user = await User.findById(req.user.id).lean();
+        const user = await User.findById(userId).lean();
         if (!user) {
             req.session.error_msg = 'User not found.';
             return res.redirect('/login');
