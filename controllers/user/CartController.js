@@ -48,7 +48,8 @@ const getBestOffer = async (product) => {
 // List Products in Cart
 exports.getCart = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.session.userId;
+        console.log(userId, : "UserID")
         if (!userId) {
             return res.status(401).json({ message: 'Please log in to view your cart' });
         }
