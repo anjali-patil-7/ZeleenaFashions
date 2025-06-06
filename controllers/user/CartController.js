@@ -49,7 +49,7 @@ const getBestOffer = async (product) => {
 exports.getCart = async (req, res) => {
     try {
         const userId = req.session.userId;
-        console.log(userId, : "UserID")
+        console.log("UserId ", userId)
         if (!userId) {
             return res.status(401).json({ message: 'Please log in to view your cart' });
         }
