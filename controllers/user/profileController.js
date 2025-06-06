@@ -5,7 +5,7 @@ const Wallet = require('../../models/walletSchema');
 // Render the profile page
 exports.getProfile = async (req, res) => {
     try {
-       const userId = req. req.session.userId 
+        const userId = req.session.userId;
         console.log(userId,"UserDetails")
         if (!req.userId) {
             req.session.error_msg = 'Please log in to view your profile.';
