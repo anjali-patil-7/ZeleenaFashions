@@ -45,7 +45,8 @@ const getBestOffer = async (product) => {
 // Render the homepage
 exports.getHomePage = async (req, res) => {
     try {
-      console.log("User Details>>>>>", req.session)
+
+        console.log(req.session.user)
         // Fetch categories (only active ones)
         const categories = await Category.find({ status: true ,isDeleted: false }).lean();
         if (!categories.length) {

@@ -301,7 +301,7 @@
                             <div class="header-right_area">
                                 <div class="main-menu_area">
                                     <nav>
-                                        <% if (!locals.session.isAuth) { %>
+                                        <% if (!locals.session || !locals.session.user || !locals.session.user.isAuth) { %>
                                             <ul>
                                                 <li class="dropdown-holder">
                                                     <a href="/login">

@@ -1,27 +1,25 @@
 const User = require('../../models/userSchema');
 const Orders = require('../../models/orderSchema');
 const Product = require('../../models/productSchema')
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 // Render the login page
 exports.getLogin = (req, res) => {
     console.log("Session details>>>>", req.session)
-  console.log('Flash messages on getLogin:', {
-    error_msg: req.flash('error_msg'),
-    success_msg: req.flash('success_msg'),
-  });
-  res.render('admin/login', {
-    error_msg: req.flash('error_msg')[0] || '',
-    success_msg: req.flash('success_msg')[0] || '',
-  });
+    console.log('Flash messages on getLogin:', {
+        error_msg: req.flash('error_msg'),
+        success_msg: req.flash('success_msg'),
+    });
+    res.render('admin/login', {
+        error_msg: req.flash('error_msg')[0] || '',
+        success_msg: req.flash('success_msg')[0] || '',
+    });
 };
 
 // Handle login form submission
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("podaaa>>>", req.body);
 
     // Check if email and password are provided
     if (!email || !password) {
@@ -53,15 +51,14 @@ exports.adminLogin = async (req, res) => {
       return res.redirect('/admin/login');
     }
 
-    // Set session for authenticated admin
-    console.log(user._id, "userID")
-    req.session.userId = user._id;
-    req.session.isAuth = true;
+    // Store admin data in session and clear user data
     req.session.admin = {
       id: user._id,
       email: user.email,
       name: user.name,
+      isAuth: true
     };
+    delete req.session.user;
 
     // Save session before redirecting
     req.session.save((err) => {
@@ -76,7 +73,6 @@ exports.adminLogin = async (req, res) => {
     });
   } catch (error) {
     console.error('Admin login error:', error);
-    // Check if headers have already been sent
     if (!res.headersSent) {
       req.flash('error_msg', 'An error occurred during login');
       console.log('Flash set: An error occurred during login');
@@ -84,7 +80,6 @@ exports.adminLogin = async (req, res) => {
     }
   }
 };
-
 
 // Render the dashboard
 exports.getDashboard = async (req, res) => {
@@ -123,8 +118,6 @@ exports.getDashboard = async (req, res) => {
             orderStatus: 'Delivered'
         });
 
-
-
         // Total Products
         const totalProducts = await Product.countDocuments({ status: true });
 
@@ -142,22 +135,21 @@ exports.getDashboard = async (req, res) => {
         ]);
 
         // Sales Data for Chart
-
-const salesData = await Orders.aggregate([
-  { $match: { createdAt: { $gte: startDate }, orderStatus: 'Delivered' } },
-  {
-    $group: {
-      _id: {
-        $dateToString: {
-          format: filter === 'yearly' ? '%Y-%m' : '%Y-%m-%d', // Use month for yearly, date for others
-          date: '$createdAt'
-        }
-      },
-      total: { $sum: '$finalAmount' }
-    }
-  },
-  { $sort: { '_id': 1 } }
-]);
+        const salesData = await Orders.aggregate([
+            { $match: { createdAt: { $gte: startDate }, orderStatus: 'Delivered' } },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: filter === 'yearly' ? '%Y-%m' : '%Y-%m-%d',
+                            date: '$createdAt'
+                        }
+                    },
+                    total: { $sum: '$finalAmount' }
+                }
+            },
+            { $sort: { '_id': 1 } }
+        ]);
 
         // Top 10 Best Selling Products
         const bestSellingProducts = await Orders.aggregate([
@@ -172,7 +164,7 @@ const salesData = await Orders.aggregate([
             },
             {
                 $lookup: {
-                    from: 'products', // Ensure this matches the actual collection name
+                    from: 'products',
                     localField: '_id',
                     foreignField: '_id',
                     as: 'product'
@@ -205,7 +197,7 @@ const salesData = await Orders.aggregate([
             },
             {
                 $lookup: {
-                    from: 'categories', // Ensure this matches the actual collection name
+                    from: 'categories',
                     localField: '_id',
                     foreignField: '_id',
                     as: 'category'
@@ -241,8 +233,8 @@ const salesData = await Orders.aggregate([
             filter,
             currentDate: new Date(),
             salesReportUrl,
-            error_msg: req.flash('error'), // Assuming flash middleware is used
-            success_msg: req.flash('success') // Assuming flash middleware is used
+            error_msg: req.flash('error'),
+            success_msg: req.flash('success')
         });
     } catch (error) {
         console.error('Admin Dashboard Error:', error);
@@ -263,7 +255,6 @@ const salesData = await Orders.aggregate([
         });
     }
 };
-
 
 exports.getSalesData = async (req, res) => {
     try {
@@ -300,12 +291,12 @@ exports.getSalesData = async (req, res) => {
                 $match: { 
                     paymentStatus: 'Paid',
                     orderStatus: { $nin: ['Cancelled', 'Returned'] }
-                } // Include only paid orders, exclude cancelled or returned
+                }
             },
             {
                 $group: {
                     _id: groupBy,
-                    totalSales: { $sum: '$finalAmount' }, // Use finalAmount from schema
+                    totalSales: { $sum: '$finalAmount' },
                     orderCount: { $sum: 1 }
                 }
             },

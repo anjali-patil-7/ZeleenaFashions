@@ -1,10 +1,9 @@
 
-module.exports = (req,res,next)=>{
-      console.log('verifySession: admin req.session:', req.session.admin);
+module.exports = (req, res, next) => {
 
-    if(!req.session || !req.session.admin){
-        req.flash('error_msg','please log in to access this page ')
-        return res.redirect('/admin/login')
+    if (!req.session || !req.session.admin || !req.session.admin.id) {
+        req.flash('error_msg', 'Please log in to access this page');
+        return res.redirect('/admin/login');
     }
-    next()
-}
+    next();
+};

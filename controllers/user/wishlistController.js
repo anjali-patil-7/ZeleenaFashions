@@ -6,13 +6,16 @@ const Cart = require('../../models/cartSchema');
 // Get user's wishlist
 exports.getWishlist = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const userId = req.session.user.id;
+
         const wishlist = await Wishlist.find({ userId })
             .populate({
                 path: 'wishlistItems.productId',
                 select: 'productName price productImage totalStock isListed category',
                 populate: { path: 'category', select: 'status name' }
             });
+            // console.log("whislistt>>",wishlist.wishlistItems.productId.productImage)
+
 
         res.render('user/wishlist', {
             wishlistDetails: wishlist,
@@ -28,7 +31,7 @@ exports.getWishlist = async (req, res) => {
 exports.addToWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-        const userId = req.user.id;
+        const userId = req.session.user.id;
 
         // Validate productId
         if (!mongoose.Types.ObjectId.isValid(productId)) {
@@ -48,7 +51,7 @@ exports.addToWishlist = async (req, res) => {
 
         // Log product and category details for debugging
         console.log('addToWishlist Product details:', {
-            productId: product._id,
+            productId: productId,
             productName: product.productName,
             status: product.status,
             totalStock: product.totalStock,
@@ -95,7 +98,7 @@ exports.addToWishlist = async (req, res) => {
             error: error.message,
             stack: error.stack,
             productId: req.body.productId,
-            userId: req.user.id
+            userId: req.session.userId
         });
         res.status(500).json({ success: false, message: 'Error adding to wishlist', error: error.message });
     }
@@ -105,7 +108,7 @@ exports.addToWishlist = async (req, res) => {
 exports.removeFromWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-        const userId = req.user.id;
+        const userId = req.session.user.id;
 
         const wishlist = await Wishlist.findOne({ userId });
         if (!wishlist) {
@@ -128,7 +131,7 @@ exports.removeFromWishlist = async (req, res) => {
 exports.addToCartFromWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-        const userId = req.user.id;
+        const userId = req.session.user.id;
         if (!userId) {
             console.log('No user ID found in request');
             return res.status(401).json({ success: false, message: 'Unauthorized' });

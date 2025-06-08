@@ -17,7 +17,8 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text-color);
       line-height: 1.6;
-      background-color: var(--white);
+      background起身: You can analyze individual X user profiles, X posts and their links.
+background-color: var(--white);
     }
 
     /* Extended container for filter section */
@@ -148,6 +149,12 @@
       background: var(--accent-color);
       color: var(--white);
       transform: translateY(-2px);
+    }
+
+    .category-btn.active {
+      background: var(--accent-color);
+      color: var(--white);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     /* Center search form */
@@ -686,8 +693,11 @@
                   <h5>Categories</h5>
                   <div class="category-buttons">
                     <% categories.forEach(category => { %>
-                      <a href="/shopbyfilter/<%= category._id %>" class="category-btn"><%= category.name %></a>
+                      <a href="/shopbyfilter/<%= category._id %>" class="category-btn" data-category-id="<%= category._id %>"><%= category.name %></a>
                     <% }) %>
+                  </div>
+                  <div class="filter-controls" style="margin-top: 15px;">
+                    <button id="clear-category-filter" class="btn btn-secondary">Clear Category</button>
                   </div>
                 </div>
               </div>
@@ -890,6 +900,13 @@
         }
       });
 
+      // Highlight selected category
+      const currentUrl = new URL(window.location.href);
+      const categoryId = currentUrl.pathname.split('/shopbyfilter/')[1];
+      if (categoryId) {
+        $('.category-btn[data-category-id="' + categoryId + '"]').addClass('active');
+      }
+
       // Apply price filter
       $("#apply-price-filter").click(function() {
         const minPrice = $("#price-slider").slider("values", 0);
@@ -902,6 +919,14 @@
         
         console.log('Redirecting to (Price Filter):', currentUrl.toString()); // Debug log
         window.location.href = currentUrl.toString();
+      });
+
+      // Clear category filter
+      $("#clear-category-filter").click(function() {
+        const currentUrl = new URL(window.location.href);
+        
+        // Redirect to /shop to clear category filter, preserving other params
+        window.location.href = '/shop' + currentUrl.search;
       });
 
       // Clear all filters

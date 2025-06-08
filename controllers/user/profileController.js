@@ -5,28 +5,30 @@ const Wallet = require('../../models/walletSchema');
 // Render the profile page
 exports.getProfile = async (req, res) => {
     try {
-        const userId = req.session.userId;
-        if (!userId ) {
+        // Check if user session exists and has an ID
+        if (!req.session || !req.session.user || !req.session.user.id) {
             req.session.error_msg = 'Please log in to view your profile.';
             return res.redirect('/login');
         }
 
+        const userId = req.session.user.id;
         const user = await User.findById(userId).lean();
         if (!user) {
             req.session.error_msg = 'User not found.';
             return res.redirect('/login');
         }
 
+        // Set session data for template
         res.locals.session = req.session || {};
-        res.locals.session.isAuth = true;
-        
+        res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
+
         const referralRewards = []; // Replace with actual logic
 
         res.render('user/profile', {
             user: {
-                userName: user.name,
-                email: user.email,
-                phone: user.phone || '',
+                userName: user.name || 'Guest', // Fallback in case name is missing
+                email: user.email || 'Not provided', // Fallback for email
+                phone: user.phone || 'Not provided',
                 referralCode: user.referralCode || 'N/A',
                 referralRewards,
             },
@@ -35,14 +37,21 @@ exports.getProfile = async (req, res) => {
             session: res.locals.session,
         });
 
+        // Clear flash messages
         delete req.session.error_msg;
         delete req.session.success_msg;
     } catch (err) {
         console.error('Error loading profile page:', err);
         res.locals.session = req.session || {};
-        res.locals.session.isAuth = req.session.isAuth || false;
+        res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
         res.render('user/profile', {
-            user: null,
+            user: {
+                userName: 'Guest',
+                email: 'Not provided',
+                phone: 'Not provided',
+                referralCode: 'N/A',
+                referralRewards: [],
+            },
             error_msg: 'An unexpected error occurred.',
             success_msg: '',
             session: res.locals.session,
@@ -77,8 +86,8 @@ exports.updateProfile = [
     // No validation for email as it should not be editable
     async (req, res) => {
         try {
-            // Check if user is logged in
-            if (!req.user) {
+            // Check if user session exists
+            if (!req.session || !req.session.user || !req.session.user.id) {
                 return res.json({
                     status: 'error',
                     message: 'Please log in to update your profile.',
@@ -98,7 +107,7 @@ exports.updateProfile = [
             const { userName, phone } = req.body;
 
             // Find the user by ID
-            const user = await User.findById(req.user.id);
+            const user = await User.findById(req.session.user.id);
             if (!user) {
                 return res.json({
                     status: 'error',
@@ -124,7 +133,7 @@ exports.updateProfile = [
                 message: 'Profile updated successfully!',
             });
         } catch (err) {
-            console.error('Profile updaterror:', err);
+            console.error('Profile update error:', err);
             return res.json({
                 status: 'error',
                 message: 'An unexpected error occurred.',
@@ -133,19 +142,17 @@ exports.updateProfile = [
     },
 ];
 
-// Removed getVerifyEmailUpdate and verifyEmailOtp since email updates are not allowed
-
 // Fetch wallet history
 exports.getWalletHistory = async (req, res) => {
     try {
-        if (!req.user) {
+        if (!req.session || !req.session.user || !req.session.user.id) {
             console.log('No user found, redirecting to login');
             return res.redirect('/login');
         }
 
-        const user = await User.findById(req.user.id).lean();
+        const user = await User.findById(req.session.user.id).lean();
         if (!user) {
-            console.log('No user found for ID:', req.user.id);
+            console.log('No user found for ID:', req.session.user.id);
             return res.redirect('/login');
         }
 
@@ -153,13 +160,13 @@ exports.getWalletHistory = async (req, res) => {
         const limit = 10;
         const skip = (page - 1) * limit;
 
-        const wallet = await Wallet.findOne({ userId: req.user.id })
+        const wallet = await Wallet.findOne({ userId: req.session.user.id })
             .populate('transaction.orderId');
 
         console.log('Fetched wallet:', wallet);
 
         if (!wallet) {
-            console.log('No wallet found for user:', req.user.id);
+            console.log('No wallet found for user:', req.session.user.id);
             return res.render('user/walletHistory', {
                 user: { userName: user.name, walletCardNumber: '1234' },
                 wallet: { balance: 0, transaction: [] },

@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 // Render the signup page
 exports.getSignup = (req, res) => {
   res.locals.session = req.session || {};
-  res.locals.session.isAuth = req.session.isAuth || false;
+  res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
   res.render("user/register", {
     errors: [],
     input: {},
@@ -20,8 +20,8 @@ exports.getSignup = (req, res) => {
 // Render the login page
 exports.getLogin = (req, res) => {
   res.locals.session = req.session || {};
-  res.locals.session.isAuth = req.session.isAuth || false;
-  console.log("getLogin: Flash error_msg:", req.flash("error_msg")); // Debug
+  res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
+  console.log("getLogin: Flash error_msg:", req.flash("error_msg"));
   res.render("user/login", {
     error_msg: req.flash("error_msg") || "",
     success_msg: req.flash("success_msg") || "",
@@ -43,9 +43,7 @@ exports.postSignup = async (req, res) => {
     } else if (userName.trim().length < 3) {
       errors.push("Name must be at least 3 characters long");
     } else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(userName.trim())) {
-      errors.push(
-        "Name can only contain letters and single spaces between words"
-      );
+      errors.push("Name can only contain letters and single spaces between words");
     }
 
     // Email validation
@@ -61,9 +59,7 @@ exports.postSignup = async (req, res) => {
     if (!phone) {
       errors.push("Phone number is required");
     } else if (!/^[6-9]\d{9}$/.test(phone)) {
-      errors.push(
-        "Phone number must be 10 digits and start with 6, 7, 8, or 9"
-      );
+      errors.push("Phone number must be 10 digits and start with 6, 7, 8, or 9");
     } else if (/^(\d)\1{9}$/.test(phone)) {
       errors.push("Phone number cannot have all repeating digits");
     } else if (/\s/.test(phone)) {
@@ -108,7 +104,7 @@ exports.postSignup = async (req, res) => {
     // If there are errors, render the form with error messages
     if (errors.length > 0) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/register", {
         errors,
         input: { userName, email, phone },
@@ -147,7 +143,7 @@ exports.postSignup = async (req, res) => {
     });
 
     res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
+    res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
     return res.render("user/otp", {
       error_msg: "",
       success_msg: "OTP sent to your email!",
@@ -157,7 +153,7 @@ exports.postSignup = async (req, res) => {
     console.error("Signup error:", err);
     errors.push("An unexpected error occurred. Please try again.");
     res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
+    res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
     return res.render("user/register", {
       errors,
       input: { userName, email, phone },
@@ -224,10 +220,13 @@ exports.verifyOTP = async (req, res) => {
       isVerified: true,
     });
 
-    // Store user ID in session
-    req.session.userId = user._id;
-    req.session.isAuth = true;
-    req.session.isAdmin = user.isAdmin;
+    // Store user data in session and clear admin data
+    req.session.user = {
+      id: user._id,
+      isAuth: true,
+      isAdmin: user.isAdmin
+    };
+    delete req.session.admin;
     delete req.session.signupData;
 
     return res.json({
@@ -340,10 +339,13 @@ exports.postLogin = async (req, res) => {
       return res.redirect('/login');
     }
 
-    // Store user ID in session
-    req.session.userId = user._id;
-    req.session.isAuth = true;
-    req.session.isAdmin = user.isAdmin;
+    // Store user data in session and clear admin data
+    req.session.user = {
+      id: user._id,
+      isAuth: true,
+      isAdmin: user.isAdmin
+    };
+    delete req.session.admin;
 
     req.session.save((err) => {
       if (err) {
@@ -352,7 +354,7 @@ exports.postLogin = async (req, res) => {
         return res.redirect('/login');
       }
       console.log('postLogin: Session saved successfully:', req.session);
-      res.locals.session = { ...req.session, isAuth: req.session.isAuth };
+      res.locals.session = { ...req.session, isAuth: req.session.user ? req.session.user.isAuth : false };
       console.log('postLogin: res.locals.session:', res.locals.session);
       return res.redirect('/?success_msg=Login+successful!');
     });
@@ -386,13 +388,16 @@ exports.googleCallback = async (req, res, next) => {
         return res.redirect("/login");
       }
 
-      // Store user ID in session
-      req.session.userId = user._id;
-      req.session.isAuth = true;
-      req.session.isAdmin = user.isAdmin;
+      // Store user data in session and clear admin data
+      req.session.user = {
+        id: user._id,
+        isAuth: true,
+        isAdmin: user.isAdmin
+      };
+      delete req.session.admin;
 
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
 
       req.flash("success_msg", "Google login successful!");
       return res.redirect("/");
@@ -407,15 +412,15 @@ exports.googleCallback = async (req, res, next) => {
 // Handle logout
 exports.logout = (req, res) => {
   try {
-    // Destroy the session
-    req.session.destroy((err) => {
+    // Clear user session data, preserve admin if present
+    delete req.session.user;
+    req.session.isAuth = false; // Reset for safety
+    req.session.save((err) => {
       if (err) {
         console.error("Session destruction error:", err);
         req.flash("error_msg", "Failed to log out. Please try again.");
         return res.redirect("/profile");
       }
-
-      // Redirect to login page with success message
       res.redirect("/login");
     });
   } catch (err) {
@@ -428,7 +433,7 @@ exports.logout = (req, res) => {
 // Render the forgot password page
 exports.getForgotPassword = (req, res) => {
   res.locals.session = req.session || {};
-  res.locals.session.isAuth = req.session.isAuth || false;
+  res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
   res.render("user/forgot", {
     error_msg: req.flash("error_msg") || "",
     success_msg: req.flash("success_msg") || "",
@@ -444,7 +449,7 @@ exports.postForgotPassword = async (req, res) => {
     // Email validation
     if (!email) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/forgot", {
         error_msg: "Email is required",
         success_msg: "",
@@ -454,7 +459,7 @@ exports.postForgotPassword = async (req, res) => {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/forgot", {
         error_msg: "Please enter a valid email address",
         success_msg: "",
@@ -466,7 +471,7 @@ exports.postForgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/forgot", {
         error_msg: "No account found with this email",
         success_msg: "",
@@ -477,7 +482,7 @@ exports.postForgotPassword = async (req, res) => {
     // Check if user is blocked
     if (user.isBlocked) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/forgot", {
         error_msg: "Your account is blocked.",
         success_msg: "",
@@ -509,7 +514,7 @@ exports.postForgotPassword = async (req, res) => {
     });
 
     res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
+    res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
     return res.render("user/forgot-otp", {
       error_msg: "",
       success_msg: "OTP sent to your email!",
@@ -518,7 +523,7 @@ exports.postForgotPassword = async (req, res) => {
   } catch (err) {
     console.error("Forgot password error:", err);
     res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
+    res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
     return res.render("user/forgot", {
       error_msg: "An unexpected error occurred. Please try again.",
       success_msg: "",
@@ -598,7 +603,7 @@ exports.resetPassword = async (req, res) => {
     const forgotPasswordData = req.session.forgotPasswordData;
     if (!forgotPasswordData) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Session expired. Please try resetting your password again.",
         success_msg: "",
@@ -609,7 +614,7 @@ exports.resetPassword = async (req, res) => {
     // Password validation
     if (!newPassword) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "New password is required",
         success_msg: "",
@@ -619,7 +624,7 @@ exports.resetPassword = async (req, res) => {
 
     if (newPassword.length < 8) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Password must be at least 8 characters long",
         success_msg: "",
@@ -629,7 +634,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!/[A-Z]/.test(newPassword)) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Password must contain at least one uppercase letter",
         success_msg: "",
@@ -639,7 +644,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!/[a-z]/.test(newPassword)) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Password must contain at least one lowercase letter",
         success_msg: "",
@@ -649,7 +654,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!/[0-9]/.test(newPassword)) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Password must contain at least one number",
         success_msg: "",
@@ -659,7 +664,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!/[^A-Za-z0-9]/.test(newPassword)) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Password must contain at least one special character",
         success_msg: "",
@@ -669,7 +674,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!confirmPassword) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Please confirm your password",
         success_msg: "",
@@ -679,7 +684,7 @@ exports.resetPassword = async (req, res) => {
 
     if (newPassword !== confirmPassword) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "Passwords do not match",
         success_msg: "",
@@ -691,7 +696,7 @@ exports.resetPassword = async (req, res) => {
     const user = await User.findOne({ email: forgotPasswordData.email });
     if (!user) {
       res.locals.session = req.session || {};
-      res.locals.session.isAuth = req.session.isAuth || false;
+      res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
       return res.render("user/reset-password", {
         error_msg: "User not found.",
         success_msg: "",
@@ -712,7 +717,7 @@ exports.resetPassword = async (req, res) => {
   } catch (err) {
     console.error("Reset password error:", err);
     res.locals.session = req.session || {};
-    res.locals.session.isAuth = req.session.isAuth || false;
+    res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
     return res.render("user/reset-password", {
       error_msg: "An unexpected error occurred. Please try again.",
       success_msg: "",
@@ -789,7 +794,7 @@ exports.changePassword = async (req, res) => {
       });
     }
     // Get authenticated user from session
-    const userId = req.session.userId;
+    const userId = req.session.user ? req.session.user.id : null;
     if (!userId) {
       return res.json({
         success: false,
@@ -832,8 +837,7 @@ exports.changePassword = async (req, res) => {
       if (current_password) {
         return res.json({
           success: false,
-          message:
-            "No current password exists for this account. Leave the current password field empty",
+          message: "No current password exists for this account. Leave the current password field empty",
         });
       }
     }

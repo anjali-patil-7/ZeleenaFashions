@@ -109,7 +109,7 @@
         <h4 class="form-section-title" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #000000; font-family: 'Montserrat', sans-serif; font-weight: 600; color: #000000;">Select Products</h4>
         <div class="form-group">
           <label for="productId" style="color: #000000; font-family: 'Montserrat', sans-serif; font-weight: 500;">Products</label>
-          <select multiple class="form-control" id="productId" name="productId[]">
+          <select multiple class="form-control" id="productId" name="productId">
             <% products.forEach(product => { %>
               <option value="<%= product._id.toString() %>"
                       <%= (offer.productId || []).some(p => (p._id || p).toString() === product._id.toString()) ? 'selected' : '' %>>
@@ -292,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Handle form submission
   form.addEventListener('submit', function (event) {
+    console.log("event:",event)
     event.preventDefault();
     if (validateForm()) {
       const formData = new FormData(this);
@@ -312,7 +313,8 @@ document.addEventListener('DOMContentLoaded', function () {
       // Ensure arrays for multi-select
       if (typeof jsonData.productId === 'string') jsonData.productId = [jsonData.productId];
       if (typeof jsonData.categoryId === 'string') jsonData.categoryId = [jsonData.categoryId];
-
+      console.log("jsonData:",jsonData)
+      console.log("this.action:",this.action)
       fetch(this.action, {
         method: 'POST',
         headers: {

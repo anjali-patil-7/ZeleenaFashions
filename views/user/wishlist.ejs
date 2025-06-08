@@ -148,7 +148,7 @@
             <div class="empty-wishlist">
               <i class="fa fa-heart-o"></i>
               <h3>Your Wishlist is Empty</h3>
-              <p>Start adding items you love to your wishlist</p>
+              <p>Don't let your favorites slip away!</p>
               <a href="/shop" class="btn btn-primary">Continue Shopping</a>
             </div>
           <% } %>
@@ -160,7 +160,22 @@
 <%- include('../partials/user/footer') %>
 
 <script>
+  // Ensure jQuery is loaded
+  if (typeof jQuery === 'undefined') {
+    console.error('jQuery is not loaded! Ensure jQuery is included in header.ejs.');
+  } else {
+    console.log('jQuery is loaded:', jQuery.fn.jquery);
+  }
+
+  // Ensure SweetAlert2 is loaded
+  if (typeof Swal === 'undefined') {
+    console.error('SweetAlert2 is not loaded! Ensure SweetAlert2 is included in header.ejs.');
+  } else {
+    console.log('SweetAlert2 is loaded.');
+  }
+
   function removeFromWishlist(productId) {
+    console.log('Removing from wishlist, productId:', productId);
     Swal.fire({
       title: "Are you sure?",
       text: "Do you really want to remove this product from your wishlist?",
@@ -177,27 +192,9 @@
           method: "POST",
           contentType: "application/json",
           data: JSON.stringify({ productId }),
+          xhrFields: { withCredentials: true },
           success: function (response) {
-            // Remove the item from the DOM
-            $(`.wishlist-item[data-product-id="${productId}"]`).fadeOut(300, function() {
-              $(this).remove();
-              
-              // Check if wishlist is now empty
-              if ($("#wishlist-items tr").length === 0) {
-                $(".table-content").remove();
-                $(".wishlist-page-total").remove();
-                $(".hiraola-wishlist-area .container .row .col-12 form").html(`
-                  <div class="empty-wishlist">
-                    <i class="fa fa-heart-o"></i>
-                    <h3>Your Wishlist is Empty</h3>
-                    <p>Start adding items you love to your wishlist</p>
-                    <a href="/shop" class="btn btn-primary">Continue Shopping</a>
-                  </div>
-                `);
-              }
-            });
-            
-            // Show success notification
+            console.log('Remove from wishlist success:', response);
             const Toast = Swal.mixin({
               toast: true,
               position: 'top-end',
@@ -205,13 +202,15 @@
               timer: 1500,
               timerProgressBar: true
             });
-            
             Toast.fire({
               icon: 'success',
-              title: 'Product removed from wishlist'
+              title: response.message || 'Product removed from wishlist'
+            }).then(() => {
+              window.location.reload();
             });
           },
           error: function (xhr) {
+            console.error('Remove from wishlist error:', xhr);
             const errorData = xhr.responseJSON || {};
             Swal.fire({
               icon: "error",
@@ -225,6 +224,16 @@
   }
 
   function addToCart(productId) {
+    console.log('Add to cart clicked, productId:', productId);
+    if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) {
+      console.error('Invalid productId:', productId);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Invalid product ID.',
+      });
+      return;
+    }
     Swal.fire({
       title: "Add to Cart?",
       text: "Do you want to add this product to your cart?",
@@ -236,35 +245,48 @@
       cancelButtonColor: "#d33",
     }).then((result) => {
       if (result.isConfirmed) {
+        console.log('Sending AJAX request to /wishlist/add-to-cart, payload:', { productId });
         $.ajax({
           url: "/wishlist/add-to-cart",
           method: "POST",
           contentType: "application/json",
           data: JSON.stringify({ productId }),
+          xhrFields: { withCredentials: true },
+          headers: {
+            // Uncomment if CSRF is enabled
+            // 'CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+          },
           success: function (response) {
-            // Show success notification
-            const Toast = Swal.mixin({
-              toast: true,
-              position: 'top-end',
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true
-            });
-            
-            Toast.fire({
-              icon: 'success',
-              title: 'Product added to cart and removed from wishlist'
-            }).then(() => {
-              // Reload the page to update the wishlist
-              window.location.reload();
-            });
+            console.log('Add to cart success:', response);
+            if (response.success) {
+              const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+              });
+              Toast.fire({
+                icon: 'success',
+                title: response.message || 'Product added to cart'
+              }).then(() => {
+                window.location.reload();
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: response.message || 'Failed to add to cart',
+              });
+            }
           },
           error: function (xhr) {
+            console.error('Add to cart error:', xhr);
             const errorData = xhr.responseJSON || {};
             Swal.fire({
-              icon: "error",
-              title: "Add to Cart Failed",
-              text: errorData.message || "Error adding to cart",
+              icon: 'error',
+              title: 'Add to Cart Failed',
+              text: errorData.message || 'Error adding to cart. Please try again.',
             });
           }
         });
