@@ -314,7 +314,7 @@
                                         src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/images/placeholder.jpg' %>"
                                         data-zoom-image="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/images/placeholder.jpg' %>"
                                         alt="<%= product.productName %> Image"
-                                        onerror="this.src='/images/placeholder.jpg'; console.error('Main image failed to load: <%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '' %>')"
+                                        onerror="this.src='/images/placeholder.jpg'; console.error('Main image failed to load: <%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : ','%>')"
                                     />
                                 </div>
                                 <div id="gallery" class="sp-img_slider">
@@ -583,7 +583,7 @@
                                                     class="primary-img"
                                                     src="<%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : '/images/placeholder.jpg' %>"
                                                     alt="<%= related.productName %>"
-                                                    onerror="this.src='/images/placeholder.jpg'; console.error('Related product image failed to load: <%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : '' %>')"
+                                                    onerror="this.src='/images/placeholder.jpg'; console.error('Related product image failed to load: <%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : ',' %>')"
                                                 />
                                                 <img
                                                     class="secondary-img"
@@ -756,28 +756,47 @@
 
             // Quantity buttons
             const maxStock = <%= product ? product.totalStock : 0 %>;
-            $('.dec.qtybutton').on('click', function() {
-                const input = $('.cart-plus-minus-box');
-                let value = parseInt(input.val());
-                if (value > 1) {
-                    input.val(value);
-                }
-            });
-            $('.inc.qtybutton').on('click', function() {
-                const input = $('.cart-plus-minus-box');
-                let value = parseInt(input.val());
-                if (value < maxStock) {
-                    input.val(value);
-                }
-            });
-            $('.cart-plus-minus-box').on('change', function() {
-                let value = parseInt($(this).val());
-                if (isNaN(value) || value < 1) {
-                    $(this).val(1);
-                } else if (value > maxStock) {
-                    $(this).val(maxStock);
-                }
-            });
+
+// Decrease quantity
+$('.dec.qtybutton').on('click', function () {
+  const input = $('.cart-plus-minus-box');
+  let value = parseInt(input.val());
+  if (value > 1) {
+    input.add(value);
+  }
+});
+
+// Increase quantity
+$('.inc.qtybutton').on('click', function () {
+  const input = $('.cart-plus-minus-box');
+  let value = parseInt(input.val());
+  if (value < maxStock) {
+    input.add(value);
+  } else {
+    // Optional: Alert when reaching max stock
+    Swal.fire({
+      icon: 'info',
+      title: 'Max stock reached',
+      text: `You can only add up to ${maxStock} items.`,
+    });
+  }
+});
+
+// Manual change via input
+$('.cart-plus-minus-box').on('change', function () {
+  let value = parseInt($(this).val());
+  if (isNaN(value) || value < 1) {
+    $(this).val(1);
+  } else if (value > maxStock) {
+    $(this).val(maxStock);
+    Swal.fire({
+      icon: 'info',
+      title: 'Stock limit exceeded',
+      text: `Only ${maxStock} items available in stock.`,
+    });
+  }
+});
+
 
             // Check wishlist status on page load
             const productId = '<%= product && product._id %>';

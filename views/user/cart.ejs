@@ -174,9 +174,6 @@
 <div class="cart-container">
   <div class="container">
     <!-- Debugging: Output cartDetails to console -->
-    <script>
-      console.log('cartDetails:', <%- JSON.stringify(cartDetails) %>);
-    </script>
 
     <div class="table-content table-responsive">
       <% if (cartDetails && cartDetails.cartItem && Array.isArray(cartDetails.cartItem) && cartDetails.cartItem.length > 0) { %>
@@ -265,9 +262,6 @@
                 </tr>
               <% } else { %>
                 <!-- Debugging: Log invalid items -->
-                <script>
-                  console.log('Invalid cart item:', <%- JSON.stringify(item) %>);
-                </script>
               <% } %>
             <% }); %>
           </tbody>
@@ -316,7 +310,7 @@
               <span id="total-amount">₹<%= discountedSubtotal.toFixed(2) %></span>
             </div>
             <div class="mt-3">
-              <a href="javascript:void(0);" onclick="verifyCartBeforeCheckout()" class="btn btn-primary btn-block">Proceed to Checkout</a>
+              <a href="javascript:void(0);" onclick=verifyCartBeforeCheckout() class="btn btn-primary btn-block">Proceed to Checkout</a>
               <a href="/shop" class="btn btn-secondary btn-block mt-2">Continue Shopping</a>
             </div>
           </div>
@@ -509,7 +503,7 @@
   }
 
   // Verify cart before proceeding to checkout
-  function verifyCartBeforeCheckout() {
+  async function verifyCartBeforeCheckout() {
     const checkoutButton = document.querySelector('a.btn-primary.btn-block');
     const originalText = checkoutButton.textContent;
     checkoutButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
