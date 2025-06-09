@@ -894,11 +894,17 @@
     function updateProceedButtonState() {
       if (addressRequired && !state.selectedAddressId) {
         proceedToBuyBtn.disabled = true;
+        Swal.fire({
+            icon: 'error',
+            title: 'Need To Add Address',
+            text: 'Please add delivery address to proceed the order',
+          });
       } else if (state.paymentMethod === 'wallet' && state.walletBalance < state.finalPrice) {
         proceedToBuyBtn.disabled = true;
       } else {
         proceedToBuyBtn.disabled = false;
       }
+
     }
 
     // Initialize button state

@@ -3,6 +3,7 @@ const Cart = require('../../models/cartSchema');
 const Orders = require('../../models/orderSchema');
 const Coupon = require('../../models/couponSchema');
 const User = require('../../models/userSchema');
+const Wallet = require('../../models/walletSchema');
 
 // Validate cart on page load
 exports.validateCart = async (req, res) => {
@@ -175,7 +176,9 @@ exports.getCheckoutPage = async (req, res) => {
 
     // Fetch user for wallet balance
     const user = await User.findById(userId);
-    const walletBalance = user.wallet ? user.wallet.balance : 0;
+    // const walletBalance = user.wallet ? user.wallet.balance : 0;
+    const walletDetails = await Wallet.findOne({ userId: userId })
+    const walletBalance = walletDetails?.balance ?? 0
 
     // Calculate cart totals
     let originalSubtotal = 0;

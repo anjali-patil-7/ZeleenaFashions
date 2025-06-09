@@ -429,10 +429,7 @@
     </div>
 <% } %>
 
-<!-- Debug userWishlist -->
-<script>
-    console.log('Initial userWishlist:', <%- JSON.stringify(userWishlist) %>);
-</script>
+
 
 <div class="slider-with-category_menu">
     <div class="container-fluid p-0">
@@ -742,8 +739,6 @@
                 event.preventDefault();
 
                 const productId = button.closest('.single_product').querySelector('.hiraola-add_compare').getAttribute('data-product-id');
-
-                console.log('Adding to cart, productId:', productId); // Debug
 
                 fetch(`/addtocart/${productId}`, {
                     method: 'POST',

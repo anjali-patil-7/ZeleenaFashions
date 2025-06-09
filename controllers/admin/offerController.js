@@ -252,7 +252,7 @@ exports.getEditOffer = async (req, res) => {
 
 // Handle edit offer submission
 exports.postEditOffer = async (req, res) => {
-  // // try {
+   try {
     const offerId = req.params.id;
     const {
       offerName,
@@ -405,13 +405,13 @@ exports.postEditOffer = async (req, res) => {
       success_msg: 'Offer updated successfully'
     });
 
-  // } catch (error) {
-  //   console.error('Error updating offer:', error);
-  //   return res.status(500).json({
-  //     success: false,
-  //     error_msg: 'An error occurred while updating the offer'
-  //   });
-  // }
+  } catch (error) {
+    console.error('Error updating offer:', error);
+    return res.status(500).json({
+      success: false,
+      error_msg: 'An error occurred while updating the offer'
+    });
+  }
 };
 
 // Block/Unblock offer
