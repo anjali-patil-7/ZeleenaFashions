@@ -314,7 +314,7 @@
                                         src="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/images/placeholder.jpg' %>"
                                         data-zoom-image="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/images/placeholder.jpg' %>"
                                         alt="<%= product.productName %> Image"
-                                        onerror="this.src='/images/placeholder.jpg'; console.error('Main image failed to load: <%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '' %>')"
+                                        onerror="this.src='/images/placeholder.jpg'; console.error('Main image failed to load: <%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : ','%>')"
                                     />
                                 </div>
                                 <div id="gallery" class="sp-img_slider">
@@ -583,7 +583,7 @@
                                                     class="primary-img"
                                                     src="<%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : '/images/placeholder.jpg' %>"
                                                     alt="<%= related.productName %>"
-                                                    onerror="this.src='/images/placeholder.jpg'; console.error('Related product image failed to load: <%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : '' %>')"
+                                                    onerror="this.src='/images/placeholder.jpg'; console.error('Related product image failed to load: <%= related.productImage && related.productImage.length > 0 ? related.productImage[0] : ',' %>')"
                                                 />
                                                 <img
                                                     class="secondary-img"

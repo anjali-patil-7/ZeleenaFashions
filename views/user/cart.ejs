@@ -174,9 +174,6 @@
 <div class="cart-container">
   <div class="container">
     <!-- Debugging: Output cartDetails to console -->
-    <script>
-      console.log('cartDetails:', <%- JSON.stringify(cartDetails) %>);
-    </script>
 
     <div class="table-content table-responsive">
       <% if (cartDetails && cartDetails.cartItem && Array.isArray(cartDetails.cartItem) && cartDetails.cartItem.length > 0) { %>
@@ -265,9 +262,6 @@
                 </tr>
               <% } else { %>
                 <!-- Debugging: Log invalid items -->
-                <script>
-                  console.log('Invalid cart item:', <%- JSON.stringify(item) %>);
-                </script>
               <% } %>
             <% }); %>
           </tbody>
