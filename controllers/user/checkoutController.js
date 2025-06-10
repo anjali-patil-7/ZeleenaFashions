@@ -67,7 +67,7 @@ exports.validateCart = async (req, res) => {
 // Verifying cart before rendering checkout page
 exports.verifyCartBeforeCheckout = async (req, res) => {
   try {
-    const userId = req?.user?.id;
+    const userId = req.session.user.id;
     console.log(`Verifying cart for checkout, user: ${userId}`);
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
 
