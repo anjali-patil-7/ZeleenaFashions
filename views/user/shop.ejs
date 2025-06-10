@@ -796,7 +796,7 @@
                     <div class="product-desc_info">
                       <h6><a class="product-name" href="/singleproduct/<%= product._id %>"><%= product.productName %></a></h6>
                       <div class="price-box">
-                        <% if (product.offer && product.offer.discount > 0) { %>
+                        <% if (product.offer ) { %>
                           <span class="old-price">₹<%= product.price.toFixed(2) %></span>
                           <span class="new-price">₹<%= product.offer.finalPrice.toFixed(2) %></span>
                           <span class="discount-label">(<%= product.offer.discount %>% OFF)</span>

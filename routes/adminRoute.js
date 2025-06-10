@@ -80,9 +80,11 @@ router.get('/editoffer/:id', adminSession, offerController.getEditOffer);
 router.post('/editoffer/:id', adminSession, offerController.postEditOffer);
 router.put('/api/blockoffer/:id', adminSession, offerController.blockOffer);
 
+
 // Sales Report route
+router.get("/sales/custom", saleController.getCustomDateReport);
 router.get('/sales/:period', adminSession, saleController.getSalesReport);
-router.post('/customdate', adminSession, saleController.getCustomDateReport);
 router.get('/checkDataExist', adminSession, saleController.checkDataExist);
+router.get('/download-sales-report', adminSession, saleController.downloadSalesReport);
 
 module.exports = router;

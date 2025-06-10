@@ -754,8 +754,8 @@
                 trigger: 'hover'
             });
 
-            // Quantity buttons
-            const maxStock = <%= product ? product.totalStock : 0 %>;
+            // // Quantity buttons
+            // const maxStock = <%= product ? product.totalStock : 0 %>;
 
 // Decrease quantity
 $('.dec.qtybutton').on('click', function () {
@@ -829,16 +829,18 @@ $('.cart-plus-minus-box').on('change', function () {
                 return;
             }
 
-            let quantityToAdd = quantity;
-            if (fromSingleProduct) {
-                const input = document.querySelector('.cart-plus-minus-box');
-                quantityToAdd = input ? parseInt(input.value) : 1;
-                if (isNaN(quantityToAdd) || quantityToAdd < 1) {
-                    quantityToAdd = 1;
-                } else if (quantityToAdd > <%= product ? product.totalStock : 0 %>) {
-                    quantityToAdd = <%= product ? product.totalStock : 0 %>;
-                }
-            }
+let quantityToAdd = quantity;
+
+if (fromSingleProduct) {
+    const input = document.querySelector('.cart-plus-minus-box');
+    quantityToAdd = input ? parseInt(input.value) : 1;
+
+    if (isNaN(quantityToAdd) || quantityToAdd < 1) {
+        quantityToAdd = 1;
+    } else if (quantityToAdd > maxStock) {
+        quantityToAdd = maxStock;
+    }
+}
 
             try {
                 console.log('Adding to cart:', { productId, quantity: quantityToAdd, url: `${BASE_URL}/addtocart/${productId}` });
