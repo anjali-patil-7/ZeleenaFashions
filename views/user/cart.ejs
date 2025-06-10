@@ -513,6 +513,7 @@
       url: '/verify-cart-checkout',
       method: 'GET',
       dataType: 'json',
+      data:
       success: function(response) {
         if (response.valid) {
           window.location.href = '/checkout';

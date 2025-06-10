@@ -4,6 +4,7 @@ const Orders = require('../../models/orderSchema');
 const Coupon = require('../../models/couponSchema');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
+const { query } = require('express-validator');
 
 // Validate cart on page load
 exports.validateCart = async (req, res) => {
@@ -66,7 +67,7 @@ exports.validateCart = async (req, res) => {
 // Verifying cart before rendering checkout page
 exports.verifyCartBeforeCheckout = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req?.user?.id;
     console.log(`Verifying cart for checkout, user: ${userId}`);
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
 
