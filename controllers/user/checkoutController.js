@@ -9,7 +9,7 @@ const { query } = require('express-validator');
 // Validate cart on page load
 exports.validateCart = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     console.log(`Validating cart for user: ${userId}`);
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
 
@@ -144,7 +144,7 @@ exports.verifyCartBeforeCheckout = async (req, res) => {
 // Render checkout page
 exports.getCheckoutPage = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     console.log(`Rendering checkout page for user: ${userId}`);
 
     // Fetch cart
@@ -269,7 +269,7 @@ exports.getCheckoutPage = async (req, res) => {
 // Handle address selection
 exports.selectAddress = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     const { addressId } = req.body;
 
     if (!addressId) {
@@ -294,7 +294,7 @@ exports.selectAddress = async (req, res) => {
 exports.applyCoupon = async (req, res) => {
   try {
     const { couponCode, action } = req.body;
-    const userId = req.user.id;
+    const userId = req.session.user.id;
       console.log("coupon apply>>>>>>",couponCode, action)
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
     if (!cart || !cart.cartItem || cart.cartItem.length === 0) {
@@ -419,7 +419,7 @@ exports.getPlacingOrder = async (req, res) => {
 // Remove coupon
 exports.removeCoupon = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     console.log(`Removing coupon for user: ${userId}`);
 
     // Remove coupon from session
