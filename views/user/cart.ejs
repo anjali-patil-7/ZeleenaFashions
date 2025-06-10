@@ -504,6 +504,7 @@
 
   // Verify cart before proceeding to checkout
   async function verifyCartBeforeCheckout() {
+    console.log("verifyCartBeforeCheckout finction clickex")
     const checkoutButton = document.querySelector('a.btn-primary.btn-block');
     const originalText = checkoutButton.textContent;
     checkoutButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
@@ -513,7 +514,7 @@
       url: '/verify-cart-checkout',
       method: 'GET',
       dataType: 'json',
-      data:
+      data:{},
       success: function(response) {
         if (response.valid) {
           window.location.href = '/checkout';
