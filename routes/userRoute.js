@@ -9,18 +9,18 @@ const wishlistController = require('../controllers/user/wishlistController');
 const checkoutController = require('../controllers/user/checkoutController');
 const orderController = require('../controllers/user/OrderController');
 const paymentController = require('../controllers/user/PaymentController');
-const { verifySession, ifLogged, logged } = require('../middlewares/auth'); // Updated middleware import
+const { verifySession, ifLogged, logged, shopMiddleWare } = require('../middlewares/auth'); // Updated middleware import
 
 const router = express.Router();
 
 // Public routes
-router.get('/', homeController.getHomePage);
+router.get('/',shopMiddleWare, homeController.getHomePage);
 router.get('/about', homeController.getAboutPage);
 router.get('/contact', homeController.getContactPage);
 
 
 // Shop routes
-router.get('/shop', shopController.getShopPage);
+router.get('/shop',shopMiddleWare, shopController.getShopPage);
 router.get('/shopbyfilter/:categoryId', shopController.getShopByFilter);
 router.get('/singleproduct/:id', shopController.getSingleProduct);
 
