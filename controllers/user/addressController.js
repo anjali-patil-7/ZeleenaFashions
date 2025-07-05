@@ -5,7 +5,7 @@ const validator = require('validator');
 // Get all addresses for the user
 exports.getAddresses = async (req, res) => {
     try {
-        const addresses = await Address.find({ userId: req.user.id }).lean();
+        const addresses = await Address.find({ userId: req.session.user.id }).lean();
         console.log('Fetched addresses:', addresses);
         res.render('user/address', {
             address: addresses,
@@ -137,7 +137,7 @@ exports.createAddress = [
             }
 
             const newAddress = new Address({
-                userId: req.user.id,
+                userId: req.session.user.id,
                 name,
                 email,
                 mobile,

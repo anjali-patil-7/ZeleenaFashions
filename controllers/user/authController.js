@@ -19,6 +19,7 @@ exports.getSignup = (req, res) => {
 
 // Render the login page
 exports.getLogin = (req, res) => {
+  console.log("getLogin:",req.session);
   res.locals.session = req.session || {};
   res.locals.session.isAuth = req.session.user ? req.session.user.isAuth : false;
   console.log("getLogin: Flash error_msg:", req.flash("error_msg"));
@@ -315,10 +316,15 @@ exports.postLogin = async (req, res) => {
     }
 
     // Check if user is blocked
+    
     if (user.isBlocked) {
-      req.flash('error_msg', 'Your account is blocked. Please contact support.');
-      return res.redirect('/login');
-    }
+      console.log("BLOCKED TRUE")
+      req.flash(
+        "error_msg",
+        "Your account is blocked. Please contact support."
+      );
+      return res.redirect("/login");
+    }    
 
     // Check if user is verified
     if (!user.isVerified) {
@@ -377,16 +383,19 @@ exports.googleCallback = async (req, res, next) => {
     failureMessage: true,
   })(req, res, async () => {
     try {
+     
       const user = req.user;
+      console.log("user1:", user);
       if (!user) {
         req.flash("error_msg", "Google authentication failed.");
-        return res.redirect("/login");
+        return res.render("/login");
       }
 
       if (user.isBlocked) {
         req.flash("error_msg", "Your account is blocked.");
         return res.redirect("/login");
       }
+      
 
       // Store user data in session and clear admin data
       req.session.user = {

@@ -84,11 +84,10 @@ app.use(async (req, res, next) => {
   ) {
     return next();
   }
-
-  if (req.session.userId && req.session.isAuth) {
+  if (req.session?.user?.id && req.session?.user?.isAuth) {
     try {
       const User = require('./models/userSchema');
-      const user = await User.findById(req.session.userId).lean();
+      const user = await User.findById(req.session.user.id).lean();
       if (user && user.isBlocked) {
         req.flash('error_msg', 'Your account has been blocked by the admin. Please contact support.');
         return req.session.destroy((err) => {

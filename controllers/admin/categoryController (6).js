@@ -86,7 +86,7 @@ exports.postAddCategory = async (req, res) => {
             const imageBuffer = Buffer.from(base64Data, 'base64');
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
             imagePath = `category-${uniqueSuffix}.jpg`;
-            fs.writeFileSync(path.join(__dirname, '../public/Uploads/categories', imagePath), imageBuffer);
+            fs.writeFileSync(path.join(__dirname, '../public/uploads/categories', imagePath), imageBuffer);
         } else if (req.file) {
             imagePath = req.file.filename;
         }

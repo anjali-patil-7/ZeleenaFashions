@@ -8,7 +8,7 @@ const PDFDocument = require('pdfkit');
 // List all orders for a user with optional search
 exports.getOrders = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.session.user.id;
         if (!userId) {
             return res.redirect('/login');
         }
@@ -46,7 +46,7 @@ exports.getOrders = async (req, res) => {
             orders,
             pagination,
             search,
-            user: req.user.id
+            user: req.session.user.id
         });
     } catch (error) {
         console.error('Error fetching orders:', error);
@@ -57,7 +57,7 @@ exports.getOrders = async (req, res) => {
 // Get order details
 exports.getOrderDetails = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.session.user.id;
         if (!userId) {
             return res.redirect('/login');
         }
@@ -103,7 +103,7 @@ exports.cancelOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { cancelReason } = req.body;
-        const userId = req.user.id;
+        const userId = req.session.user.id;
 
         if (!userId) {
             await session.abortTransaction();
@@ -214,7 +214,7 @@ exports.cancelSingleProduct = async (req, res) => {
     try {
         const { orderId, productId } = req.params;
         const { cancelReason } = req.body;
-        const userId = req.user.id;
+        const userId = req.session.user.id;
 
         if (!userId) {
             await session.abortTransaction();
@@ -348,7 +348,7 @@ exports.downloadInvoice = async (req, res) => {
             return res.status(401).send('Authentication required');
         }
         
-        const userId = req.user.id;
+        const userId = req.session.user.id;
         const orderId = req.params.orderId;
         console.log('Downloading invoice for user:', userId, 'order:', orderId);
 
@@ -596,7 +596,7 @@ exports.requestReturn = async (req, res) => {
 // Order confirmation
 exports.getOrderConfirmation = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.session.user.id;
         const orderId = req.params.orderId;
 
         const order = await Orders.findOne({ _id: orderId, userId }).lean();
@@ -656,7 +656,7 @@ exports.placeOrder = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const userId = req.user.id;
+        const userId = req.session.user.id;
         if (!userId) {
             await session.abortTransaction();
             session.endSession();
