@@ -5,7 +5,7 @@ const validator = require('validator');
 // Get all addresses for the user
 exports.getAddresses = async (req, res) => {
     try {
-        const addresses = await Address.find({ userId: req.session.user.id}).lean();
+        const addresses = await Address.find({  userId : req.session.user.id}).lean();
         console.log('Fetched addresses:', addresses);
         res.render('user/address', {
             address: addresses,
@@ -106,6 +106,8 @@ exports.createAddress = [
     async (req, res) => {
         console.log('Create address request body:', req.body);
         try {
+       const userId = req.session.user.id;
+          
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 console.log('Validation errors:', errors.array());
@@ -128,31 +130,31 @@ exports.createAddress = [
                 saveAs
             } = req.body;
 
-            if (!req.user || !req.session.user.id) {
-                console.error('User not authenticated');
-                return res.status(401).json({
-                    success: false,
-                    errors: ['User not authenticated']
-                });
+            if (!userId) {
+              console.error("User not authenticated");
+              return res.status(401).json({
+                success: false,
+                errors: ["User not authenticated"],
+              });
             }
 
             const newAddress = new Address({
-                userId: req.session.user.id,
-                name,
-                email,
-                mobile,
-                pincode,
-                houseName,
-                street,
-                city,
-                state,
-                country,
-                saveAs,
-                isDefault: false
+              userId : req.session.user.id,
+              name,
+              email,
+              mobile,
+              pincode,
+              houseName,
+              street,
+              city,
+              state,
+              country,
+              saveAs,
+              isDefault: false,
             });
-
+       console.log("Address saved:", newAddress);
             await newAddress.save();
-            console.log('Address saved:', newAddress);
+          
             req.flash('success', 'Address added successfully');
             res.status(200).json({
                 success: true,
@@ -190,7 +192,7 @@ exports.getAddressForm = (req, res) => {
 exports.setDefaultAddress = async (req, res) => {
     try {
         const addressId = req.params.id;
-        const userId = req.session.user.id;
+     const userId = req.session.user.id;
 
         await Address.updateMany(
             { userId: userId, isDefault: true },
@@ -220,7 +222,7 @@ exports.setDefaultAddress = async (req, res) => {
 exports.getEditAddress = async (req, res) => {      
     try {
         const addressId = req.params.id;
-        const userId = req.session.user.id;
+     const userId = req.session.user.id;
 
         const address = await Address.findOne({ _id: addressId, userId: userId }).lean();
 
@@ -248,7 +250,7 @@ exports.getEditAddress = async (req, res) => {
 exports.updateAddress = async (req, res) => {
     try {
         const addressId = req.params.id;
-        const userId = req.session.user.id;
+      const userId = req.session.user.id;
         const {
             name,
             mobile,
@@ -361,7 +363,7 @@ exports.updateAddress = async (req, res) => {
 exports.deleteAddress = async (req, res) => {
     try {
         const addressId = req.params.id;
-        const userId = req.session.user.id;
+       const userId = req.session.user.id;
 
         // Find the address by id and ensure it belongs to the user
         const address = await Address.findOne({ _id: addressId, userId: userId });

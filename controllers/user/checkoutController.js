@@ -222,15 +222,6 @@ exports.getCheckoutPage = async (req, res) => {
     const walletBalance = walletDetails?.balance ?? 0
 
 
-
-    // Calculate cart totals
-    // let originalSubtotal = 0;
-    // cart.cartItem.forEach(item => {
-    //   if (item.productId && item.productId.price) {
-    //     originalSubtotal += item.productId.price * item.quantity;
-    //   }
-    // });
-
     let originalSubtotal = 0;
     const cartItemsWithOffer = [];
 
@@ -286,10 +277,7 @@ exports.getCheckoutPage = async (req, res) => {
 
     // Apply 20% discount for orders above ₹5000
     let discountAmount = 0;
-    if (originalSubtotal > 5000) {
-      discountAmount = originalSubtotal * 0.2;
-    }
-console.log("discountAmount", discountAmount);
+//  
     // Add shipping charge
     const shippingCharge = 100;
 

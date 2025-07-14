@@ -3,87 +3,45 @@ const Product = require("../../models/productSchema");
 const Offer = require("../../models/offerSchema");
 
 const getBestOffer = async (product) => {
-  try {
-    const currentDate = new Date();
+  const currentDate = new Date();
+  // Fetch product-specific offers
+  const productOffers = await Offer.find({
+    offerType: "product",
+    productId: product._id,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
 
-    // Fetch product-specific offers
-    const productOffers = await Offer.find({
-      offerType: "product", // Use 'offerType' per schema
-      productId: product._id, // Use 'productId' and check if _id is in the array
-      status: true,
-      startDate: { $lte: currentDate },
-      endDate: { $gte: currentDate },
-    }).lean();
+  // Fetch category-specific offers
+  const categoryOffers = await Offer.find({
+    offerType: "category",
+    categoryId: product.category,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
 
-    // Fetch category-specific offers
-    const categoryOffers = await Offer.find({
-      offerType: "category", // Use 'offerType' per schema
-      categoryId: product.category?._id, // Use 'categoryId' and check if category _id is in the array
-      status: true,
-      startDate: { $lte: currentDate },
-      endDate: { $gte: currentDate },
-    }).lean();
+  // Combine and find the best offer
+  const allOffers = [...productOffers, ...categoryOffers];
+  if (allOffers.length === 0) return { discount: 0, finalPrice: product.price };
 
-    // Combine all offers
-    const combinedOffers = [...productOffers, ...categoryOffers];
-    console.log(
-      `Offers for product ${product.productName} (${product._id}):`,
-      combinedOffers
-    );
+  const bestOffer = allOffers.reduce(
+    (max, offer) => (offer.discount > max.discount ? offer : max),
+    { discount: 0 }
+  );
 
-    // If no offers, return default
-    if (combinedOffers.length === 0) {
-      console.log(`No offers found for product ${product.productName}`);
-      return {
-        discount: 0,
-        finalPrice: product.price,
-        discountAmount: 0,
-        offerName: "",
-      };
-    }
+  const discountAmount = (product.price * bestOffer.discount) / 100;
+  const finalPrice = product.price - discountAmount;
 
-    // Find the best offer based on discount amount
-    const bestOffer = combinedOffers.reduce(
-      (max, offer) => {
-        const discountAmount =
-          offer.offerType === "percentage"
-            ? (product.price * offer.discount) / 100
-            : offer.discount; // Handle fixed discounts
-        const currentMaxDiscount =
-          max.offerType === "percentage"
-            ? (product.price * max.discount) / 100
-            : max.discount;
-        return discountAmount > currentMaxDiscount ? offer : max;
-      },
-      { discount: 0, offerType: "percentage" }
-    ); // Initial value for comparison
-
-    // Calculate discount amount and final price
-    const discountAmount =
-      bestOffer.offerType === "percentage"
-        ? (product.price * bestOffer.discount) / 100
-        : bestOffer.discount;
-    const finalPrice = product.price - discountAmount;
-
-    console.log(`Best offer for product ${product.productName}:`, bestOffer);
-
-    return {
-      discount: bestOffer.discount,
-      discountAmount,
-      finalPrice,
-      offerName: bestOffer.offerName || "",
-      offerType: bestOffer.offerType, // Include for clarity
-    };
-  } catch (err) {
-    console.error("Error fetching best offer for product", product._id, err);
-    return {
-      discount: 0,
-      finalPrice: product.price,
-      discountAmount: 0,
-      offerName: "",
-    };
-  }
+  return {
+    discount: bestOffer.discount,
+    discountAmount,
+    finalPrice,
+    offerName: bestOffer.offerName,
+  };
 };
+
 
 exports.getShopPage = async (req, res) => {
   try {
