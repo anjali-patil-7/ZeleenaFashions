@@ -4,13 +4,53 @@ const Orders = require('../../models/orderSchema');
 const Coupon = require('../../models/couponSchema');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
+const Offer = require('../../models/offerSchema')
 const { query } = require('express-validator');
+
+
+const getBestOffer = async (product) => {
+    const currentDate = new Date();
+    // Look for product-specific offers
+    const productOffers = await Offer.find({
+        offerType: 'product',
+        productId: product._id,
+        status: true,
+        startDate: { $lte: currentDate },
+        endDate: { $gte: currentDate },
+    }).lean();
+    
+    // Look for category-specific offers
+    const categoryOffers = await Offer.find({
+        offerType: 'category',
+        categoryId: product.category,
+        status: true,
+        startDate: { $lte: currentDate },
+        endDate: { $gte: currentDate },
+    }).lean();
+    
+    // Combine offers and find the best discount
+    const allOffers = [...productOffers, ...categoryOffers];
+    if (allOffers.length === 0) return { discount: 0, finalPrice: product.price, offerName: '' };
+    
+    const bestOffer = allOffers.reduce((max, offer) => 
+        offer.discount > max.discount ? offer : max, { discount: 0 });
+    
+    const discountAmount = (product.price * bestOffer.discount) / 100;
+    const finalPrice = product.price - discountAmount;
+  
+    return {
+        discount: bestOffer.discount,
+        discountAmount,
+        finalPrice,
+        offerName: bestOffer.offerName,
+    };
+};
 
 // Validate cart on page load
 exports.validateCart = async (req, res) => {
   try {
     const userId = req.session.user.id;
-    console.log(`Validating cart for user: ${userId}`);
+   
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
 
     if (!cart || !cart.cartItem || cart.cartItem.length === 0) {
@@ -68,9 +108,9 @@ exports.validateCart = async (req, res) => {
 exports.verifyCartBeforeCheckout = async (req, res) => {
   try {
     const userId = req.session.user.id;
-    console.log(`Verifying cart for checkout, user: ${userId}`);
+   
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
-
+      console.log("Cart Items>>>>>",cart)
     if (!cart || !cart.cartItem || cart.cartItem.length === 0) {
       console.log(`Cart is empty or not found for user: ${userId}`);
       return res.status(400).json({
@@ -181,13 +221,37 @@ exports.getCheckoutPage = async (req, res) => {
     const walletDetails = await Wallet.findOne({ userId: userId })
     const walletBalance = walletDetails?.balance ?? 0
 
+
+
     // Calculate cart totals
+    // let originalSubtotal = 0;
+    // cart.cartItem.forEach(item => {
+    //   if (item.productId && item.productId.price) {
+    //     originalSubtotal += item.productId.price * item.quantity;
+    //   }
+    // });
+
     let originalSubtotal = 0;
-    cart.cartItem.forEach(item => {
+    const cartItemsWithOffer = [];
+
+    for (const item of cart.cartItem) {
       if (item.productId && item.productId.price) {
-        originalSubtotal += item.productId.price * item.quantity;
+        const offer = await getBestOffer(item.productId);
+        const itemFinalPrice = offer.finalPrice * item.quantity;
+        originalSubtotal += itemFinalPrice;
+
+        cartItemsWithOffer.push({
+          ...item.toObject(),
+          offer: {
+            discount: offer.discount,
+            discountAmount: offer.discountAmount,
+            finalPrice: offer.finalPrice,
+            offerName: offer.offerName,
+          },
+        });
       }
-    });
+    }
+
 
     // Fetch applied coupon from session or database
     let appliedCoupon = null;
@@ -225,14 +289,14 @@ exports.getCheckoutPage = async (req, res) => {
     if (originalSubtotal > 5000) {
       discountAmount = originalSubtotal * 0.2;
     }
-
+console.log("discountAmount", discountAmount);
     // Add shipping charge
     const shippingCharge = 100;
 
     // Calculate final price
     const finalPrice = originalSubtotal - discountAmount - couponDiscount + shippingCharge;
 
-    // Determine if address is required
+    // Deterine if address is required
     const addressRequired = userAddresses.length === 0;
 
     // Select default address or first available
@@ -244,7 +308,7 @@ exports.getCheckoutPage = async (req, res) => {
 
     // Render checkout page
     res.render('user/checkout', {
-      cartItems: cart.cartItem,
+      cartItems: cartItemsWithOffer,
       userAddresses,
       originalSubtotal,
       discountAmount,
@@ -295,7 +359,7 @@ exports.applyCoupon = async (req, res) => {
   try {
     const { couponCode, action } = req.body;
     const userId = req.session.user.id;
-      console.log("coupon apply>>>>>>",couponCode, action)
+  
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
     if (!cart || !cart.cartItem || cart.cartItem.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty' });
@@ -397,6 +461,7 @@ exports.getOrderConfirmation = async (req, res) => {
     const orderId = req.params.orderId;
     const order = await Orders.findById(orderId)
       .populate('orderedItem.productId deliveryAddress');
+    console.log('order details')
     if (!order) {
       console.log(`Order not found: ${orderId}`);
       req.flash('error_msg', 'Order not found.');
@@ -420,7 +485,7 @@ exports.getPlacingOrder = async (req, res) => {
 exports.removeCoupon = async (req, res) => {
   try {
     const userId = req.session.user.id;
-    console.log(`Removing coupon for user: ${userId}`);
+   
 
     // Remove coupon from session
     req.session.appliedCoupon = null;

@@ -217,7 +217,7 @@ exports.setDefaultAddress = async (req, res) => {
 };
 
 // Get edit address form
-exports.getEditAddress = async (req, res) => {
+exports.getEditAddress = async (req, res) => {      
     try {
         const addressId = req.params.id;
         const userId = req.session.user.id;

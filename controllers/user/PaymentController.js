@@ -7,6 +7,8 @@ const Address = require('../../models/addressSchema');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
+
+
 // Initialize Razorpay instance
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -84,6 +86,7 @@ const calculateFinalAmount = async (userId, couponCode) => {
 // Helper function to create order
 const createOrder = async (userId, addressId, paymentMethod, couponCode, additionalFields = {}) => {
   try {
+    console.log("creatingorder..",userId)
     const cart = await Cart.findOne({ user: userId }).populate('cartItem.productId');
     if (!cart || !cart.cartItem.length) {
       throw new Error('Cart is empty');
@@ -236,7 +239,8 @@ const createOrder = async (userId, addressId, paymentMethod, couponCode, additio
 exports.placeOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod, couponCode } = req.body;
-    const userId = req.user.id;
+    const userId = req.session.user.id;
+    
 
     // Validate address
     const address = await Address.findOne({ _id: addressId, userId });
@@ -328,7 +332,7 @@ exports.placeOrder = async (req, res) => {
 exports.createRazorpayOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod, couponCode } = req.body;
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     console.log('Creating Razorpay order for user:', userId);
 
     // Validate address
@@ -395,7 +399,7 @@ exports.verifyPayment = async (req, res) => {
       orderId,
     } = req.body;
 
-    console.log('Verifying payment:', { orderId, razorpayOrderId, razorpayPaymentId });
+     const userId = req.session.user.id;
 
     // Validate required fields
     if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
@@ -442,7 +446,9 @@ exports.verifyPayment = async (req, res) => {
         });
       }
     } else {
-      cart = await Cart.findOne({ user: req.user.id }).populate('cartItem.productId');
+      cart = await Cart.findOne({ user: userId }).populate(
+        "cartItem.productId"
+      );
       if (!cart || !cart.cartItem.length) {
         console.log('Cart is empty or not found');
         return res.status(400).json({
@@ -470,7 +476,7 @@ exports.verifyPayment = async (req, res) => {
         await order.save();
       } else {
         // Create new order with failed payment
-        const newOrder = await createOrder(req.user.id, addressId, paymentMethod, couponCode, {
+        const newOrder = await createOrder(userId, addressId, paymentMethod, couponCode, {
           paymentId: razorpayPaymentId,
           razorpayOrderId,
           paymentStatus: 'Failed',
@@ -478,7 +484,7 @@ exports.verifyPayment = async (req, res) => {
 
         // Clear cart
         await Cart.findOneAndUpdate(
-          { user: req.user.id },
+          { user: userId },
           { $set: { cartItem: [], cartTotal: 0 } }
         );
 
@@ -515,11 +521,17 @@ exports.verifyPayment = async (req, res) => {
       });
     } else {
       // Create new order for initial payment
-      const newOrder = await createOrder(req.user.id, addressId, paymentMethod, couponCode, {
-        paymentId: razorpayPaymentId,
-        razorpayOrderId,
-        paymentStatus: 'Paid',
-      });
+      const newOrder = await createOrder(
+        userId,
+        addressId,
+        paymentMethod,
+        couponCode,
+        {
+          paymentId: razorpayPaymentId,
+          razorpayOrderId,
+          paymentStatus: "Paid",
+        }
+      );
 
       console.log('Verifying payment:', {
       orderId,
@@ -532,7 +544,7 @@ exports.verifyPayment = async (req, res) => {
 
       // Clear cart
       await Cart.findOneAndUpdate(
-        { user: req.user.id },
+        { user: userId },
         { $set: { cartItem: [], cartTotal: 0 } }
       );
 
@@ -573,9 +585,9 @@ exports.verifyPayment = async (req, res) => {
       });
     } else {
       // Create new order with failed status
-      const cart = await Cart.findOne({ user: req.user.id }).populate('cartItem.productId');
+      const cart = await Cart.findOne({ user: req.session.user.id }).populate('cartItem.productId');
       if (cart && cart.cartItem.length) {
-        const newOrder = await createOrder(req.user.id, addressId, paymentMethod, couponCode, {
+        const newOrder = await createOrder(req.session.user.id, addressId, paymentMethod, couponCode, {
           paymentId: razorpayPaymentId || null,
           razorpayOrderId: razorpayOrderId || null,
           paymentStatus: 'Failed',
@@ -583,7 +595,7 @@ exports.verifyPayment = async (req, res) => {
 
         // Clear cart
         await Cart.findOneAndUpdate(
-          { user: req.user.id },
+          { user: req.session.user.id },
           { $set: { cartItem: [], cartTotal: 0 } }
         );
 
@@ -609,7 +621,7 @@ exports.verifyPayment = async (req, res) => {
 exports.handlePaymentFailure = async (req, res) => {
   try {
     const { addressId, paymentMethod, couponCode, razorpayOrderId } = req.body;
-    const userId = req.user.id;
+   const userId = req.session.user.id;
 
     // Validate address
     const address = await Address.findOne({ _id: addressId, userId });
@@ -663,8 +675,7 @@ exports.handlePaymentFailure = async (req, res) => {
 exports.retryPayment = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const userId = req.user.id;
-    console.log('Retrying payment for order:', orderId);
+    const userId = req.session.user.id;
 
     if (!process.env.RAZORPAY_KEY_ID) {
       console.error('RAZORPAY_KEY_ID is not set in environment variables');

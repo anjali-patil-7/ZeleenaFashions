@@ -36,7 +36,7 @@ const getBestOffer = async (product) => {
     
     const discountAmount = (product.price * bestOffer.discount) / 100;
     const finalPrice = product.price - discountAmount;
-    
+  
     return {
         discount: bestOffer.discount,
         discountAmount,
@@ -58,6 +58,7 @@ exports.getCart = async (req, res) => {
             path: 'cartItem.productId',
             populate: { path: 'category' },
         });
+        console.log("cartdetails>", cartDetails);
     
         // Attach offers to cart items
         let appliedOffers = {};
@@ -74,6 +75,7 @@ exports.getCart = async (req, res) => {
             cartDetails.cartTotal = cartDetails.cartItem.reduce((total, item) => total + item.total, 0);
             await cartDetails.save();
         }
+      
 
         res.render('user/cart', {
             cartDetails: cartDetails || { cartItem: [], cartTotal: 0 },
