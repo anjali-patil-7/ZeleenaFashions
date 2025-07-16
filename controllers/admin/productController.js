@@ -368,7 +368,7 @@ exports.getProducts = async (req, res) => {
     const sortBy = validSortFields.includes(req.query.sort) ? req.query.sort : 'updatedAt';
     const sortOrder = req.query.order === 'asc' ? 1 : -1;
 
-    console.log(req.session);
+   
 
     if (page < 1 || isNaN(page)) {
       page = 1;

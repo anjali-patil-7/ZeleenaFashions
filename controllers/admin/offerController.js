@@ -86,29 +86,36 @@ exports.postAddOffer = async (req, res) => {
             return res.redirect('/admin/addoffer');
         }
 
-        const now = new Date();
+        
         const start = new Date(startDate);
         const end = new Date(endDate);
+        const currentDate = new Date()
+        currentDate.setHours(0,0,0,0)
 
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             req.flash('error', 'Invalid date format');
             return res.redirect('/admin/addoffer');
         }
 
-        if (start < now) {
-            req.flash('error', 'Start date cannot be in the past');
-            return res.redirect('/admin/addoffer');
+        if (start < currentDate) {
+          req.flash("error", "Start date cannot be in the past");
+          return res.redirect("/admin/addoffer");
         }
 
-        const minDurationHours = 1;
-        const minDurationMs = minDurationHours * 60 * 60 * 1000;
-        if (end <= start) {
-            req.flash('error', 'End date must be after start date');
-            return res.redirect('/admin/addoffer');
-        }
-        if ((end - start) < minDurationMs) {
-            req.flash('error', `End date must be at least ${minDurationHours} hour(s) after start date`);
-            return res.redirect('/admin/addoffer');
+        // const minDurationHours = 1;
+        // const minDurationMs = minDurationHours * 60 * 60 * 1000;
+        // if (end <= start) {
+        //     req.flash('error', 'End date must be after start date');
+        //     return res.redirect('/admin/addoffer');
+        // }
+        // if ((end - start) < minDurationMs) {
+        //     req.flash('error', `End date must be at least ${minDurationHours} hour(s) after start date`);
+        //     return res.redirect('/admin/addoffer');
+        // }
+
+        if(end <= start){
+           req.flash("error", "Start date must be after start date");
+           return res.redirect("/admin/addoffer");         
         }
 
         if (!['product', 'category'].includes(offerType)) {
@@ -216,6 +223,8 @@ exports.postAddOffer = async (req, res) => {
         return res.redirect('/admin/addoffer');
     }
 };
+
+
 // Render edit offer form
 
 exports.getEditOffer = async (req, res) => {

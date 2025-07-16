@@ -104,13 +104,14 @@ exports.cancelOrder = async (req, res) => {
         const { orderId } = req.params;
         const { cancelReason } = req.body;
         const userId = req.session.user.id;
+        console.log("req.params", req.params);
 
         if (!userId) {
             await session.abortTransaction();
             session.endSession();
             return res.status(401).json({ success: false, message: 'User not authenticated' });
         }
-
+console.log("hello from server:", orderId);
         const order = await Orders.findById(orderId)
             .populate('orderedItem.productId')
             .session(session);
@@ -160,15 +161,19 @@ exports.cancelOrder = async (req, res) => {
                     await product.save({ session });
                 }
 
-                if (totalOrderAmount > 0) {
-                    const itemProportion = item.totalProductPrice / totalOrderAmount;
-                    const itemDiscount = totalDiscount * itemProportion;
-                    refundAmount += item.totalProductPrice - itemDiscount;
+                let itemRefund = item.totalProductPrice
+
+                if (totalOrderAmount > 0 && totalDiscount > 0) {
+                  const itemProportion = item.totalProductPrice / totalOrderAmount;
+                  const itemDiscount = totalDiscount * itemProportion;
+                  itemRefund  -= itemDiscount;
                 } else {
-                    refundAmount += item.totalProductPrice;
+                  refundAmount += itemRefund;
                 }
             }
         }
+
+
 
         if (order.paymentStatus === 'Paid' && refundAmount > 0) {
             let wallet = await Wallet.findOne({ userId }).session(session);
@@ -206,12 +211,15 @@ exports.cancelOrder = async (req, res) => {
     }
 };
 
+
+
 // Cancel single product
 exports.cancelSingleProduct = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
+        
         const { orderId, productId } = req.params;
         const { cancelReason } = req.body;
         const userId = req.session.user.id;
@@ -270,16 +278,23 @@ exports.cancelSingleProduct = async (req, res) => {
             product.totalStock += item.quantity;
             await product.save({ session });
         }
-
+        console.log("cancelItem:",item)
         const totalOrderAmount = order.orderAmount || 0;
         const totalDiscount = (order.discountAmount || 0) + (order.couponDiscount || 0);
         let refundAmount = item.totalProductPrice || 0;
+       
+        console.log("totalOrderAmount", totalOrderAmount);
+        console.log("totalDiscount", totalDiscount);
 
         if (totalOrderAmount > 0) {
             const itemProportion = item.totalProductPrice / totalOrderAmount;
             const itemDiscount = totalDiscount * itemProportion;
-            refundAmount = item.totalProductPrice - itemDiscount;
+            console.log("itemProportion", itemProportion);
+            console.log("itemDiscount", itemDiscount);
+            refundAmount = totalOrderAmount +100;
+            
         }
+
         refundAmount = Math.max(refundAmount, 0);
 
         if (order.paymentStatus === 'Paid' && refundAmount > 0) {

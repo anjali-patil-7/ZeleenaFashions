@@ -3,9 +3,15 @@ const Product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
 const Offer = require("../../models/offerSchema");
 
+const getISTTime = () => {
+  const now = new Date();
+  const ISTOffset = 5.5 * 60 * 60000;
+  return new Date(now.getTime() + ISTOffset);
+};
+
 // Helper function to get the best offer for a product
 const getBestOffer = async (product) => {
-  const currentDate = new Date();
+  const currentDate = getISTTime();
   // Fetch product-specific offers
   const productOffers = await Offer.find({
     offerType: "product",
@@ -36,6 +42,8 @@ const getBestOffer = async (product) => {
   const discountAmount = (product.price * bestOffer.discount) / 100;
   const finalPrice = product.price - discountAmount;
 
+
+
   return {
     discount: bestOffer.discount,
     discountAmount,
@@ -62,7 +70,6 @@ exports.getHomePage = async (req, res) => {
       .sort({ createdAt: -1 }) // Sort by createdAt in descending order (newest first)
       .limit(20) // Increased limit to ensure new products are included
       .lean();
-    console.log(products);
     if (!products.length) {
       console.log("No active products found.");
     }

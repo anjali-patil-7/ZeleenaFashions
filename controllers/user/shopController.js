@@ -2,8 +2,15 @@ const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const Offer = require("../../models/offerSchema");
 
+const getISTTime = () => {
+  const now = new Date();
+  const ISTOffset = 5.5 * 60 * 60000;
+  return new Date(now.getTime() + ISTOffset);
+};
+
+// Helper function to get the best offer for a product
 const getBestOffer = async (product) => {
-  const currentDate = new Date();
+  const currentDate = getISTTime();
   // Fetch product-specific offers
   const productOffers = await Offer.find({
     offerType: "product",

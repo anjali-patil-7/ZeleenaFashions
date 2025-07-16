@@ -181,7 +181,7 @@
             Cancel Order
           </button>
           <% } else { %>
-          <button class="cancel-order-btn disabled" disabled>
+          <button class="cancel-order-btn ">
             Cancel Order
           </button>
           <% } %>
@@ -542,7 +542,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   // Cancel Order Functionality
-  const cancelButtons = document.querySelectorAll(".cancel-order-btn:not(.disabled)");
+  const cancelButtons = document.querySelectorAll(".cancel-order-btn:not(disabled)");
   cancelButtons.forEach((button) => {
     button.addEventListener("click", function () {
       const orderId = this.getAttribute("data-order-id");
@@ -632,8 +632,9 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   });
-
+   
   function cancelProduct(orderId, productId, cancelReason) {
+   console.log("orderid...",orderId)
     fetch(`/orders/${orderId}/cancel-product/${productId}`, {
       method: "POST",
       headers: {
