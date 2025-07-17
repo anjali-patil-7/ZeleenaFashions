@@ -81,7 +81,6 @@ exports.getOrderDetails = async (req, res) => {
 
         let discountAmount = order.discountAmount || 0;
         let finalPrice = order.finalAmount;
-
         res.render('user/orderdetails', {
             order,
             address: { address: [address] },
@@ -97,119 +96,139 @@ exports.getOrderDetails = async (req, res) => {
 
 // Cancel entire order
 exports.cancelOrder = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    try {
-        const { orderId } = req.params;
-        const { cancelReason } = req.body;
-        const userId = req.session.user.id;
-        console.log("req.params", req.params);
+  try {
+    const { orderId } = req.params;
+    const { cancelReason } = req.body;
+    const userId = req.session.user.id;
 
-        if (!userId) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(401).json({ success: false, message: 'User not authenticated' });
-        }
-console.log("hello from server:", orderId);
-        const order = await Orders.findById(orderId)
-            .populate('orderedItem.productId')
-            .session(session);
-        if (!order) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(404).json({ success: false, message: 'Order not found' });
-        }
-
-        if (!order.userId) {
-            console.error(`Order ${orderId} is missing userId`);
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ success: false, message: 'Invalid order: missing user information' });
-        }
-
-        if (order.userId.toString() !== userId.toString()) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(403).json({ success: false, message: 'Unauthorized action' });
-        }
-
-        if (!['Pending', 'Shipped'].includes(order.orderStatus)) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({
-                success: false,
-                message: 'Order cannot be cancelled in current status'
-            });
-        }
-
-        order.orderStatus = 'Cancelled';
-        order.cancelReason = cancelReason || 'No reason provided';
-
-        let refundAmount = 0;
-        const totalOrderAmount = order.orderAmount || 0;
-        const totalDiscount = (order.discountAmount || 0) + (order.couponDiscount || 0);
-
-        for (const item of order.orderedItem) {
-            if (['Pending', 'Shipped'].includes(item.productStatus)) {
-                item.productStatus = 'Cancelled';
-                item.cancelReason = cancelReason || 'Order cancelled';
-
-                const product = await Product.findById(item.productId._id).session(session);
-                if (product) {
-                    product.totalStock += item.quantity;
-                    await product.save({ session });
-                }
-
-                let itemRefund = item.totalProductPrice
-
-                if (totalOrderAmount > 0 && totalDiscount > 0) {
-                  const itemProportion = item.totalProductPrice / totalOrderAmount;
-                  const itemDiscount = totalDiscount * itemProportion;
-                  itemRefund  -= itemDiscount;
-                } else {
-                  refundAmount += itemRefund;
-                }
-            }
-        }
-
-
-
-        if (order.paymentStatus === 'Paid' && refundAmount > 0) {
-            let wallet = await Wallet.findOne({ userId }).session(session);
-            if (!wallet) {
-                wallet = new Wallet({ userId, balance: 0, transaction: [] });
-            }
-
-            wallet.balance = (wallet.balance || 0) + refundAmount;
-            wallet.transaction.push({
-                amount: refundAmount,
-                transactionsMethod: 'Refund',
-                description: `Refund for cancelled order (Order: ${order.orderNumber})`,
-                orderId: order._id,
-                date: new Date()
-            });
-
-            await wallet.save({ session });
-        }
-
-        await order.save({ session });
-
-        await session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({
-            success: true,
-            message: 'Order cancelled successfully',
-            refundAmount: order.paymentStatus === 'Paid' ? refundAmount : 0
-        });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error('Error cancelling order:', error);
-        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    if (!userId) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(401)
+        .json({ success: false, message: "User not authenticated" });
     }
+
+    const order = await Orders.findById(orderId)
+      .populate("orderedItem.productId")
+      .session(session);
+
+    if (!order) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    if (order.userId.toString() !== userId.toString()) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized action" });
+    }
+
+    if (!["Pending", "Shipped", "Confirmed"].includes(order.orderStatus)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: "Order cannot be cancelled in current status",
+      });
+    }
+
+    order.orderStatus = "Cancelled";
+    order.cancelReason = cancelReason || "No reason provided";
+
+    // Refund calculation
+    let refundAmount = 0;
+    const totalOrderAmount = order.orderAmount || 0;
+    console.log("totalOrderAmount...", totalOrderAmount);
+    const totalDiscount =
+      (order.discountAmount || 0) + (order.couponDiscount || 0);
+
+    for (const item of order.orderedItem) {
+      if (["Pending", "Shipped"].includes(item.productStatus)) {
+        item.productStatus = "Cancelled";
+        item.cancelReason = cancelReason || "Order cancelled";
+
+        const product = await Product.findById(item.productId._id).session(
+          session
+        );
+        if (product) {
+          product.totalStock += item.quantity;
+          await product.save({ session });
+        }
+
+        // Refund = total price - proportional discount
+        let itemRefund = item.totalProductPrice;
+        const itemProportion = item.totalProductPrice / totalOrderAmount;
+        const itemDiscount = totalDiscount * itemProportion;
+        itemRefund -= itemDiscount;
+
+        refundAmount = itemRefund;
+      }
+    }
+
+    // Subtract fixed non-refundable shipping charge (₹100)
+    const SHIPPING_CHARGE = 100;
+    // refundAmount -= SHIPPING_CHARGE;
+    refundAmount = order.orderAmount+SHIPPING_CHARGE
+
+    if (refundAmount < 0) refundAmount = 0;
+
+    // Wallet refund
+    if (order.paymentStatus === "Paid" && refundAmount > 0) {
+      let wallet = await Wallet.findOne({ userId }).session(session);
+      if (!wallet) {
+        wallet = new Wallet({ userId, balance: 0, transaction: [] });
+      }
+
+      wallet.balance += refundAmount;
+      wallet.transaction.push({
+        amount: refundAmount,
+        transactionsMethod: "Refund",
+        description: `Refund for cancelled order (Order: ${order.orderNumber})`,
+        orderId: order._id,
+        date: new Date(),
+      });
+
+      await wallet.save({ session });
+
+      // Update order financials
+      order.paymentStatus = "refunded";
+      order.orderAmount = 0;
+      order.discountAmount = 0;
+      order.couponDiscount = 0;
+      order.finalAmount = 0;
+    }
+
+    await order.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled and refunded successfully",
+      refundAmount: refundAmount,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error cancelling order:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message,
+    });
+  }
 };
+
+
+
 
 
 

@@ -368,7 +368,7 @@
             <% } %>
 
             <% for (let i = startPage; i <= endPage; i++) { %>
-                <a href="/admin/orders?page=<%= i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                <a href="/admin/orders?page=<%=i %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                     <%= i %>
                 </a>
             <% } %>
@@ -377,7 +377,7 @@
                 <% if (endPage < totalPages - 1) { %>
                     <span class="page-link">...</span>
                 <% } %>
-                <a href="/admin/orders?page=<%= totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
+                <a href="http:localhost:3000/admin/orders?page=<%=totalPages %><%= searchQuery ? '&query=' + encodeURIComponent(searchQuery) : '' %>" class="page-link"><%= totalPages %></a>
             <% } %>
 
             <% if (currentPage < totalPages) { %>

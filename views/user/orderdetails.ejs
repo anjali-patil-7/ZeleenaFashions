@@ -176,7 +176,7 @@
         <!-- Order Actions Section -->
         <div class="order-actions-section">
           <a href="/orders" class="btn-back">Back to Orders</a>
-          <% if (order.orderStatus === 'Pending' || order.orderStatus === 'Shipped') { %>
+          <% if (order.orderStatus === 'Pending' || order.orderStatus === 'Shipped' ||order.orderStatus ==="Confirmed") { %>
           <button class="cancel-order-btn" data-order-id="<%= order._id %>">
             Cancel Order
           </button>
@@ -543,9 +543,13 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Cancel Order Functionality
   const cancelButtons = document.querySelectorAll(".cancel-order-btn:not(disabled)");
+  console.log("Total cancel buttons:", cancelButtons.length);
+cancelButtons.forEach((btn, i) => console.log(`Button ${i} data-id:`, btn.getAttribute("data-order-id")));
+
   cancelButtons.forEach((button) => {
     button.addEventListener("click", function () {
       const orderId = this.getAttribute("data-order-id");
+  
 
       Swal.fire({
         title: "Cancel Order?",
@@ -607,6 +611,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Cancel Single Product Functionality
   const cancelProductButtons = document.querySelectorAll(".btn-cancel-product");
   cancelProductButtons.forEach((button) => {
+    
     button.addEventListener("click", function () {
       const orderId = this.getAttribute("data-order-id");
       const productId = this.getAttribute("data-product-id");

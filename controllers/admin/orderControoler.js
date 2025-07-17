@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 // List all orders with search, sort, and pagination
 exports.getOrders = async (req, res) => {
     try {
-        const { query, page = 1, limit = 5, sort = 'desc' } = req.query;
+        const { query, page, limit = 5, sort = 'desc' } = req.query;
 
         // Validate inputs
         const currentPage = Math.max(1, parseInt(page) || 1);
@@ -66,10 +66,7 @@ exports.getOrders = async (req, res) => {
 
         // Fetch orders
         const orders = await Orders.aggregate(aggregationPipeline);
-
-        console.log('Total Orders:', totalOrders);
-        console.log('Orders Fetched:', orders.length);
-
+        
         // Process orders
         const processedOrders = orders.map(order => ({
             ...order,

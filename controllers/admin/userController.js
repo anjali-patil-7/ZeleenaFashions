@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const getUsers = async (req, res) => {
     try {
         let page = parseInt(req.query.page) || 1;
-        const limit = 5; // Changed to 5 users per page
+        const limit = 5; 
         const searchQuery = req.query.query ? req.query.query.trim() : '';
 
         // Validate page number

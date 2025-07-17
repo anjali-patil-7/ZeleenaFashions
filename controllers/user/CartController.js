@@ -4,46 +4,54 @@ const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const Wishlist = require('../../models/wishlistSchema');
 const Offer = require('../../models/offerSchema');
-const Coupon = require('../../models/couponSchema'); // Added Coupon model import
-
-// Helper: Find the best offer for a product
-const getBestOffer = async (product) => {
-    const currentDate = new Date();
-    // Look for product-specific offers
-    const productOffers = await Offer.find({
-        offerType: 'product',
-        productId: product._id,
-        status: true,
-        startDate: { $lte: currentDate },
-        endDate: { $gte: currentDate },
-    }).lean();
-    
-    // Look for category-specific offers
-    const categoryOffers = await Offer.find({
-        offerType: 'category',
-        categoryId: product.category,
-        status: true,
-        startDate: { $lte: currentDate },
-        endDate: { $gte: currentDate },
-    }).lean();
-    
-    // Combine offers and find the best discount
-    const allOffers = [...productOffers, ...categoryOffers];
-    if (allOffers.length === 0) return { discount: 0, finalPrice: product.price, offerName: '' };
-    
-    const bestOffer = allOffers.reduce((max, offer) => 
-        offer.discount > max.discount ? offer : max, { discount: 0 });
-    
-    const discountAmount = (product.price * bestOffer.discount) / 100;
-    const finalPrice = product.price - discountAmount;
-  
-    return {
-        discount: bestOffer.discount,
-        discountAmount,
-        finalPrice,
-        offerName: bestOffer.offerName,
-    };
+const Coupon = require('../../models/couponSchema'); 
+const getISTTime = () => {
+  const now = new Date();
+  const ISTOffset = 5.5 * 60 * 60000;
+  return new Date(now.getTime() + ISTOffset);
 };
+
+// Helper function to get the best offer for a product
+const getBestOffer = async (product) => {
+  const currentDate = getISTTime();
+  // Fetch product-specific offers
+  const productOffers = await Offer.find({
+    offerType: "product",
+    productId: product._id,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
+
+  // Fetch category-specific offers
+  const categoryOffers = await Offer.find({
+    offerType: "category",
+    categoryId: product.category,
+    status: true,
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
+  }).lean();
+
+  // Combine and find the best offer
+  const allOffers = [...productOffers, ...categoryOffers];
+  if (allOffers.length === 0) return { discount: 0, finalPrice: product.price };
+
+  const bestOffer = allOffers.reduce(
+    (max, offer) => (offer.discount > max.discount ? offer : max),
+    { discount: 0 }
+  );
+
+  const discountAmount = (product.price * bestOffer.discount) / 100;
+  const finalPrice = product.price - discountAmount;
+
+  return {
+    discount: bestOffer.discount,
+    discountAmount,
+    finalPrice,
+    offerName: bestOffer.offerName,
+  };
+};
+
 
 // List Products in Cart
 exports.getCart = async (req, res) => {
