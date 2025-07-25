@@ -21,6 +21,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cropperjs": "^2.0.0",
+    "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "exceljs": "^4.4.0",

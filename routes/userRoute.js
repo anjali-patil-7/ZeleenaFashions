@@ -9,7 +9,7 @@ const wishlistController = require('../controllers/user/wishlistController');
 const checkoutController = require('../controllers/user/checkoutController');
 const orderController = require('../controllers/user/OrderController');
 const paymentController = require('../controllers/user/PaymentController');
-const { verifySession, ifLogged, logged, shopMiddleWare } = require('../middlewares/auth'); // Updated middleware import
+const { verifySession, ifLogged, logged, shopMiddleWare } = require('../middlewares/auth'); 
 
 const router = express.Router();
 
@@ -27,9 +27,9 @@ router.get('/singleproduct/:id', shopController.getSingleProduct);
 
 // Authentication routes
 router.get('/register', ifLogged, authController.getSignup);
-router.post('/register', authController.postSignup); // Note: ifLogged removed to allow form submission
+router.post('/register', authController.postSignup); 
 router.get('/login', ifLogged, authController.getLogin);
-router.post('/login', authController.postLogin); // Note: ifLogged removed to allow form submission
+router.post('/login', authController.postLogin); 
 router.get('/verify-otp', authController.verifyOTP);
 router.post('/verify-otp', authController.verifyOTP);
 router.post('/resend-otp', authController.resendOTP);

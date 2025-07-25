@@ -385,14 +385,18 @@ exports.getCartTotals = async (req, res) => {
             });
         }
 
-        if (items.length === 0) {
-            console.log(`All cart items are invalid: ${invalidProducts.join(', ')}`);
-            return res.status(400).json({
-                success: false,
-                message: `All items in cart are invalid: ${invalidProducts.join(', ')}`,
-                items: [],
-                invalidProducts,
-            });
+        if (invalidProducts.length > 0) {
+          console.log(
+            `All cart items are invalid: ${invalidProducts.join(", ")}`
+          );
+          return res.status(400).json({
+            success: false,
+            message: `All items in cart are invalid: ${invalidProducts.join(
+              ", "
+            )}`,
+            items: [],
+            invalidProducts,
+          });
         }
 
         // Calculate totals

@@ -164,7 +164,7 @@ exports.getShopPage = async (req, res) => {
   }
 };
 
-// The rest of the file (getShopByFilter, getSingleProduct) remains mostly the same, but update getBestOffer calls
+
 exports.getShopByFilter = async (req, res) => {
   try {
     const categoryId = req.params.categoryId;
@@ -294,6 +294,8 @@ exports.getShopByFilter = async (req, res) => {
 exports.getSingleProduct = async (req, res) => {
   try {
     const productId = req.params.id;
+
+  
     const product = await Product.findById(productId)
       .populate("category")
       .lean();

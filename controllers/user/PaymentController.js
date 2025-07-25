@@ -137,18 +137,18 @@ const createOrder = async (userId, addressId, paymentMethod, couponCode, additio
       throw new Error("Invalid address selected");
     }
 
-        // Validate stock
-        for (const item of cart.cartItem) {
-          if (!item.productId) {
-            throw new Error(`Product not found for item ${item._id}`);
-          }
-          if (item.quantity > item.productId.totalStock) {
-            throw new Error(`Insufficient stock for ${item.productId.productName}`);
-          }
-          if (!item.productId.status) {
-            throw new Error(`${item.productId.productName} is unavailable`);
-          }
-        }
+    // Validate stock
+    for (const item of cart.cartItem) {
+      if (!item.productId) {
+        throw new Error(`Product not found for item ${item._id}`);
+      }
+      if (item.quantity > item.productId.totalStock) {
+        throw new Error(`Insufficient stock for ${item.productId.productName}`);
+      }
+      if (!item.productId.status) {
+        throw new Error(`${item.productId.productName} is unavailable`);
+      }
+    }
 
     // Calculate totals
     let subtotal = 0;
@@ -176,6 +176,28 @@ const createOrder = async (userId, addressId, paymentMethod, couponCode, additio
         refunded: false,
         returnApproved: false,
       });
+
+       console.log("createOrderpaymentMethod:", paymentMethod);
+       // Update product stock
+       if (paymentMethod !== "razorpay") {
+         for (const item of cart.cartItem) {
+           await Product.findByIdAndUpdate(item.productId._id, {
+             $inc: { totalStock: -item.quantity },
+           });
+         }
+       }
+       console.log(
+         "additionalFields.paymentStatus:",
+         additionalFields.paymentStatus
+       );
+       if (
+         paymentMethod === "razorpay" &&
+         additionalFields.paymentStatus === "Paid"
+       ) {
+         await Product.findByIdAndUpdate(item.productId._id, {
+           $inc: { totalStock: -item.quantity },
+         });
+       }
     }
 
     // Apply 20% discount for orders above ₹5000
@@ -267,14 +289,7 @@ const createOrder = async (userId, addressId, paymentMethod, couponCode, additio
       });
     }
 
-    // Update product stock
-    for (const item of cart.cartItem) {
-      await Product.findByIdAndUpdate(item.productId._id, {
-        $inc: { totalStock: -item.quantity },
-      });
-    }
-
-    return order;
+    return await order;
   } catch (error) {
     console.error('Error creating order:', error);
     throw error;
@@ -284,6 +299,7 @@ const createOrder = async (userId, addressId, paymentMethod, couponCode, additio
 // Place order (for COD and Wallet)
 exports.placeOrder = async (req, res) => {
   try {
+    console.log("hitplaceOrder");
     const { addressId, paymentMethod, couponCode } = req.body;
     const userId = req.session.user.id;
     
@@ -306,6 +322,25 @@ exports.placeOrder = async (req, res) => {
         message: 'Cart is empty',
       });
     }
+    //stock validation
+    for(const items of cart.cartItem){
+      const product = items.productId
+      const quantity = items.quantity
+
+      if(!product || product.stock < quantity){
+        return res.status(400).json({
+          success : false,
+          message: `Product ${product.name} has only ${product.stock} in stock`
+        })
+      }
+    }
+    //stock reduce
+    for(const items of cart.cartItem){
+      await Product.findByIdAndUpdate(items.productId._id, {
+        $inc: { totalStock: -items.quantity },
+      });
+    }
+   
 
     // Calculate final amount
     const finalAmount = await calculateFinalAmount(userId, couponCode);
@@ -377,6 +412,7 @@ exports.placeOrder = async (req, res) => {
 // Create Razorpay order
 exports.createRazorpayOrder = async (req, res) => {
   try {
+    console.log("createRazorpayOrder:",req.body);
     const { addressId, paymentMethod, couponCode } = req.body;
     const userId = req.session.user.id;
     console.log('Creating Razorpay order for user:', userId);

@@ -2,7 +2,14 @@ const User = require("../../models/userSchema");
 const OTP = require("../../models/otpSchema");
 const transporter = require("../../config/nodemailer");
 const passport = require("../../config/passport");
+const crypto = require("crypto")
 const bcrypt = require("bcryptjs");
+
+//referal code
+const generateReferralCode = (userId) => {
+  const randomBytes = crypto.randomBytes(3).toString("hex");
+  return `REF${userId.substring(0, 5)}${randomBytes}`.toUpperCase();
+};
 
 // Render the signup page
 exports.getSignup = (req, res) => {
@@ -32,7 +39,7 @@ exports.getLogin = (req, res) => {
 
 // Handle signup form submission
 exports.postSignup = async (req, res) => {
-  const { userName, email, phone, password, confirmPassword } = req.body;
+  const { userName, email, phone, password, confirmPassword, referralCode } = req.body;
   let errors = [];
 
   try {
@@ -121,6 +128,7 @@ exports.postSignup = async (req, res) => {
       email,
       phone,
       password,
+      referralCode
     };
 
     // Generate and store OTP

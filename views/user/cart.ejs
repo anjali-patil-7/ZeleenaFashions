@@ -550,7 +550,9 @@
           icon: 'error',
           title: 'Error',
           text: errorMessage
-        });
+        }).then(()=>{
+          window.location.href = '/';
+        })
         checkoutButton.innerHTML = originalText;
         checkoutButton.style.pointerEvents = 'auto';
       },
