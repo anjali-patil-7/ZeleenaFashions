@@ -1,416 +1,497 @@
 <%- include('../partials/user/header') %>
 <style>
-  
-    .personal-info {
-        border: 1px solid #e0e0e0;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+  .personal-info {
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 
-    .info-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
+  .info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
 
-    .info-header h2 {
-        font-size: 24px;
-        color: #333333;
-        margin: 0;
-    }
+  .info-header h2 {
+    font-size: 24px;
+    color: #333333;
+    margin: 0;
+  }
 
-    .edit-btn {
-        background-color: #595959;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s ease;
-    }
+  .edit-btn {
+    background-color: #595959;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
 
-    .edit-btn:hover {
-        background-color: #1d2951;
-    }
+  .edit-btn:hover {
+    background-color: #1d2951;
+  }
 
-    .info-row {
-        display: flex;
-        margin-bottom: 15px;
-        padding: 10px 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
+  .info-row {
+    display: flex;
+    margin-bottom: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
 
-    .info-row:last-child {
-        border-bottom: none;
-    }
+  .info-row:last-child {
+    border-bottom: none;
+  }
 
-    .info-label {
-        width: 150px;
-        font-weight: 600;
-        color: #555555;
-    }
+  .info-label {
+    width: 150px;
+    font-weight: 600;
+    color: #555555;
+  }
 
-    .info-row span {
-        color: #333333;
-    }
+  .info-row span {
+    color: #333333;
+  }
 
-    /* Edit Mode Styles */
-    .form-group {
-        margin-bottom: 20px;
-    }
+  /* Edit Mode Styles */
+  .form-group {
+    margin-bottom: 20px;
+  }
 
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        color: #555555;
-        margin-bottom: 5px;
-    }
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    color: #555555;
+    margin-bottom: 5px;
+  }
 
-    .form-group input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        font-size: 14px;
-        color: #333333;
-        transition: border-color 0.3s ease;
-    }
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333333;
+    transition: border-color 0.3s ease;
+  }
 
-    .form-group input:focus {
-        border-color: #1d2951;
-        outline: none;
-    }
+  .form-group input:focus {
+    border-color: #1d2951;
+    outline: none;
+  }
 
-    .button-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
 
-    .button-group button {
-        padding: 8px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s ease;
-    }
+  .button-group button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
 
-    .button-group button[type="submit"] {
-        background-color: #595959;
-        color: white;
-    }
+  .button-group button[type="submit"] {
+    background-color: #595959;
+    color: white;
+  }
 
-    .button-group button[type="submit"]:hover {
-        background-color: #1d2951;
-    }
+  .button-group button[type="submit"]:hover {
+    background-color: #1d2951;
+  }
 
-    .button-group button[type="button"] {
-        background-color: #695223;
-        color: white;
-    }
+  .button-group button[type="button"] {
+    background-color: #695223;
+    color: white;
+  }
 
-    .button-group button[type="button"]:hover {
-        background-color: #595959;
-    }
+  .button-group button[type="button"]:hover {
+    background-color: #595959;
+  }
 
-   
-    .welcome-section {
-        border: 1px solid #e0e0e0;
-        padding: 20px;
-        border-radius: 8px;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+  .welcome-section {
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 
-    .welcome-section p {
-        font-size: 16px;
-        color: #2c2828;
-        margin: 0 0 15px 0;
-    }
+  .welcome-section p {
+    font-size: 16px;
+    color: #2c2828;
+    margin: 0 0 15px 0;
+  }
 
-    .welcome-section p strong {
-        color: #333333;
-    }
+  .welcome-section p strong {
+    color: #333333;
+  }
 
-    .welcome-section a {
-        color: #0d31ff;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
+  .welcome-section a {
+    color: #0d31ff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
 
-    .welcome-section a:hover {
-        color: #1d2951;
-    }
+  .welcome-section a:hover {
+    color: #1d2951;
+  }
 </style>
 <!-- Begin Hiraola's Breadcrumb Area -->
 <div class="breadcrumb-area">
-    <div class="container">
-        <div class="breadcrumb-content">
-            <h2>Other</h2>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li class="active">My Account</li>
-            </ul>
-        </div>
+  <div class="container">
+    <div class="breadcrumb-content">
+      <h2>Other</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li class="active">My Account</li>
+      </ul>
     </div>
+  </div>
 </div>
 <!-- Hiraola's Breadcrumb Area End Here -->
 
 <!-- Begin Hiraola's Page Content Area -->
 <main class="page-content">
-    <div class="account-page-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3">
-                    <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="account-dashboard-tab" href="/profile" aria-controls="account-dashboard" aria-selected="true">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-orders-tab" href="/orders" aria-controls="account-orders" aria-selected="false">Orders</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-address-tab" href="/address" aria-controls="account-address" aria-selected="false">Addresses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-wallet-tab" href="/walletHistory" aria-controls="account-wallet" aria-selected="false">Wallet</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-details-tab" href="/changepassword" aria-controls="account-details" aria-selected="false">Change Password</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="account-logout-tab" href="/logout" onclick="logout()" role="tab" aria-selected="false">Logout</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-lg-9">
-                    <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
-                        <!-- Personal Information Section -->
-                        <div class="personal-info">
-                            <div class="info-header">
-                                <h2>Personal Information</h2>
-                                <button class="edit-btn" onclick="toggleEdit()" id="editBtn">Edit Details</button>
-                            </div>
-
-                            <!-- View Mode -->
-                            <div id="viewMode">
-                                <% if (user) { %>
-                                    <div class="info-row">
-                                        <span class="info-label">Name:</span>
-                                        <span><%= user.userName || 'Guest' %></span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Phone number:</span>
-                                        <span><%= user.phone || 'Not provided' %></span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Email address:</span>
-                                        <span><%= user.email || 'Not provided' %></span>
-                                    </div>
-                                <% } else { %>
-                                    <div class="info-row">
-                                        <span class="info-label">Name:</span>
-                                        <span>Guest</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Phone number:</span>
-                                        <span>Not provided</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Email address:</span>
-                                        <span>Not provided</span>
-                                    </div>
-                                <% } %>
-                            </div>
-
-                            <!-- Edit Mode -->
-                            <form id="editMode" style="display: none;" onsubmit="updateProfile(event)">
-                                <% if (user) { %>
-                                    <div class="form-group">
-                                        <label>Name:</label>
-                                        <input type="text" name="userName" value="<%= user.userName || '' %>">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Phone number:</label>
-                                        <input type="tel" name="phone" value="<%= user.phone || '' %>">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Email address:</label>
-                                        <input type="text" value="<%= user.email || '' %>" readonly>
-                                    </div>
-                                <% } else { %>
-                                    <div class="form-group">
-                                        <label>Name:</label>
-                                        <input type="text" name="userName" value="">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Phone number:</label>
-                                        <input type="tel" name="phone" value="">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Email address:</label>
-                                        <input type="text" value="Not provided" readonly>
-                                    </div>
-                                <% } %>
-                                <div class="button-group">
-                                    <button type="submit" class="edit-btn">Save Changes</button>
-                                    <button type="button" onclick="toggleEdit()" style="background-color: #695223;">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <br><br>
-
-                        <!-- Welcome Section -->
-                        <div class="welcome-section">
-                            <% if (user) { %>
-                                <p>Hello <strong><%= user.userName || 'Guest' %></strong> (not <%= user.userName || 'Guest' %>? <a href="/logout">Logout</a>)</p>
-                                <p>From your account dashboard you can view your recent orders, manage your shipping and
-                                    billing addresses and <a href="javascript:void(0)" onclick="toggleEdit()">edit your account
-                                    details</a>.</p>
-                            <% } else { %>
-                                <p>Hello <strong>Guest</strong> (not a user? <a href="/logout">Logout</a>)</p>
-                                <p>Please <a href="/login">log in</a> to access your account dashboard, view recent orders, and manage your details.</p>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="account-page-area">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-3">
+          <ul
+            class="nav myaccount-tab-trigger"
+            id="account-page-tab"
+            role="tablist"
+          >
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                id="account-dashboard-tab"
+                href="/profile"
+                aria-controls="account-dashboard"
+                aria-selected="true"
+                >Dashboard</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="account-orders-tab"
+                href="/orders"
+                aria-controls="account-orders"
+                aria-selected="false"
+                >Orders</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="account-address-tab"
+                href="/address"
+                aria-controls="account-address"
+                aria-selected="false"
+                >Addresses</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="account-wallet-tab"
+                href="/walletHistory"
+                aria-controls="account-wallet"
+                aria-selected="false"
+                >Wallet</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="account-details-tab"
+                href="/changepassword"
+                aria-controls="account-details"
+                aria-selected="false"
+                >Change Password</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="account-logout-tab"
+                href="/logout"
+                onclick="logout()"
+                role="tab"
+                aria-selected="false"
+                >Logout</a
+              >
+            </li>
+          </ul>
         </div>
+        <div class="col-lg-9">
+          <div
+            class="tab-content myaccount-tab-content"
+            id="account-page-tab-content"
+          >
+            <!-- Personal Information Section -->
+            <div class="personal-info">
+              <div class="info-header">
+                <h2>Personal Information</h2>
+                <button class="edit-btn" onclick="toggleEdit()" id="editBtn">
+                  Edit Details
+                </button>
+              </div>
+
+              <!-- View Mode -->
+              <div id="viewMode">
+                <% if (user) { %>
+                <div class="info-row">
+                  <span class="info-label">Name:</span>
+                  <span><%= user.userName || 'Guest' %></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phone number:</span>
+                  <span><%= user.phone || 'Not provided' %></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Email address:</span>
+                  <span><%= user.email || 'Not provided' %></span>
+                </div>
+                <% } else { %>
+                <div class="info-row">
+                  <span class="info-label">Name:</span>
+                  <span>Guest</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phone number:</span>
+                  <span>Not provided</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Email address:</span>
+                  <span>Not provided</span>
+                </div>
+                <% } %>
+              </div>
+
+              <!-- Edit Mode -->
+              <form
+                id="editMode"
+                style="display: none"
+                onsubmit="updateProfile(event)"
+              >
+                <% if (user) { %>
+                <div class="form-group">
+                  <label>Name:</label>
+                  <input
+                    type="text"
+                    name="userName"
+                    value="<%= user.userName || '' %>"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Phone number:</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value="<%= user.phone || '' %>"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Email address:</label>
+                  <input type="text" value="<%= user.email || '' %>" readonly />
+                </div>
+                <% } else { %>
+                <div class="form-group">
+                  <label>Name:</label>
+                  <input type="text" name="userName" value="" />
+                </div>
+                <div class="form-group">
+                  <label>Phone number:</label>
+                  <input type="tel" name="phone" value="" />
+                </div>
+                <div class="form-group">
+                  <label>Email address:</label>
+                  <input type="text" value="Not provided" readonly />
+                </div>
+                <% } %>
+                <div class="button-group">
+                  <button type="submit" class="edit-btn">Save Changes</button>
+                  <button
+                    type="button"
+                    onclick="toggleEdit()"
+                    style="background-color: #695223"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+
+
+            <br /><br />
+
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+              <% if (user) { %>
+              <p>
+                Hello <strong><%= user.userName || 'Guest' %></strong> (not <%=
+                user.userName || 'Guest' %>? <a href="/logout">Logout</a>)
+              </p>
+              <p>
+                From your account dashboard you can view your recent orders,
+                manage your shipping and billing addresses and
+                <a href="javascript:void(0)" onclick="toggleEdit()"
+                  >edit your account details</a
+                >.
+              </p>
+              <% } else { %>
+              <p>
+                Hello <strong>Guest</strong> (not a user?
+                <a href="/logout">Logout</a>)
+              </p>
+              <p>
+                Please <a href="/login">log in</a> to access your account
+                dashboard, view recent orders, and manage your details.
+              </p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </main>
 <!-- Hiraola's Page Content Area End Here -->
 
 <%- include('../partials/user/footer') %>
 
 <script>
-async function updateProfile(event) {
+  async function updateProfile(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
     // Client-side validation
     if (!validateForm(data)) {
-        return;
+      return;
     }
-    
-    try {
-        const response = await fetch('/updateprofile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: result.message,
-                confirmButtonColor: '#595959'
-            }).then(() => {
-                window.location.reload();
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: result.message,
-                confirmButtonColor: '#595959'
-            });
-        }
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong!',
-            confirmButtonColor: '#595959'
-        });
-    }
-}
 
-function validateForm(data) {
+    try {
+      const response = await fetch("/updateprofile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: result.message,
+          confirmButtonColor: "#595959",
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: result.message,
+          confirmButtonColor: "#595959",
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+        confirmButtonColor: "#595959",
+      });
+    }
+  }
+
+  function validateForm(data) {
     // Name validation: Must start with a letter, 2-50 characters, only letters and spaces
     const nameRegex = /^[a-zA-Z][a-zA-Z\s]{1,49}$/;
     if (!nameRegex.test(data.userName)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Name',
-            text: 'Name must start with a letter, be 2-50 characters long, and contain only letters and spaces.',
-            confirmButtonColor: '#595959'
-        });
-        return false;
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Name",
+        text: "Name must start with a letter, be 2-50 characters long, and contain only letters and spaces.",
+        confirmButtonColor: "#595959",
+      });
+      return false;
     }
 
     // Phone validation: Exactly 10 digits
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(data.phone)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Phone Number',
-            text: 'Phone number must be exactly 10 digits.',
-            confirmButtonColor: '#595959'
-        });
-        return false;
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Phone Number",
+        text: "Phone number must be exactly 10 digits.",
+        confirmButtonColor: "#595959",
+      });
+      return false;
     }
 
     // Check for repeated digits (at least 5 unique digits)
-    const uniqueDigits = new Set(data.phone.split(''));
+    const uniqueDigits = new Set(data.phone.split(""));
     if (uniqueDigits.size < 5) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Phone Number',
-            text: 'Phone number contains too many repeated digits.',
-            confirmButtonColor: '#595959'
-        });
-        return false;
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Phone Number",
+        text: "Phone number contains too many repeated digits.",
+        confirmButtonColor: "#595959",
+      });
+      return false;
     }
 
     return true;
-}
+  }
 
-function toggleEdit() {
-    const viewMode = document.getElementById('viewMode');
-    const editMode = document.getElementById('editMode');
-    const editBtn = document.getElementById('editBtn');
-    
-    if (viewMode.style.display !== 'none') {
-        viewMode.style.display = 'none';
-        editMode.style.display = 'block';
-        editBtn.style.display = 'none';
+  function toggleEdit() {
+    const viewMode = document.getElementById("viewMode");
+    const editMode = document.getElementById("editMode");
+    const editBtn = document.getElementById("editBtn");
+
+    if (viewMode.style.display !== "none") {
+      viewMode.style.display = "none";
+      editMode.style.display = "block";
+      editBtn.style.display = "none";
     } else {
-        viewMode.style.display = 'block';
-        editMode.style.display = 'none';
-        editBtn.style.display = 'block';
+      viewMode.style.display = "block";
+      editMode.style.display = "none";
+      editBtn.style.display = "block";
     }
-}
+  }
 
-function logout() {
+  function logout() {
     Swal.fire({
-        title: `Are you sure?`,
-        text: `Do you want to continue to logout?`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#000000",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Logout",
-        cancelButtonText: "Cancel",
+      title: `Are you sure?`,
+      text: `Do you want to continue to logout?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#000000",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Logout",
+      cancelButtonText: "Cancel",
     }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = "/logout";
-        }
+      if (result.isConfirmed) {
+        window.location.href = "/logout";
+      }
     });
-}
+  }
 </script>
-

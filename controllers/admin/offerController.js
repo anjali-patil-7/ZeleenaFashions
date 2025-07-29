@@ -2,6 +2,84 @@ const mongoose = require('mongoose');
 const Offer = require('../../models/offerSchema');
 const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
+const User = require('../../models/userSchema')
+const Wallet = require("../../models/walletSchema");
+
+
+
+exports.handleReferralReward = async (referrerId) => {
+  try {
+    // Find an active referral offer
+    const referralOffer = await Offer.findOne({
+      status: true,
+      offerType: 'referral',
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() },
+      $or: [
+        { maxUses: null },
+        { maxUses: { $gt: "$usedCount" } }
+      ]
+    });
+
+    const rewardAmount = referralOffer ? referralOffer.discount : 300; // Default to 300 if no offer found
+
+    // Find or create the referrer's wallet
+    let referrerWallet = await Wallet.findOne({ userId: referrerId });
+    if (!referrerWallet) {
+      referrerWallet = await Wallet.create({
+        userId: referrerId,
+        balance: 0,
+        transaction: []
+      });
+    }
+
+    // Update referrer's wallet: increment balance and add transaction
+    referrerWallet = await Wallet.findOneAndUpdate(
+      { userId: referrerId },
+      {
+        $inc: { balance: rewardAmount },
+        $push: {
+          transaction: {
+            amount: rewardAmount,
+            transactionsMethod: 'referral',
+            description: 'Referral Bonus for successful signup',
+            date: new Date()
+          }
+        }
+      },
+      { new: true }
+    );
+
+    // Update referrer's referralRewards in User schema
+    const referrer = await User.findByIdAndUpdate(
+      referrerId,
+      {
+        $push: {
+          referralRewards: {
+            offerId: referralOffer ? referralOffer._id : null,
+            dateIssued: new Date(),
+            used: false
+          }
+        }
+      },
+      { new: true }
+    );
+
+    // Increment usedCount for the referral offer if it exists
+    if (referralOffer) {
+      await Offer.findByIdAndUpdate(
+        referralOffer._id,
+        { $inc: { usedCount: 1 } }
+      );
+    }
+
+    console.log(`Referral reward of ${rewardAmount} credited to referrer ${referrerId}`);
+    return referrer;
+  } catch (error) {
+    console.error('Error in handleReferralReward:', error);
+    return false;
+  }
+};
 
 // List all offers with pagination and search
 exports.getOfferList = async (req, res) => {

@@ -66,7 +66,7 @@ exports.getCart = async (req, res) => {
             path: 'cartItem.productId',
             populate: { path: 'category' },
         });
-        console.log("cartdetails>", cartDetails);
+
     
         // Attach offers to cart items
         let appliedOffers = {};

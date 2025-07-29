@@ -2,8 +2,10 @@ const User = require("../../models/userSchema");
 const OTP = require("../../models/otpSchema");
 const transporter = require("../../config/nodemailer");
 const passport = require("../../config/passport");
+const {handleReferralReward} = require('../../controllers/admin/offerController')
 const crypto = require("crypto")
 const bcrypt = require("bcryptjs");
+const { default: mongoose } = require("mongoose");
 
 //referal code
 const generateReferralCode = (userId) => {
@@ -109,6 +111,22 @@ exports.postSignup = async (req, res) => {
       errors.push("Phone number is already registered");
     }
 
+        let refferedBy = null;
+        if (referralCode && referralCode.toUpperCase() !== "NONE") {
+          console.log("Checking referral code:", referralCode.toUpperCase());
+          const refferrer = await User.findOne({
+            referralCode: referralCode.trim().toUpperCase(),
+          });
+          console.log("Referrer found:", refferrer);
+          if (!refferrer) {
+            errors.push("Invalid referral code");
+          } else if (refferrer.isBlocked) {
+            errors.push("Referrer account is blocked");
+          } else {
+            refferedBy = refferrer._id;
+          }
+        }
+
     // If there are errors, render the form with error messages
     if (errors.length > 0) {
       res.locals.session = req.session || {};
@@ -128,7 +146,7 @@ exports.postSignup = async (req, res) => {
       email,
       phone,
       password,
-      referralCode
+      refferedBy,
     };
 
     // Generate and store OTP
@@ -219,6 +237,14 @@ exports.verifyOTP = async (req, res) => {
       });
     }
 
+        const tempUserId = new mongoose.Types.ObjectId().toString();
+        let referralCode = generateReferralCode(tempUserId);
+        let existingReferral = await User.findOne({ referralCode });
+        while (existingReferral) {
+          referralCode = generateReferralCode(tempUserId);
+          existingReferral = await User.findOne({ referralCode });
+        }
+
     // Proceed with user creation and authentication
     const hashedPassword = await bcrypt.hash(signupData.password, 10);
     const user = await User.create({
@@ -227,7 +253,22 @@ exports.verifyOTP = async (req, res) => {
       phone: signupData.phone,
       password: hashedPassword,
       isVerified: true,
+      referralCode,
+      refferedBy: signupData.refferedBy || null,
     });
+
+        if (signupData.refferedBy) {
+          const refferrer = await User.findById(signupData.refferedBy);
+          if (refferrer) {
+            refferrer.successfulReferrals.push({
+              user: user._id,
+              date: new Date(),
+              rewardApplied: false,
+            });
+            await refferrer.save();
+            await handleReferralReward(refferrer._id);
+          }
+        }
 
     // Store user data in session and clear admin data
     req.session.user = {

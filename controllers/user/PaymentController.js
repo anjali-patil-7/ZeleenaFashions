@@ -775,6 +775,12 @@ exports.retryPayment = async (req, res) => {
         message: 'Invalid order or unauthorized',
       });
     }
+    if (order.orderStatus === "Cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot retry payment for a cancelled order.",
+      });
+    }
 
     if (order.paymentStatus !== 'Failed') {
       console.log('Order is not in Failed status:', order.paymentStatus);

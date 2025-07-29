@@ -9,7 +9,8 @@
         <li><a href="/">Home</a></li>
         <li><a href="/orders">My Orders</a></li>
         <li class="active">
-          Order <%= order && order.orderNumber ? order.orderNumber.toString().substring(0, 8) : 'N/A' %>
+          Order <%= order && order.orderNumber ?
+          order.orderNumber.toString().substring(0, 8) : 'N/A' %>
         </li>
       </ul>
     </div>
@@ -25,7 +26,10 @@
         <div class="order-summary-card">
           <div class="order-summary-header">
             <h3>Order Summary</h3>
-            <span class="order-date">Ordered on <%= new Date(order.createdAt).toLocaleDateString() %></span>
+            <span class="order-date"
+              >Ordered on <%= new Date(order.createdAt).toLocaleDateString()
+              %></span
+            >
           </div>
 
           <div class="order-summary-content">
@@ -35,33 +39,47 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">Order Status:</span>
-              <span class="detail-value status-badge <%= order && order.orderStatus ? order.orderStatus.toLowerCase() : '' %>">
-                <%= order && order.orderStatus ? order.orderStatus : 'Pending' %>
+              <span
+                class="detail-value status-badge <%= order && order.orderStatus ? order.orderStatus.toLowerCase() : '' %>"
+              >
+                <%= order && order.orderStatus ? order.orderStatus : 'Pending'
+                %>
               </span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Payment Method:</span>
-              <span class="detail-value status-badge <%= order.paymentMethod.toLowerCase() %>"><%= order.paymentMethod %></span>
+              <span
+                class="detail-value status-badge <%= order.paymentMethod.toLowerCase() %>"
+                ><%= order.paymentMethod %></span
+              >
             </div>
             <div class="detail-row">
               <span class="detail-label">Payment Status:</span>
-              <span class="detail-value status-badge <%= order.paymentStatus.toLowerCase() %>"><%= order.paymentStatus %></span>
+              <span
+                class="detail-value status-badge <%= order.paymentStatus.toLowerCase() %>"
+                ><%= order.paymentStatus %></span
+              >
             </div>
             <% if (order.shippingDate) { %>
             <div class="detail-row">
               <span class="detail-label">Shipping Date:</span>
-              <span class="detail-value"><%= new Date(order.shippingDate).toLocaleDateString() %></span>
+              <span class="detail-value"
+                ><%= new Date(order.shippingDate).toLocaleDateString() %></span
+              >
             </div>
-            <% } %>
-            <% if (order.deliveryDate) { %>
+            <% } %> <% if (order.deliveryDate) { %>
             <div class="detail-row">
               <span class="detail-label">Delivery Date:</span>
-              <span class="detail-value"><%= new Date(order.deliveryDate).toLocaleDateString() %></span>
+              <span class="detail-value"
+                ><%= new Date(order.deliveryDate).toLocaleDateString() %></span
+              >
             </div>
             <% } %>
             <div class="detail-row">
               <span class="detail-label">Total Amount:</span>
-              <span class="detail-value price">₹<%= order.orderAmount.toFixed(2) %></span>
+              <span class="detail-value price"
+                >₹<%= order.orderAmount.toFixed(2) %></span
+              >
             </div>
             <% if (order.cancelReason) { %>
             <div class="detail-row">
@@ -81,7 +99,8 @@
             <div class="address-name"><%= addr.name || '' %></div>
             <p class="address-phone"><%= addr.mobile || '' %></p>
             <p class="address-text">
-              <%= [ addr.houseName, addr.street, addr.city, addr.state, addr.pincode, addr.country ].filter(Boolean).join(', ') %>
+              <%= [ addr.houseName, addr.street, addr.city, addr.state,
+              addr.pincode, addr.country ].filter(Boolean).join(', ') %>
             </p>
             <span class="address-type"><%= addr.saveAs || '' %></span>
           </div>
@@ -94,12 +113,16 @@
         <div class="order-items-section">
           <h3>Ordered Items</h3>
           <div class="order-items-container">
-            <% if (order.orderedItem && order.orderedItem.length > 0) { %>
-            <% order.orderedItem.forEach(function(item) { %>
+            <% if (order.orderedItem && order.orderedItem.length > 0) { %> <%
+            order.orderedItem.forEach(function(item) { %>
             <div class="order-item">
               <div class="item-image">
-                <% if (item.productId.productImage && item.productId.productImage.length > 0) { %>
-                <img src="<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" />
+                <% if (item.productId.productImage &&
+                item.productId.productImage.length > 0) { %>
+                <img
+                  src="<%= item.productId.productImage[0] %>"
+                  alt="<%= item.productId.productName %>"
+                />
                 <% } else { %>
                 <div class="no-image">No Image</div>
                 <% } %>
@@ -112,30 +135,42 @@
                 </p>
                 <% } %>
                 <div class="item-meta">
-                  <span class="item-price">Price: ₹<%= item.productPrice.toFixed(2) %></span>
+                  <span class="item-price"
+                    >Price: ₹<%= item.productPrice.toFixed(2) %></span
+                  >
                   <span class="item-quantity">Qty: <%= item.quantity %></span>
                 </div>
               </div>
               <div class="item-totals">
                 <div class="item-total-price">
-                  ₹<%= item.totalProductPrice.toFixed(2) %>
+                  ₹<%= item.finalTotalProductPrice.toFixed(2) %>
                 </div>
-                <div class="item-status status-badge <%= item.productStatus.toLowerCase() %>">
+                <div
+                  class="item-status status-badge <%= item.productStatus.toLowerCase() %>"
+                >
                   <%= item.productStatus %>
                 </div>
                 <% if (item.productStatus === 'Delivered') { %>
-                <button class="btn-return" data-order-id="<%= order._id %>" data-product-id="<%= item._id %>">
+                <button
+                  class="btn-return"
+                  data-order-id="<%= order._id %>"
+                  data-product-id="<%= item._id %>"
+                >
                   Request Return
                 </button>
-                <% } else if (['Pending', 'Shipped'].includes(item.productStatus)) { %>
-                <button class="btn-cancel-product" data-order-id="<%= order._id %>" data-product-id="<%= item._id %>">
+                <% } else if (['Pending',
+                'Shipped'].includes(item.productStatus)) { %>
+                <button
+                  class="btn-cancel-product"
+                  data-order-id="<%= order._id %>"
+                  data-product-id="<%= item._id %>"
+                >
                   Cancel Product
                 </button>
                 <% } %>
               </div>
             </div>
-            <% }); %>
-            <% } else { %>
+            <% }); %> <% } else { %>
             <p>No items in this order</p>
             <% } %>
           </div>
@@ -147,25 +182,34 @@
           <div class="price-summary-content">
             <div class="price-row">
               <span class="price-label">Items Total:</span>
-              <span class="price-value">₹<%= order.orderAmount.toFixed(2) %></span>
+              <span class="price-value"
+                >₹<%= order.orderAmount.toFixed(2) %></span
+              >
             </div>
             <% if (order.shippingCharge) { %>
             <div class="price-row">
               <span class="price-label">Shipping Charge:</span>
-              <span class="price-value">₹<%= order.shippingCharge.toFixed(2) %></span>
+              <span class="price-value"
+                >₹<%= order.shippingCharge.toFixed(2) %></span
+              >
             </div>
             <% } else { %>
-              <div class="price-row">
+            <div class="price-row">
               <span class="price-label">Shipping Charge:</span>
               <span class="price-value">₹ 100.00</span>
             </div>
-            <% } %>
-            <% if (discountAmount && discountAmount > 0) { %>
+            <% } %> <% if (discountAmount && discountAmount > 0) { %>
             <div class="price-row discount">
               <span class="price-label">Total Discount:</span>
               <span class="price-value">₹<%= discountAmount.toFixed(2) %></span>
             </div>
+            <% } %> <% if(order.couponDiscount) {%>
+            <div class="price-row discount">
+              <span class="price-label">Coupon Discount:</span>
+              <span class="price-value">₹<%= couponDiscount.toFixed(2) %></span>
+            </div>
             <% } %>
+
             <div class="price-row total">
               <span class="price-label">Final Amount:</span>
               <span class="price-value">₹<%= finalPrice.toFixed(2) %></span>
@@ -176,14 +220,13 @@
         <!-- Order Actions Section -->
         <div class="order-actions-section">
           <a href="/orders" class="btn-back">Back to Orders</a>
-          <% if (order.orderStatus === 'Pending' || order.orderStatus === 'Shipped' ||order.orderStatus ==="Confirmed") { %>
+          <% if (order.orderStatus === 'Pending' || order.orderStatus ===
+          'Shipped' ||order.orderStatus ==="Confirmed") { %>
           <button class="cancel-order-btn" data-order-id="<%= order._id %>">
             Cancel Order
           </button>
           <% } else { %>
-          <button class="cancel-order-btn ">
-            Cancel Order
-          </button>
+          <button class="cancel-order-btn">Cancel Order</button>
           <% } %>
           <button class="download-invoice-btn" data-order-id="<%= order._id %>">
             Download Invoice
@@ -540,150 +583,165 @@
 <%- include('../partials/user/footer') %>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  // Cancel Order Functionality
-  const cancelButtons = document.querySelectorAll(".cancel-order-btn:not(disabled)");
-  console.log("Total cancel buttons:", cancelButtons.length);
-cancelButtons.forEach((btn, i) => console.log(`Button ${i} data-id:`, btn.getAttribute("data-order-id")));
+  document.addEventListener("DOMContentLoaded", function () {
+    // Cancel Order Functionality
+    const cancelButtons = document.querySelectorAll(
+      ".cancel-order-btn:not(disabled)"
+    );
+    console.log("Total cancel buttons:", cancelButtons.length);
+    cancelButtons.forEach((btn, i) =>
+      console.log(`Button ${i} data-id:`, btn.getAttribute("data-order-id"))
+    );
 
-  cancelButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const orderId = this.getAttribute("data-order-id");
-  
+    cancelButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const orderId = this.getAttribute("data-order-id");
 
-      Swal.fire({
-        title: "Cancel Order?",
-        text: "Are you sure you want to cancel this order?",
-        icon: "warning",
-        input: "textarea",
-        inputLabel: "Reason for cancellation (optional)",
-        inputPlaceholder: "Enter your reason here...",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, cancel it!",
-        preConfirm: (reason) => {
-          return { cancelReason: reason || '' };
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          cancelOrder(orderId, result.value.cancelReason);
-        }
+        Swal.fire({
+          title: "Cancel Order?",
+          text: "Are you sure you want to cancel this order?",
+          icon: "warning",
+          input: "textarea",
+          inputLabel: "Reason for cancellation (optional)",
+          inputPlaceholder: "Enter your reason here...",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, cancel it!",
+          preConfirm: (reason) => {
+            return { cancelReason: reason || "" };
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            cancelOrder(orderId, result.value.cancelReason);
+          }
+        });
       });
     });
-  });
 
-  function cancelOrder(orderId, cancelReason) {
-    fetch(`/orders/${orderId}/cancel`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": getCSRFToken()
-      },
-      credentials: 'include',
-      body: JSON.stringify({ cancelReason })
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
+    function cancelOrder(orderId, cancelReason) {
+      fetch(`/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": getCSRFToken(),
+        },
+        credentials: "include",
+        body: JSON.stringify({ cancelReason }),
       })
-      .then((data) => {
-        if (data.success) {
-          Swal.fire(
-            "Cancelled!",
-            `Your order has been cancelled. Refunded: ₹${data.refundAmount.toFixed(2)}`,
-            "success"
-          ).then(() => {
-            window.location.reload();
-          });
-        } else {
-          Swal.fire("Error!", data.message || "Failed to cancel order", "error");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        Swal.fire("Error!", error.message || "Something went wrong", "error");
-      });
-  }
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            Swal.fire(
+              "Cancelled!",
+              `Your order has been cancelled. Refunded: ₹${data.refundAmount.toFixed(
+                2
+              )}`,
+              "success"
+            ).then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire(
+              "Error!",
+              data.message || "Failed to cancel order",
+              "error"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          Swal.fire("Error!", error.message || "Something went wrong", "error");
+        });
+    }
 
-  // Cancel Single Product Functionality
-  const cancelProductButtons = document.querySelectorAll(".btn-cancel-product");
-  cancelProductButtons.forEach((button) => {
-    
-    button.addEventListener("click", function () {
-      const orderId = this.getAttribute("data-order-id");
-      const productId = this.getAttribute("data-product-id");
+    // Cancel Single Product Functionality
+    const cancelProductButtons = document.querySelectorAll(
+      ".btn-cancel-product"
+    );
+    cancelProductButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const orderId = this.getAttribute("data-order-id");
+        const productId = this.getAttribute("data-product-id");
 
-      Swal.fire({
-        title: "Cancel Product?",
-        text: "Are you sure you want to cancel this product?",
-        icon: "warning",
-        input: "textarea",
-        inputLabel: "Reason for cancellation (optional)",
-        inputPlaceholder: "Enter your reason here...",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, cancel it!",
-        preConfirm: (reason) => {
-          return { cancelReason: reason || '' };
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          cancelProduct(orderId, productId, result.value.cancelReason);
-        }
+        Swal.fire({
+          title: "Cancel Product?",
+          text: "Are you sure you want to cancel this product?",
+          icon: "warning",
+          input: "textarea",
+          inputLabel: "Reason for cancellation (optional)",
+          inputPlaceholder: "Enter your reason here...",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, cancel it!",
+          preConfirm: (reason) => {
+            return { cancelReason: reason || "" };
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            cancelProduct(orderId, productId, result.value.cancelReason);
+          }
+        });
       });
     });
-  });
-   
-  function cancelProduct(orderId, productId, cancelReason) {
-   console.log("orderid...",orderId)
-    fetch(`/orders/${orderId}/cancel-product/${productId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": getCSRFToken()
-      },
-      credentials: 'include',
-      body: JSON.stringify({ cancelReason })
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          Swal.fire(
-            "Cancelled!",
-            `Product cancelled successfully. Refunded: ₹${data.refundAmount.toFixed(2)}`,
-            "success"
-          ).then(() => {
-            window.location.reload();
-          });
-        } else {
-          Swal.fire("Error!", data.message || "Failed to cancel product", "error");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        Swal.fire("Error!", error.message || "Something went wrong", "error");
-      });
-  }
 
-  // Return Request Handling
-  const returnButtons = document.querySelectorAll(".btn-return");
-  returnButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const orderId = this.getAttribute("data-order-id");
-      const productId = this.getAttribute("data-product-id");
+    function cancelProduct(orderId, productId, cancelReason) {
+      console.log("orderid...", orderId);
+      fetch(`/orders/${orderId}/cancel-product/${productId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": getCSRFToken(),
+        },
+        credentials: "include",
+        body: JSON.stringify({ cancelReason }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            let message = "Product cancelled successfully.";
+            if (data.refundAmount && data.refundAmount > 0) {
+              message += ` Refunded: ₹${data.refundAmount.toFixed(2)}`;
+            }
 
-      Swal.fire({
-        title: "Request Return",
-        html: `
+            Swal.fire("Cancelled!", message, "success").then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire(
+              "Error!",
+              data.message || "Failed to cancel product",
+              "error"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          Swal.fire("Error!", error.message || "Something went wrong", "error");
+        });
+    }
+
+    // Return Request Handling
+    const returnButtons = document.querySelectorAll(".btn-return");
+    returnButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const orderId = this.getAttribute("data-order-id");
+        const productId = this.getAttribute("data-product-id");
+
+        Swal.fire({
+          title: "Request Return",
+          html: `
           <div class="return-reason-form">
             <label for="return-reason" class="swal2-label">Please select a reason for return:</label>
             <select id="return-reason" class="swal2-select" required>
@@ -700,167 +758,173 @@ cancelButtons.forEach((btn, i) => console.log(`Button ${i} data-id:`, btn.getAtt
             </div>
           </div>
         `,
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Submit Return Request",
-        focusConfirm: false,
-        didOpen: () => {
-          const reasonSelect = document.getElementById('return-reason');
-          const otherReasonContainer = document.getElementById('other-reason-container');
-          
-          reasonSelect.addEventListener('change', function() {
-            if (this.value === 'Other') {
-              otherReasonContainer.style.display = 'block';
-            } else {
-              otherReasonContainer.style.display = 'none';
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Submit Return Request",
+          focusConfirm: false,
+          didOpen: () => {
+            const reasonSelect = document.getElementById("return-reason");
+            const otherReasonContainer = document.getElementById(
+              "other-reason-container"
+            );
+
+            reasonSelect.addEventListener("change", function () {
+              if (this.value === "Other") {
+                otherReasonContainer.style.display = "block";
+              } else {
+                otherReasonContainer.style.display = "none";
+              }
+            });
+          },
+          preConfirm: () => {
+            const reasonSelect = document.getElementById("return-reason");
+            const otherReason = document.getElementById("other-reason");
+
+            if (!reasonSelect.value) {
+              Swal.showValidationMessage("Please select a reason for return");
+              return false;
             }
-          });
-        },
-        preConfirm: () => {
-          const reasonSelect = document.getElementById('return-reason');
-          const otherReason = document.getElementById('other-reason');
-          
-          if (!reasonSelect.value) {
-            Swal.showValidationMessage('Please select a reason for return');
-            return false;
+
+            if (reasonSelect.value === "Other" && !otherReason.value.trim()) {
+              Swal.showValidationMessage("Please specify your reason");
+              return false;
+            }
+
+            return {
+              reason: reasonSelect.value,
+              otherReason:
+                reasonSelect.value === "Other" ? otherReason.value.trim() : "",
+            };
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const returnReason =
+              result.value.reason === "Other"
+                ? result.value.otherReason
+                : result.value.reason;
+
+            requestReturn(orderId, productId, returnReason);
           }
-          
-          if (reasonSelect.value === 'Other' && !otherReason.value.trim()) {
-            Swal.showValidationMessage('Please specify your reason');
-            return false;
-          }
-          
-          return {
-            reason: reasonSelect.value,
-            otherReason: reasonSelect.value === 'Other' ? otherReason.value.trim() : ''
-          };
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const returnReason = result.value.reason === 'Other' 
-            ? result.value.otherReason 
-            : result.value.reason;
-            
-          requestReturn(orderId, productId, returnReason);
-        }
+        });
       });
     });
-  });
 
-  function requestReturn(orderId, productId, returnReason) {
-    fetch(`/orders/${orderId}/return`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": getCSRFToken()
-      },
-      credentials: 'include',
-      body: JSON.stringify({ 
-        productId, 
-        returnReason 
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
+    function requestReturn(orderId, productId, returnReason) {
+      fetch(`/orders/${orderId}/return`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": getCSRFToken(),
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          productId,
+          returnReason,
+        }),
       })
-      .then((data) => {
-        if (data.success) {
-          Swal.fire(
-            "Return Requested!",
-            "Your return request has been submitted.",
-            "success"
-          ).then(() => {
-            window.location.reload();
-          });
-        } else {
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            Swal.fire(
+              "Return Requested!",
+              "Your return request has been submitted.",
+              "success"
+            ).then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire(
+              "Error!",
+              data.message || "Failed to request return",
+              "error"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          Swal.fire("Error!", error.message || "Something went wrong", "error");
+        });
+    }
+
+    // Download Invoice Functionality
+    const downloadInvoiceButtons = document.querySelectorAll(
+      ".download-invoice-btn"
+    );
+    downloadInvoiceButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const orderId = this.getAttribute("data-order-id");
+        downloadInvoice(orderId);
+      });
+    });
+
+    function downloadInvoice(orderId) {
+      Swal.fire({
+        title: "Generating Invoice",
+        text: "Please wait...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      fetch(`/orders/${orderId}/invoice`, {
+        method: "GET",
+        headers: {
+          Accept: "application/pdf",
+          "X-CSRF-Token": getCSRFToken(),
+        },
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error(
+                "Invoice endpoint not found. Please contact support."
+              );
+            } else if (response.status === 401) {
+              throw new Error("Authentication required. Please log in again.");
+            } else {
+              return response.text().then((text) => {
+                throw new Error(
+                  `Server error: ${text || `Error ${response.status}`}`
+                );
+              });
+            }
+          }
+          return response.blob();
+        })
+        .then((blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `invoice-${orderId}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          Swal.fire("Success!", "Invoice downloaded successfully", "success");
+        })
+        .catch((error) => {
+          console.error("Error downloading invoice:", error);
           Swal.fire(
             "Error!",
-            data.message || "Failed to request return",
+            `Failed to download invoice: ${error.message}`,
             "error"
           );
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        Swal.fire("Error!", error.message || "Something went wrong", "error");
-      });
-  }
+        });
+    }
 
-  // Download Invoice Functionality
-  const downloadInvoiceButtons = document.querySelectorAll(".download-invoice-btn");
-  downloadInvoiceButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const orderId = this.getAttribute("data-order-id");
-      downloadInvoice(orderId);
-    });
+    // Helper function to get CSRF token
+    function getCSRFToken() {
+      const token = document.querySelector('meta[name="csrf-token"]');
+      return token ? token.getAttribute("content") : "";
+    }
   });
-
-  function downloadInvoice(orderId) {
-    Swal.fire({
-      title: 'Generating Invoice',
-      text: 'Please wait...',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-
-    fetch(`/orders/${orderId}/invoice`, {
-      method: "GET",
-      headers: {
-        "Accept": "application/pdf",
-        "X-CSRF-Token": getCSRFToken()
-      },
-      credentials: 'include'
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Invoice endpoint not found. Please contact support.');
-          } else if (response.status === 401) {
-            throw new Error('Authentication required. Please log in again.');
-          } else {
-            return response.text().then(text => {
-              throw new Error(`Server error: ${text || `Error ${response.status}`}`);
-            });
-          }
-        }
-        return response.blob();
-      })
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `invoice-${orderId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        Swal.fire(
-          'Success!',
-          'Invoice downloaded successfully',
-          'success'
-        );
-      })
-      .catch((error) => {
-        console.error("Error downloading invoice:", error);
-        Swal.fire(
-          'Error!',
-          `Failed to download invoice: ${error.message}`,
-          'error'
-        );
-      });
-  }
-  
-  // Helper function to get CSRF token
-  function getCSRFToken() {
-    const token = document.querySelector('meta[name="csrf-token"]');
-    return token ? token.getAttribute('content') : '';
-  }
-});
 </script>

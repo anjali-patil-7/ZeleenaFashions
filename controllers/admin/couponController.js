@@ -59,7 +59,7 @@ exports.postAddCoupon = async (req, res) => {
             status,
             description
         } = req.body;
-
+console.log("Coupoun details>>>>" , req.body)
         // Validate inputs
         if (!couponCode || !type || !discount || !minimumPrice || !maxRedeem || !expiry) {
             req.flash('error', 'All required fields must be filled');
@@ -151,6 +151,7 @@ exports.postAddCoupon = async (req, res) => {
             status: status === 'true',
             description: description || ''
         });
+        console.log("Create COupoun>>>>", coupon);
 
         await coupon.save();
         req.flash('success', 'Coupon created successfully');

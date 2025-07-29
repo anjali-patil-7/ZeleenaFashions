@@ -3,7 +3,7 @@ const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const PDFDocument = require("pdfkit");
 const ExcelJS = require("exceljs");
-const moment = require('moment-timezone');
+const moment = require("moment-timezone");
 
 // Helper function to format dates
 const formatDate = (date, format = "DD-MM-YYYY") => moment(date).format(format);
@@ -31,7 +31,7 @@ exports.getSalesReport = async (req, res) => {
     const { format, page: currentPage = 1 } = req.query;
     const perPage = 10;
     const validPeriods = ["daily", "weekly", "monthly", "yearly"];
-    let query = {};
+    let query = { orderStatus: "Delivered" };
 
     // Validate period parameter
     if (!validPeriods.includes(period)) {
@@ -104,7 +104,7 @@ exports.getSalesReport = async (req, res) => {
     orders = orders.map((order) => ({
       ...order,
       orderDate: formatDate(order.createdAt),
-      orderStatus: order.orderStatus || "N/A",
+      orderStatus: "Delivered",
     }));
 
     // For PDF/Excel, fetch all orders
@@ -118,7 +118,7 @@ exports.getSalesReport = async (req, res) => {
           orders.map((order) => ({
             ...order,
             orderDate: formatDate(order.createdAt),
-            orderStatus: order.orderStatus || "N/A",
+            orderStatus: "Delivered",
           }))
         );
       console.log(`Fetched ${allOrders.length} orders for ${format} report`);
@@ -163,198 +163,6 @@ exports.getSalesReport = async (req, res) => {
 };
 
 // Custom Date Sales Report
-// exports.getCustomDateReport = async (req, res) => {
-//   console.log("Custom date filter initialized......")
-//   try {
-//     const { from, to, format, page: currentPage = 1 } = req.query; 
-
-//     const perPage = 10;
-
-//     console.log(
-//       `Custom date report requested: from=${from}, to=${to}, page=${currentPage}, format=${format}`
-//     );
-
-//     if (!from || !to) {
-//       console.log("Missing from or to in query parameters");
-//       return res.status(400).render("admin/salesreport", {
-//         page: "custom", // Match frontend's page value
-//         orders: [],
-//         TotalAmount: 0,
-//         TotalDiscountAmount: 0,
-//         TotalSaleCount: 0,
-//         error: "Please provide both start and end dates.",
-//         fromDate: from, // Pass back to template for pre-filling
-//         toDate: to,
-//         currentPage: 1,
-//         totalPages: 0,
-//         perPage,
-//       });
-//     }
-
-//     const startDate = moment
-//       .tz(from, "YYYY-MM-DD", "Asia/Kolkata")
-//       .startOf("day");
-//     const endDate = moment.tz(to, "YYYY-MM-DD", "Asia/Kolkata").endOf("day");
-//     const today = moment.tz("Asia/Kolkata").endOf("day");
-
-//     console.log("startDate:", startDate.format());
-//     console.log("endDate:", endDate.format());
-//     console.log("today:", today.format());
-
-
-//     if (!startDate.isValid() || !endDate.isValid()) {
-//       console.log("Invalid date format for from or to");
-//       return res.status(400).render("admin/salesreport", {
-//         page: "custom",
-//         orders: [],
-//         TotalAmount: 0,
-//         TotalDiscountAmount: 0,
-//         TotalSaleCount: 0,
-//         error: "Invalid date format. Use YYYY-MM-DD.",
-//         fromDate: from,
-//         toDate: to,
-//         currentPage: 1,
-//         totalPages: 0,
-//         perPage,
-//       });
-//     }
-
-//     if (endDate < startDate) {
-//       console.log("End date is earlier than start date");
-//       return res.status(400).render("admin/salesreport", {
-//         page: "custom",
-//         orders: [],
-//         TotalAmount: 0,
-//         TotalDiscountAmount: 0,
-//         TotalSaleCount: 0,
-//         error: "End date cannot be earlier than start date.",
-//         fromDate: from,
-//         toDate: to,
-//         currentPage: 1,
-//         totalPages: 0,
-//         perPage,
-//       });
-//     }
-
-//     // Check for future dates
-//     const today = moment().endOf("day").toDate();
-//     if (startDate > today || endDate > today) {
-//       console.log("Dates are in the future");
-//       return res.status(400).render("admin/salesreport", {
-//         page: "custom",
-//         orders: [],
-//         TotalAmount: 0,
-//         TotalDiscountAmount: 0,
-//         TotalSaleCount: 0,
-//         error: "Dates cannot be in the future.",
-//         fromDate: from,
-//         toDate: to,
-//         currentPage: 1,
-//         totalPages: 0,
-//         perPage,
-//       });
-//     }
-
-//     // Fetch total orders for pagination
-//     const query = { createdAt: { $gte: startDate, $lte: endDate } };
-//     const totalOrders = await Order.countDocuments(query);
-//     const totalPages = Math.ceil(totalOrders / perPage);
-//     console.log(
-//       `Custom date - Total orders: ${totalOrders}, Total pages: ${totalPages}`
-//     );
-
-//     // Calculate summary for all orders in the period
-//     const summary = await calculateSummary(query);
-//     console.log(`Custom date - Summary: ${JSON.stringify(summary)}`);
-
-//     // Fetch paginated orders for view
-//     let orders = await Order.find(query)
-//       .populate("userId", "name email")
-//       .sort({ createdAt: -1 })
-//       .skip((parseInt(currentPage) - 1) * perPage)
-//       .limit(perPage)
-//       .lean();
-
-//     // Add formatted orderDate and orderStatus
-//     orders = orders.map((order) => ({
-//       ...order,
-//       orderDate: formatDate(order.createdAt),
-//       orderStatus: order.orderStatus || "N/A",
-//     }));
-
-//     // For PDF/Excel, fetch all orders
-//     let allOrders = [];
-//     if (format === "pdf" || format === "excel") {
-//       allOrders = await Order.find(query)
-//         .populate("userId", "name email")
-//         .sort({ createdAt: -1 })
-//         .lean()
-//         .then((orders) =>
-//           orders.map((order) => ({
-//             ...order,
-//             orderDate: formatDate(order.createdAt),
-//             orderStatus: order.orderStatus || "N/A",
-//           }))
-//         );
-//       console.log(`Fetched ${allOrders.length} orders for ${format} report`);
-//     }
-
-//     if (format === "pdf") {
-//       return exports.generatePDF(
-//         req,
-//         res,
-//         allOrders,
-//         summary,
-//         "custom",
-//         from,
-//         to
-//       );
-//     } else if (format === "excel") {
-//       return exports.generateExcel(
-//         req,
-//         res,
-//         allOrders,
-//         summary,
-//         "custom",
-//         from,
-//         to
-//       );
-//     }
-
-//     res.render("admin/salesreport", {
-//       page: "custom",
-//       orders,
-//       TotalAmount: summary.TotalAmount,
-//       TotalDiscountAmount: summary.TotalDiscountAmount,
-//       TotalSaleCount: summary.TotalSaleCount,
-//       error:
-//         orders.length === 0
-//           ? "No orders found for the selected date range."
-//           : null,
-//       fromDate: from,
-//       toDate: to,
-//       currentPage: parseInt(currentPage),
-//       totalPages,
-//       perPage,
-//     });
-//   } catch (error) {
-//     console.error("Error in getCustomDateReport:", error);
-//     res.status(500).render("admin/salesreport", {
-//       page: "custom",
-//       orders: [],
-//       TotalAmount: 0,
-//       TotalDiscountAmount: 0,
-//       TotalSaleCount: 0,
-//       error: `Error fetching custom date report: ${error.message}`,
-//       fromDate: req.query.from || "",
-//       toDate: req.query.to || "",
-//       currentPage: 1,
-//       totalPages: 0,
-//       perPage: 10,
-//     });
-//   }
-// };
-
 exports.getCustomDateReport = async (req, res) => {
   console.log("Custom date filter initialized...");
   try {
@@ -448,6 +256,7 @@ exports.getCustomDateReport = async (req, res) => {
         $gte: startDate.toDate(),
         $lte: endDate.toDate(),
       },
+      orderStatus: "Delivered",
     };
 
     const totalOrders = await Order.countDocuments(query);
@@ -469,7 +278,7 @@ exports.getCustomDateReport = async (req, res) => {
     orders = orders.map((order) => ({
       ...order,
       orderDate: formatDate(order.createdAt),
-      orderStatus: order.orderStatus || "N/A",
+      orderStatus: "Delivered",
     }));
 
     // Handle report downloads
@@ -482,10 +291,9 @@ exports.getCustomDateReport = async (req, res) => {
           orders.map((order) => ({
             ...order,
             orderDate: formatDate(order.createdAt),
-            orderStatus: order.orderStatus || "N/A",
+            orderStatus: "Delivered",
           }))
         );
-      console.log(`Fetched ${allOrders.length} orders for ${format} report`);
 
       if (format === "pdf") {
         return exports.generatePDF(
@@ -548,7 +356,7 @@ exports.getCustomDateReport = async (req, res) => {
 // Check Data Existence for Custom Date
 exports.checkDataExist = async (req, res) => {
   try {
-    const { from, to } = req.query; // Changed to match frontend
+    const { from, to } = req.query;
 
     console.log(`Checking data existence: from=${from}, to=${to}`);
 
@@ -578,6 +386,7 @@ exports.checkDataExist = async (req, res) => {
 
     const orders = await Order.find({
       createdAt: { $gte: startDate, $lte: endDate },
+      orderStatus: "Delivered",
     }).limit(1);
 
     console.log(`Data existence check: ${orders.length} orders found`);
@@ -871,9 +680,10 @@ exports.downloadSalesReport = async (req, res) => {
         return res.status(400).json({ message: "Invalid filter type" });
     }
 
-    // Fetch all orders in the range (include all statuses)
+    // Fetch all orders in the range with Delivered status
     const orders = await Order.find({
       createdAt: { $gte: startDate, $lte: endDate },
+      orderStatus: "Delivered",
     }).populate("userId");
 
     // Excel setup
@@ -909,7 +719,7 @@ exports.downloadSalesReport = async (req, res) => {
         orderAmount,
         discount,
         offer,
-        status: order.orderStatus || "N/A",
+        status: "Delivered",
         paymentStatus: order.paymentStatus || "N/A",
       });
 

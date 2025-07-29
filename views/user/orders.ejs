@@ -19,48 +19,106 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-3">
-          <ul class="nav myaccount-tab-trigger" id="account-page-tab" role="tablist">
+          <ul
+            class="nav myaccount-tab-trigger"
+            id="account-page-tab"
+            role="tablist"
+          >
             <li class="nav-item">
-              <a class="nav-link" id="account-dashboard-tab" href="/profile" aria-selected="false">Dashboard</a>
+              <a
+                class="nav-link"
+                id="account-dashboard-tab"
+                href="/profile"
+                aria-selected="false"
+                >Dashboard</a
+              >
             </li>
             <li class="nav-item">
-              <a class="nav-link active" id="account-orders-tab" href="/orders" aria-selected="true">Orders</a>
+              <a
+                class="nav-link active"
+                id="account-orders-tab"
+                href="/orders"
+                aria-selected="true"
+                >Orders</a
+              >
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="account-address-tab" href="/address" aria-selected="false">Addresses</a>
+              <a
+                class="nav-link"
+                id="account-address-tab"
+                href="/address"
+                aria-selected="false"
+                >Addresses</a
+              >
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="account-address-tab" href="/walletHistory" aria-selected="false">Wallet</a>
+              <a
+                class="nav-link"
+                id="account-address-tab"
+                href="/walletHistory"
+                aria-selected="false"
+                >Wallet</a
+              >
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="account-details-tab" href="/changepassword" aria-selected="false">Change Password</a>
+              <a
+                class="nav-link"
+                id="account-details-tab"
+                href="/changepassword"
+                aria-selected="false"
+                >Change Password</a
+              >
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="account-logout-tab" href="#" onclick="logout()" role="tab" aria-selected="false">Logout</a>
+              <a
+                class="nav-link"
+                id="account-logout-tab"
+                href="#"
+                onclick="logout()"
+                role="tab"
+                aria-selected="false"
+                >Logout</a
+              >
             </li>
           </ul>
         </div>
         <div class="col-lg-9">
-          <div class="tab-content myaccount-tab-content" id="account-page-tab-content">
-            <div class="tab-pane fade show active" id="account-orders" role="tabpanel">
+          <div
+            class="tab-content myaccount-tab-content"
+            id="account-page-tab-content"
+          >
+            <div
+              class="tab-pane fade show active"
+              id="account-orders"
+              role="tabpanel"
+            >
               <div class="myaccount-orders">
                 <h4 class="small-title">MY ORDERS</h4>
-                <% if (orders && orders.length > 0) { %>
-                <% orders.forEach(function(order) { %>
+                <% if (orders && orders.length > 0) { %> <%
+                orders.forEach(function(order) { %>
                 <div class="order-card">
                   <div class="order-header">
                     <div class="order-header-left">
-                      <div class="order-id">Order ID: <%= order.orderNumber %></div>
+                      <div class="order-id">
+                        Order ID: <%= order.orderNumber %>
+                      </div>
                       <div class="order-date">
-                        Ordered on: <%= new Date(order.createdAt).toLocaleDateString() %>
+                        Ordered on: <%= new
+                        Date(order.createdAt).toLocaleDateString() %>
                       </div>
                     </div>
                     <div class="order-header-right">
-                      <div class="order-amount">Total: ₹<%= order.finalAmount.toFixed(2) %></div>
-                      <div class="payment-status <%= order.paymentStatus.toLowerCase() %>">
+                      <div class="order-amount">
+                        Total: ₹<%= order.finalAmount.toFixed(2) %>
+                      </div>
+                      <div
+                        class="payment-status <%= order.paymentStatus.toLowerCase() %>"
+                      >
                         Payment: <%= order.paymentStatus %>
                       </div>
-                      <div class="order-status <%= order.orderStatus.toLowerCase() %>">
+                      <div
+                        class="order-status <%= order.orderStatus.toLowerCase() %>"
+                      >
                         Status: <%= order.orderStatus %>
                       </div>
                     </div>
@@ -68,9 +126,19 @@
 
                   <div class="order-footer">
                     <div class="order-actions">
-                      <a href="/orderdetails/<%= order._id %>" class="btn-view-order">View Details</a>
-                      <% if (order.paymentStatus === "Failed") { %>
-                      <button onclick="retryPayment('<%= order._id %>', this)" class="btn-retry-payment">Retry Payment</button>
+                      <a
+                        href="/orderdetails/<%= order._id %>"
+                        class="btn-view-order"
+                        >View Details</a
+                      >
+                      <% if (order.paymentStatus === "Failed" &&
+                      order.orderStatus !== "Cancelled") { %>
+                      <button
+                        onclick="retryPayment('<%= order._id %>', this)"
+                        class="btn-retry-payment"
+                      >
+                        Retry Payment
+                      </button>
                       <% } %>
                     </div>
                   </div>
@@ -79,32 +147,41 @@
                   <div class="payment-failed-notice">
                     <i class="fas fa-credit-card text-danger"></i>
                     <i class="fas fa-times-circle text-danger"></i>
-                    <p>Payment attempt failed. Please retry to complete your order. Contact support if the issue persists.</p>
+                    <p>
+                      Payment attempt failed. Please retry to complete your
+                      order. Contact support if the issue persists.
+                    </p>
                   </div>
                   <% } %>
                 </div>
-                <% }); %>
-
-                <% if (pagination && pagination.totalPages > 1) { %>
+                <% }); %> <% if (pagination && pagination.totalPages > 1) { %>
                 <div class="pagination-wrapper">
                   <div class="pagination">
                     <% if (pagination.hasPrevPage) { %>
-                    <a href="/orders?page=<%= pagination.prevPage %>" class="pagination-btn prev">«</a>
-                    <% } %>
-                    <% for(let i = 1; i <= pagination.totalPages; i++) { %>
-                    <% if (i === pagination.page) { %>
-                    <a href="javascript:void(0)" class="pagination-btn active"><%= i %></a>
+                    <a
+                      href="/orders?page=<%= pagination.prevPage %>"
+                      class="pagination-btn prev"
+                      >«</a
+                    >
+                    <% } %> <% for(let i = 1; i <= pagination.totalPages; i++) {
+                    %> <% if (i === pagination.page) { %>
+                    <a href="javascript:void(0)" class="pagination-btn active"
+                      ><%= i %></a
+                    >
                     <% } else { %>
-                    <a href="/orders?page=<%= i %>" class="pagination-btn"><%= i %></a>
-                    <% } %>
-                    <% } %>
-                    <% if (pagination.hasNextPage) { %>
-                    <a href="/orders?page=<%= pagination.nextPage %>" class="pagination-btn next">»</a>
+                    <a href="/orders?page=<%= i %>" class="pagination-btn"
+                      ><%= i %></a
+                    >
+                    <% } %> <% } %> <% if (pagination.hasNextPage) { %>
+                    <a
+                      href="/orders?page=<%= pagination.nextPage %>"
+                      class="pagination-btn next"
+                      >»</a
+                    >
                     <% } %>
                   </div>
                 </div>
-                <% } %>
-                <% } else { %>
+                <% } %> <% } else { %>
                 <div class="no-orders">
                   <p>No orders found</p>
                   <a href="/shop" class="btn-shop">Start Shopping</a>
@@ -363,7 +440,10 @@
 
 <script>
   // Define base URL based on environment
-  const BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin;
+  const BASE_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : window.location.origin;
 
   function logout() {
     Swal.fire({
@@ -383,18 +463,18 @@
   }
 
   function retryPayment(orderId, button) {
-    console.log('Initiating retry payment for order:', orderId);
+    console.log("Initiating retry payment for order:", orderId);
     button.disabled = true;
     button.textContent = "Processing...";
 
     // Get JWT token from localStorage or cookies
-    const token = localStorage.getItem('token') || '';
+    const token = localStorage.getItem("token") || "";
 
     fetch(`${BASE_URL}/retry-payment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${token}` : ''
+        Authorization: token ? `Bearer ${token}` : "",
       },
       body: JSON.stringify({ orderId }),
     })
@@ -405,13 +485,13 @@
         return response.json();
       })
       .then((data) => {
-        console.log('Retry payment response:', data);
+        console.log("Retry payment response:", data);
         button.disabled = false;
         button.textContent = "Retry Payment";
 
         if (data.success) {
           if (!data.key_id) {
-            throw new Error('Razorpay Key ID is missing in response');
+            throw new Error("Razorpay Key ID is missing in response");
           }
 
           const options = {
@@ -422,7 +502,7 @@
             description: `Retry Payment for Order ${orderId}`,
             order_id: data.order_id,
             handler: function (response) {
-              console.log('Razorpay payment response:', response);
+              console.log("Razorpay payment response:", response);
               verifyRetryPayment(response, orderId);
             },
             prefill: {
@@ -445,20 +525,22 @@
             },
           };
 
-          console.log('Razorpay options:', options);
+          console.log("Razorpay options:", options);
           const rzp = new Razorpay(options);
           rzp.on("payment.failed", function (response) {
-            console.error('Razorpay payment failed:', response.error);
+            console.error("Razorpay payment failed:", response.error);
             Swal.fire({
               title: "Payment Failed",
-              text: response.error.description || "Please try again or contact support.",
+              text:
+                response.error.description ||
+                "Please try again or contact support.",
               icon: "error",
               confirmButtonColor: "#1d2951",
             });
           });
           rzp.open();
         } else {
-          console.error('Retry payment initiation failed:', data.message);
+          console.error("Retry payment initiation failed:", data.message);
           Swal.fire({
             title: "Error",
             text: data.message || "Failed to initiate retry payment.",
@@ -470,10 +552,12 @@
       .catch((error) => {
         button.disabled = false;
         button.textContent = "Retry Payment";
-        console.error('Retry payment error:', error);
+        console.error("Retry payment error:", error);
         Swal.fire({
           title: "Error",
-          text: "An error occurred while initiating retry payment: " + error.message,
+          text:
+            "An error occurred while initiating retry payment: " +
+            error.message,
           icon: "error",
           confirmButtonColor: "#1d2951",
         });
@@ -481,11 +565,21 @@
   }
 
   function verifyRetryPayment(payment, orderId) {
-    console.log('Verifying payment for order:', orderId, 'with payment details:', payment);
+    console.log(
+      "Verifying payment for order:",
+      orderId,
+      "with payment details:",
+      payment
+    );
 
     // Validate payment object
-    if (!payment || !payment.razorpay_order_id || !payment.razorpay_payment_id || !payment.razorpay_signature) {
-      console.error('Invalid payment response:', payment);
+    if (
+      !payment ||
+      !payment.razorpay_order_id ||
+      !payment.razorpay_payment_id ||
+      !payment.razorpay_signature
+    ) {
+      console.error("Invalid payment response:", payment);
       Swal.fire({
         title: "Error",
         text: "Invalid payment response from Razorpay. Please try again.",
@@ -496,13 +590,13 @@
     }
 
     // Get JWT token from localStorage or cookies
-    const token = localStorage.getItem('token') || '';
+    const token = localStorage.getItem("token") || "";
 
     fetch(`${BASE_URL}/verify-payment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${token}` : ''
+        Authorization: token ? `Bearer ${token}` : "",
       },
       body: JSON.stringify({
         razorpayOrderId: payment.razorpay_order_id,
@@ -512,16 +606,18 @@
       }),
     })
       .then((response) => {
-        console.log('Verify payment response status:', response.status);
+        console.log("Verify payment response status:", response.status);
         if (!response.ok) {
           return response.text().then((text) => {
-            throw new Error(`HTTP error! Status: ${response.status}, Response: ${text}`);
+            throw new Error(
+              `HTTP error! Status: ${response.status}, Response: ${text}`
+            );
           });
         }
         return response.json();
       })
       .then((data) => {
-        console.log('Verification response:', data);
+        console.log("Verification response:", data);
         if (data.success) {
           Swal.fire({
             title: "Payment Successful",
@@ -532,10 +628,12 @@
             window.location.href = data.redirectUrl || "/orders";
           });
         } else {
-          console.error('Payment verification failed:', data.message);
+          console.error("Payment verification failed:", data.message);
           Swal.fire({
             title: "Payment Failed",
-            text: data.message || "Payment verification failed. Please try again or contact support.",
+            text:
+              data.message ||
+              "Payment verification failed. Please try again or contact support.",
             icon: "error",
             confirmButtonColor: "#1d2951",
           }).then(() => {
@@ -544,10 +642,11 @@
         }
       })
       .catch((error) => {
-        console.error('Payment verification error:', error);
+        console.error("Payment verification error:", error);
         Swal.fire({
           title: "Error",
-          text: "An error occurred during payment verification: " + error.message,
+          text:
+            "An error occurred during payment verification: " + error.message,
           icon: "error",
           confirmButtonColor: "#1d2951",
         }).then(() => {

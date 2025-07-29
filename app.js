@@ -122,11 +122,16 @@ app.use((req, res, next) => {
 app.use('/admin', require('./routes/adminRoute'));
 app.use('/', require('./routes/userRoute'));
 
-
 //404 error page handler
-app.use((req,res,next)=>{
-  res.status(404).render("user/404")
+app.use((req,res,next) => {
+  res.status(404).render('user/404')
 })
+
+
+
+
+
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));
