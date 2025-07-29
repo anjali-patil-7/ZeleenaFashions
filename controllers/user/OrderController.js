@@ -84,8 +84,8 @@ exports.getOrderDetails = async (req, res) => {
 
         let discountAmount = order.discountAmount || 0;
         let finalPrice = order.finalAmount;
-         let couponDiscount = order.couponDiscount || 0;
-
+        let couponDiscount = order.couponDiscount || 0;
+ 
         res.render('user/orderdetails', {
             order,
             address: { address: [address] },
